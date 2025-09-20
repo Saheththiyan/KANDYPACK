@@ -1,15 +1,10 @@
-const CustomerModel = require('../models/customerModel');
+import * as customer from "../models/customerModel.js";
 
-const fetchCustomers = () => {
-  CustomerModel.getAllCustomers((err, customers) => {
-    if (err) {
-      console.error("Error fetching customers:", err);
-    } else {
-      customers.forEach(c => {
-        console.log(`${c.name}: ${c.email}`);
-      });
-    }
-  });
-};
-
-module.exports = { fetchCustomers };
+export async function getAllCustomers(req, res) {
+  try {
+    const customers = await customer.getCustomers();
+    res.json(customers);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
