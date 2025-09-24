@@ -13,6 +13,7 @@ import deliversRouter from "./routers/deliversRouter.js";
 import deliveryScheduleRouter from "./routers/deliveryScheduleRouter.js";
 import trainScheduleRouter from "./routers/trainScheduleRouter.js";
 import orderItemRouter from "./routers/orderItemRouter.js";
+import adminRouter from "./routers/adminRouter.js";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
@@ -36,6 +37,7 @@ app.use("/delivers", deliversRouter);
 app.use("/deliverySchedule", deliveryScheduleRouter);
 app.use("/trainSchedule", trainScheduleRouter);
 app.use("/orderItems", orderItemRouter);
+app.use("/admin", adminRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
