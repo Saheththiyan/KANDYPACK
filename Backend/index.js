@@ -18,13 +18,14 @@ import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 
-const PORT = process.env.PORT;
+// default to 5000 when not provided (useful for docker and local dev)
+const PORT = process.env.PORT || 5000;
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/customers", customerRouter);
+app.use("/", customerRouter);
 app.use("/drivers", driverRouter);
 app.use("/products", productRouter);
 app.use("/stores", storeRouter);
