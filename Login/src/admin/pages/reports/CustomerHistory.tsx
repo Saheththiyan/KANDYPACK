@@ -1,0 +1,293 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Search, Download, Package, TrendingUp } from 'lucide-react';
+import { fetchCustomerHistory, CustomerOrderHistoryItem } from '@/lib/mockAdminApi';
+import { useToast } from '@/hooks/use-toast';
+
+const CustomerHistory = () => {
+  const [orderHistory, setOrderHistory] = useState<CustomerOrderHistoryItem[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<CustomerOrderHistoryItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadOrderHistory = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchCustomerHistory();
+        setOrderHistory(data);
+        setFilteredOrders(data);
+      } catch (error) {
+        toast({
+          title: 'Error loading order history',
+          description: 'Failed to load customer order history. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrderHistory();
+  }, [toast]);
+
+  const handleSearch = () => {
+    if (searchTerm.trim() === '') {
+      setFilteredOrders(orderHistory);
+    } else {
+      const filtered = orderHistory.filter(order => 
+        order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredOrders(filtered);
+    }
+  };
+
+  const handleExport = () => {
+    toast({
+      title: 'Export started',
+      description: 'Customer order history is being exported to CSV.',
+    });
+  };
+
+  const totalOrders = filteredOrders.length;
+  const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+  const formatCurrency = (value: number) => `Rs ${value.toLocaleString()}`;
+  const formatNumber = (value: number) => value.toLocaleString();
+
+  const getStatusBadge = (status: string) => {
+    const variants: { [key: string]: "default" | "secondary" | "outline" | "destructive" } = {
+      'Delivered': 'default',
+      'In Transit': 'secondary',
+      'Pending': 'outline',
+      'Cancelled': 'destructive'
+    };
+    return <Badge variant={variants[status] || 'outline'}>{status}</Badge>;
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold tracking-tight">Customer Order History</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-muted rounded animate-pulse" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Customer Order History</h2>
+          <p className="text-muted-foreground">
+            Complete order tracking with delivery details
+          </p>
+        </div>
+        <Button onClick={handleExport} variant="outline">
+          <Download className="h-4 w-4 mr-2" />
+          Export CSV
+        </Button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatNumber(totalOrders)}</div>
+            <p className="text-xs text-muted-foreground">
+              Filtered results
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+            <p className="text-xs text-muted-foreground">
+              From filtered orders
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Order Value</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(avgOrderValue)}</div>
+            <p className="text-xs text-muted-foreground">
+              Per order
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Search Orders</CardTitle>
+          <CardDescription>Filter by customer email or order ID</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by customer email or order ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="pl-10"
+              />
+            </div>
+            <Button onClick={handleSearch}>Search</Button>
+            {searchTerm && (
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchTerm('');
+                  setFilteredOrders(orderHistory);
+                }}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Orders Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Order Details</CardTitle>
+          <CardDescription>Complete order and delivery information</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="relative overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs uppercase bg-muted/50">
+                <tr>
+                  <th className="px-4 py-3">Order ID</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3 text-right">Items</th>
+                  <th className="px-4 py-3 text-right">Total</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">City</th>
+                  <th className="px-4 py-3">Route</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                      No orders found matching your search criteria
+                    </td>
+                  </tr>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <tr key={order.orderId} className="border-b hover:bg-muted/50">
+                      <td className="px-4 py-3 font-medium">{order.orderId}</td>
+                      <td className="px-4 py-3">{order.date}</td>
+                      <td className="px-4 py-3">{order.customer}</td>
+                      <td className="px-4 py-3 text-right">{order.items}</td>
+                      <td className="px-4 py-3 text-right">{formatCurrency(order.total)}</td>
+                      <td className="px-4 py-3">{getStatusBadge(order.status)}</td>
+                      <td className="px-4 py-3">{order.deliveryCity}</td>
+                      <td className="px-4 py-3">{order.route}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Expanded Details for Selected Orders */}
+      {filteredOrders.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Logistics Details</CardTitle>
+            <CardDescription>Complete delivery chain information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {filteredOrders.map((order) => (
+                <div key={order.orderId} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">{order.orderId}</h4>
+                    {getStatusBadge(order.status)}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    {order.railTrip && (
+                      <div>
+                        <span className="text-muted-foreground">Rail Trip:</span>
+                        <p className="font-medium">{order.railTrip}</p>
+                      </div>
+                    )}
+                    {order.store && (
+                      <div>
+                        <span className="text-muted-foreground">Store:</span>
+                        <p className="font-medium">{order.store}</p>
+                      </div>
+                    )}
+                    {order.truck && (
+                      <div>
+                        <span className="text-muted-foreground">Truck:</span>
+                        <p className="font-medium">{order.truck}</p>
+                      </div>
+                    )}
+                    {order.driver && (
+                      <div>
+                        <span className="text-muted-foreground">Driver:</span>
+                        <p className="font-medium">{order.driver}</p>
+                      </div>
+                    )}
+                    {order.assistant && (
+                      <div>
+                        <span className="text-muted-foreground">Assistant:</span>
+                        <p className="font-medium">{order.assistant}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default CustomerHistory;
