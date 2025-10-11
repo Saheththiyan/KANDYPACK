@@ -24,17 +24,11 @@ services:
     depends_on:
       - db
 
-  admin-frontend:
-    build: ./Admin
+  frontend:
+    build: ./Frontend
     restart: unless-stopped
     ports:
       - "8080:80"
-
-  user-frontend:
-    build: ./User
-    restart: unless-stopped
-    ports:
-      - "8081:80"
 
 volumes:
   db_data:
