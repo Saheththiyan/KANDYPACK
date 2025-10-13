@@ -33,3 +33,26 @@ export async function getQuarterlyOrders(year) {
   );
   return orders;
 }
+
+
+export async function getCustomerOrderHistory(customerId) {
+  const [history] = await db.query(
+    `
+    SELECT 
+      YEAR(orderDate) AS year,
+      MONTH(orderDate) AS month,
+      COUNT(*) AS totalOrders,
+      SUM(totalAmount) AS totalSpent
+    FROM 
+      \`Order\`
+    WHERE 
+      customerId = ?
+    GROUP BY 
+      YEAR(orderDate), MONTH(orderDate)
+    ORDER BY 
+      YEAR(orderDate), MONTH(orderDate);
+    `,
+    [customerId]
+  );
+  return history;
+}
