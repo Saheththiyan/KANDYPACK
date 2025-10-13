@@ -187,7 +187,9 @@ const Customers = () => {
           title: "Success",
           description: "Customer deleted successfully",
         });
-        fetchCustomers();
+      const updatedCustomers = await fetchCustomers();
+      setCustomers(updatedCustomers);
+      setFilteredCustomers(updatedCustomers);
       } catch (error) {
         toast({
           title: "Error",
