@@ -25,7 +25,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/", customerRouter);
+app.use("/admin/customers", customerRouter);
+
 app.use("/drivers", driverRouter);
 app.use("/products", productRouter);
 app.use("/stores", storeRouter);
