@@ -5,7 +5,7 @@ export async function getItems() {
   return items;
 }
 
-export async function getMostOrderedProducts(year, quarter, limit = 5) {
+export async function getMostOrderedProducts(quarter, limit = 5) {
   const [products] = await db.query(
     `
     SELECT 
@@ -17,14 +17,14 @@ export async function getMostOrderedProducts(year, quarter, limit = 5) {
     JOIN 
       Product p ON oi.productId = p.id
     WHERE 
-      YEAR(oi.orderDate) = ? AND QUARTER(oi.orderDate) = ?
+      QUARTER(oi.orderDate) = ?
     GROUP BY 
       p.id, p.name
     ORDER BY 
       totalQuantity DESC
     LIMIT ?;
     `,
-    [year, quarter, limit]
+    [quarter, limit]
   );
   return products;
 }
