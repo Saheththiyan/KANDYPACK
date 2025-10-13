@@ -1,6 +1,20 @@
-// Controller for driver and assistant working hours report
-export function getStaffHoursReport(req, res) {
+import { sortDriversByHour } from "../../models/driverModel";
+import { getAssistantHours } from "../../models/assistantModel.js";
+
+async function getDriverHours(req, res) {
   const { from, to } = req.query;
-  // TODO: compute working hours per staff from shift logs / allocations
-  return res.json({ from, to, staff: [] });
+
+  const driverHours = await sortDriversByHour();
+  console.log("from to is not implemented");
+  return res.json({ from, to, staff: driverHours });
 }
+
+
+async function getAssistantHours(req, res) {
+  const { from, to } = req.query;
+
+  const assistantHours = await getAssistantHours(from, to);
+  return res.json({ from, to, staff: assistantHours });
+}
+
+export default { getDriverHours, getAssistantHours };

@@ -1,6 +1,10 @@
-// Controller for truck usage analysis per month
-export function getTruckUsage(req, res) {
-  const month = req.query.month || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+import { getTruckUsage } from "../../models/truckModel.js";
+
+export async function getTruckUsage(req, res) {
+  const month = req.query.month;
   // TODO: aggregate trips, kilometers and load factors per truck
-  return res.json({ month, trucks: [] });
+  const trucks = await getTruckUsage(month);
+  return res.json({ month, trucks });
 }
+
+
