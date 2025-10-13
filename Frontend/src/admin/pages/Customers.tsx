@@ -46,10 +46,27 @@ import {
   updateCustomer,
   deleteCustomer,
   searchCustomers,
-  Customer,
 } from '@/lib/queries';
 
 const ITEMS_PER_PAGE = 10;
+
+interface Customer {
+  customer_id: number;
+  name: string;
+  type: string;
+  address: string;
+  city: string;
+  phone: string;
+  email: string;
+}
+
+async function fetchCustomers(): Promise<Customer[]> {
+  const response = await fetch("http://localhost:5000/admin/customers");
+  if (!response.ok) {
+    throw new Error("Failed to fetch customers");
+  }
+  return response.json();
+}
 
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -59,77 +76,193 @@ const Customers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  // const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'Retail' as 'Retail' | 'Wholesale' | 'Corporate',
-    address: '',
-    city: '',
-    phone: '',
-    email: '',
-  });
+  // const [isEditing, setIsEditing] = useState(false);
+  // const [formData, setFormData] = useState({
+  //   name: '',
+  //   type: 'Retail' as 'Retail' | 'Wholesale' | 'Corporate',
+  //   address: '',
+  //   city: '',
+  //   phone: '',
+  //   email: '',
+  // });
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadCustomers();
-  }, []);
+  async function fetchCustomers(): Promise<Customer[]> {
+    const response = await fetch("http://localhost:5000/admin/customers");
+    if (!response.ok) {
+      throw new Error("Failed to fetch customers");
+    }
+    return response.json();
+  }
+
+  const searchLocalCustomers = (term: string, customers: Customer[]): Customer[] => {
+    const lowerTerm = term.toLowerCase().trim();
+    if (!lowerTerm) return customers;
+
+    return customers.filter(c =>
+      c.name.toLowerCase().includes(lowerTerm) ||
+      c.type.toLowerCase().includes(lowerTerm) ||
+      c.city.toLowerCase().includes(lowerTerm) ||
+      c.email.toLowerCase().includes(lowerTerm)
+    );
+  };
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredCustomers(customers);
     } else {
-      const results = searchCustomers(searchTerm);
+      const results = searchLocalCustomers(searchTerm, customers);
       setFilteredCustomers(results);
     }
     setCurrentPage(1);
   }, [searchTerm, customers]);
+  
+  // useEffect(() => {
+  //   loadCustomers();
+  // }, []);
 
-  const loadCustomers = async () => {
-    try {
-      setLoading(true);
-      await initDatabase();
-      const data = getAllCustomers();
-      setCustomers(data);
-      setFilteredCustomers(data);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load customers',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+  // const loadCustomers = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await fetchCustomers();
+  //     setCustomers(data);
+  //     setFilteredCustomers(data);
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast({
+  //       title: 'Error',
+  //       description: 'Failed to load customers',
+  //       variant: 'destructive',
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const confirmDelete = async () => {
+  //   if (!selectedCustomer) return;
+
+  //   try {
+  //     // If you have deleteCustomer in '@/lib/queries' that performs the API call:
+  //     // await deleteCustomer(selectedCustomer.customer_id);
+
+  //     // Or call the API directly:
+  //     const res = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customer_id}`, {
+  //       method: 'DELETE',
+  //     });
+  //     if (!res.ok) throw new Error('Failed to delete customer');
+  //     // reload the list
+  //     await loadCustomers();
+
+  //     toast({
+  //       title: 'Success',
+  //       description: 'Customer deleted successfully',
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast({
+  //       title: 'Error',
+  //       description: 'Failed to delete customer',
+  //       variant: 'destructive',
+  //     });
+  //   } finally {
+  //     setIsDeleteDialogOpen(false);
+  //     setSelectedCustomer(null);
+  //   }
+  // };
+
+  const confirmDelete = async () => {
+    if (selectedCustomer) {
+      try {
+        const response = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customer_id}`, {
+          method: "DELETE",
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to delete customer");
+        }
+        toast({
+          title: "Success",
+          description: "Customer deleted successfully",
+        });
+        fetchCustomers();
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setIsDeleteDialogOpen(false);
+        setSelectedCustomer(null);
+      }
     }
   };
 
-  const handleAddCustomer = () => {
-    setFormData({
-      name: '',
-      type: 'Retail',
-      address: '',
-      city: '',
-      phone: '',
-      email: '',
-    });
-    setIsEditing(false);
-    setIsFormModalOpen(true);
-  };
 
-  const handleEditCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setFormData({
-      name: customer.name,
-      type: customer.type,
-      address: customer.address,
-      city: customer.city,
-      phone: customer.phone,
-      email: customer.email,
-    });
-    setIsEditing(true);
-    setIsFormModalOpen(true);
-  };
+  // useEffect(() => {
+  //   if (searchTerm.trim() === '') {
+  //     setFilteredCustomers(customers);
+  //   } else {
+  //     const results = searchCustomers(searchTerm);
+  //     setFilteredCustomers(results);
+  //   }
+  //   setCurrentPage(1);
+  // }, [searchTerm, customers]);
+
+  // const loadCustomers = async () => {
+  //   try {
+  //     setLoading(true);
+  //     await initDatabase();
+  //     const data = getAllCustomers();
+  //     setCustomers(data);
+  //     setFilteredCustomers(data);
+  //   } catch (error) {
+  //     toast({
+  //       title: 'Error',
+  //       description: 'Failed to load customers',
+  //       variant: 'destructive',
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  useEffect(() => {
+    fetchCustomers()
+      .then(data => setCustomers(data))
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // const handleAddCustomer = () => {
+  //   setFormData({
+  //     name: '',
+  //     type: 'Retail',
+  //     address: '',
+  //     city: '',
+  //     phone: '',
+  //     email: '',
+  //   });
+  //   setIsEditing(false);
+  //   setIsFormModalOpen(true);
+  // };
+
+  // const handleEditCustomer = (customer: Customer) => {
+  //   setSelectedCustomer(customer);
+  //   setFormData({
+  //     name: customer.name,
+  //     type: customer.type,
+  //     address: customer.address,
+  //     city: customer.city,
+  //     phone: customer.phone,
+  //     email: customer.email,
+  //   });
+  //   setIsEditing(true);
+  //   setIsFormModalOpen(true);
+  // };
 
   const handleViewCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -141,53 +274,53 @@ const Customers = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (selectedCustomer) {
-      try {
-        deleteCustomer(selectedCustomer.customer_id);
-        loadCustomers();
-        toast({
-          title: 'Success',
-          description: 'Customer deleted successfully',
-        });
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete customer',
-          variant: 'destructive',
-        });
-      }
-      setIsDeleteDialogOpen(false);
-      setSelectedCustomer(null);
-    }
-  };
+  // const confirmDelete = () => {
+  //   if (selectedCustomer) {
+  //     try {
+  //       deleteCustomer(selectedCustomer.customer_id);
+  //       loadCustomers();
+  //       toast({
+  //         title: 'Success',
+  //         description: 'Customer deleted successfully',
+  //       });
+  //     } catch (error) {
+  //       toast({
+  //         title: 'Error',
+  //         description: 'Failed to delete customer',
+  //         variant: 'destructive',
+  //       });
+  //     }
+  //     setIsDeleteDialogOpen(false);
+  //     setSelectedCustomer(null);
+  //   }
+  // };
 
-  const handleSubmitForm = () => {
-    try {
-      if (isEditing && selectedCustomer) {
-        updateCustomer(selectedCustomer.customer_id, formData);
-        toast({
-          title: 'Success',
-          description: 'Customer updated successfully',
-        });
-      } else {
-        addCustomer(formData);
-        toast({
-          title: 'Success',
-          description: 'Customer added successfully',
-        });
-      }
-      loadCustomers();
-      setIsFormModalOpen(false);
-      setSelectedCustomer(null);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: `Failed to ${isEditing ? 'update' : 'add'} customer`,
-        variant: 'destructive',
-      });
-    }
-  };
+  // const handleSubmitForm = () => {
+    // try {
+      // if (isEditing && selectedCustomer) {
+      //   // updateCustomer(selectedCustomer.customer_id, formData);
+      //   toast({
+      //     title: 'Success',
+      //     description: 'Customer updated successfully',
+      //   });
+      // } else {
+      //   addCustomer(formData);
+      //   toast({
+      //     title: 'Success',
+      //     description: 'Customer added successfully',
+      //   });
+      // }
+      // loadCustomers();
+      // setIsFormModalOpen(false);
+      // setSelectedCustomer(null);
+    // } catch (error) {
+      // toast({
+      //   title: 'Error',
+      //   description: `Failed to ${isEditing ? 'update' : 'add'} customer`,
+      //   variant: 'destructive',
+      // });
+    // }
+  // };
 
   const getTypeBadgeColor = (type: string) => {
     switch (type) {
@@ -222,7 +355,7 @@ const Customers = () => {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Customer Management</h2>
         <p className="text-muted-foreground">
-          View and manage customer information
+          View customer information
         </p>
       </div>
 
@@ -269,10 +402,10 @@ const Customers = () => {
                 View, search, and manage all customers
               </CardDescription>
             </div>
-            <Button onClick={handleAddCustomer}>
+            {/* <Button onClick={handleAddCustomer}>
               <Plus className="h-4 w-4 mr-2" />
               Add Customer
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
         <CardContent>
@@ -330,13 +463,13 @@ const Customers = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEditCustomer(customer)}
                           >
                             <Pencil className="h-4 w-4" />
-                          </Button>
+                          </Button> */}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -430,7 +563,7 @@ const Customers = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add/Edit Modal */}
+      {/* Add/Edit Modal
       <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -514,7 +647,7 @@ const Customers = () => {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
