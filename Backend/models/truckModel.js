@@ -1,6 +1,6 @@
 import db from "../config/db.js";
 
 export async function getTrucks() {
-  const [trucks] = await db.query("SELECT * FROM truck");
+  const [trucks] = await db.query("SELECT * FROM Truck");
   return trucks;
 }
