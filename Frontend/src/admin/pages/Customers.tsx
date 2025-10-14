@@ -51,7 +51,7 @@ import {
 const ITEMS_PER_PAGE = 10;
 
 interface Customer {
-  customerId: string;
+  customer_id: string;
   name: string;
   type: string;
   address: string;
@@ -176,7 +176,7 @@ const Customers = () => {
   const confirmDelete = async () => {
     if (selectedCustomer) {
       try {
-        const response = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customerId}`, {
+        const response = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customer_id}`, {
           method: "DELETE",
         });
         const data = await response.json();
@@ -446,7 +446,7 @@ const Customers = () => {
                   </TableRow>
                 ) : (
                   currentCustomers.map((customer) => (
-                    <TableRow key={customer.customerId}>
+                    <TableRow key={customer.customer_id}>
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell>
                         <Badge className={getTypeBadgeColor(customer.type)}>
