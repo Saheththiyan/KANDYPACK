@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { validateEmail, calculatePasswordStrength, mockSignIn, setAuthToken, type LoginCredentials } from '@/lib/mockAuth';
+import { validateEmail, calculatePasswordStrength, signIn, setAuthToken, type LoginCredentials } from '@/lib/mockAuth';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -57,7 +57,7 @@ export const AuthCard = () => {
     setErrorMessage('');
     
     try {
-      const response = await mockSignIn(formData);
+      const response = await signIn(formData);
       
       if (response.success && response.user && response.token) {
         // Store auth token and user data

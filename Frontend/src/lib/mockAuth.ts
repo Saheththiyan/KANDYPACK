@@ -16,34 +16,6 @@ export interface AuthResponse {
   };
 }
 
-// Mock credentials for demo
-const validCredentials = [
-  {
-    email: 'admin1@kandypack.com',
-    password: 'hashedpass1',
-    role: 'Admin',
-    name: 'Admin User 1'
-  },
-  {
-    email: 'admin2@kandypack.com',
-    password: 'hashedpass2',
-    role: 'Admin',
-    name: 'Admin User 2'
-  },
-  {
-    email: 'admin3@kandypack.com',
-    password: 'hashedpass3',
-    role: 'Admin',
-    name: 'Admin User 3'
-  },
-  {
-    email: 'customer@kandypack.lk', 
-    password: 'Password1!',
-    role: 'Customer',
-    name: 'Kandypack Customer'
-  }
-];
-
 // Auth token management
 export const setAuthToken = (token: string, role: string, email: string, name: string) => {
   const authData = { token, role, email, name };
@@ -64,41 +36,20 @@ export const isAuthenticated = () => {
 };
 
 // Simulate network latency and potential errors
-export const mockSignIn = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  // Simulate network delay (800-1200ms)
-  const delay = Math.random() * 400 + 800;
-  await new Promise(resolve => setTimeout(resolve, delay));
-  
-  // 10% chance of network error simulation
-  if (Math.random() < 0.1) {
-    throw new Error("We're having trouble signing you in. Please try again.");
+export const signIn = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  const response = await fetch('http://localhost:5000/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Login failed');
   }
 
-  // Validate credentials
-  const user = validCredentials.find(
-    cred => cred.email === credentials.email && cred.password === credentials.password
-  );
-
-  if (!user) {
-    return {
-      success: false,
-      message: 'The email or password you entered is incorrect.'
-    };
-  }
-
-  // Generate mock token
-  const token = `mock_token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  return {
-    success: true,
-    message: 'Sign in successful',
-    token,
-    user: {
-      email: user.email,
-      role: credentials.role || user.role,
-      name: user.name
-    }
-  };
+  const data: AuthResponse = await response.json();
+  return data;
 };
 
 // Validate email format
