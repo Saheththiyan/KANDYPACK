@@ -34,9 +34,12 @@ export interface DriverHoursData {
 
 export interface TruckUsageData {
   truckId: string;
-  trips: number;
-  hours: number;
-  utilization: number;
+  totalDeliveries: number;
+  status: "In Use" | "Idle" | "Maintenance";
+  licensePlate: string;
+  inProgressDeliveries: number;
+  comletedDeliveries: number;
+  capacity: number;
 }
 
 export interface CustomerOrderHistoryItem {
