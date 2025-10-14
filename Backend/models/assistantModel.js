@@ -5,6 +5,14 @@ export async function getAssistants() {
   return assistants;
 }
 
+export async function sortAssistantsByHour() {
+  const [assistants] = await db.query(
+    `SELECT * FROM Assistant
+     ORDER BY weekly_hours DESC`
+  );
+  return assistants;
+}
+
 
 export async function getAssistantHour(from, to) {
   const [hours] = await db.query(
