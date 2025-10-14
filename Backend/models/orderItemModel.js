@@ -5,26 +5,29 @@ export async function getItems() {
   return items;
 }
 
-export async function getMostOrderedProducts(quarter, limit = 5) {
+export async function getMostOrderedProducts(year, quarter, limit = 5) {
   const [products] = await db.query(
-    `
-    SELECT 
-      p.id AS productId,
+    `SELECT 
+      p.product_id AS productId,
       p.name AS productName,
-      SUM(oi.quantity) AS totalQuantity
-    FROM 
-      OrderItem oi
-    JOIN 
-      Product p ON oi.productId = p.id
-    WHERE 
-      QUARTER(oi.orderDate) = ?
-    GROUP BY 
-      p.id, p.name
-    ORDER BY 
-      totalQuantity DESC
+      SUM(oi.quantity) AS totalQuantity,
+      SUM(oi.sub_total) AS totalRevenue
+    FROM Order_Item oi
+    JOIN Product p ON oi.product_id = p.product_id
+    JOIN \`Order\` o ON oi.order_id = o.order_id
+    WHERE YEAR(o.order_date) = ? AND QUARTER(o.order_date) = ?
+    GROUP BY p.product_id, p.name
+    ORDER BY totalQuantity DESC
     LIMIT ?;
     `,
-    [quarter, limit]
+    [year, quarter, limit]
   );
-  return products;
+
+  // Format to match frontend expectations
+  return products.map((row) => ({
+    id: row.productId,
+    name: row.productName,
+    unitsSold: row.totalQuantity,
+    revenue: row.totalRevenue,
+  }));
 }

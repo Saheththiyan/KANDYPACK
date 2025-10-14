@@ -41,7 +41,7 @@ app.use("/deliverySchedule", deliveryScheduleRouter);
 app.use("/trainSchedule", trainScheduleRouter);
 app.use("/orderItems", orderItemRouter);
 app.use("/admin", adminRouter);
-app.use("/mostOrdered", mostOrderedRouter);
+app.use("/admin/mostOrdered", mostOrderedRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
