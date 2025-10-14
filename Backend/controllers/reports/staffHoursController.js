@@ -1,7 +1,7 @@
-import { sortDriversByHour } from "../../models/driverModel";
-import { getAssistantHours } from "../../models/assistantModel.js";
+import { sortDriversByHour } from "../../models/driverModel.js";
+import { getAssistantHour } from "../../models/assistantModel.js";
 
-async function getDriverHours(req, res) {
+export async function getDriverHours(req, res) {
   const { from, to } = req.query;
 
   const driverHours = await sortDriversByHour();
@@ -10,11 +10,11 @@ async function getDriverHours(req, res) {
 }
 
 
-async function getAssistantHours(req, res) {
+export async function getAssistantHours(req, res) {
   const { from, to } = req.query;
 
-  const assistantHours = await getAssistantHours(from, to);
+  const assistantHours = await getAssistantHour(from, to);
   return res.json({ from, to, staff: assistantHours });
 }
 
-export default { getDriverHours, getAssistantHours };
+// export default { getDriverHours, getAssistantHours };

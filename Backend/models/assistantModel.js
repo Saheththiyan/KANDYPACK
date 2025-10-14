@@ -6,7 +6,7 @@ export async function getAssistants() {
 }
 
 
-export async function getAssistantHours(from, to) {
+export async function getAssistantHour(from, to) {
   const [hours] = await db.query(
     "SELECT SUM(TIMESTAMPDIFF(HOUR, shift.start_time, shift.end_time)) AS total_hours " +
     "FROM ShiftLog shift " +
