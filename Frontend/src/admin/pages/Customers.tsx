@@ -51,7 +51,7 @@ import {
 const ITEMS_PER_PAGE = 10;
 
 interface Customer {
-  customer_id: number;
+  customerId: string;
   name: string;
   type: string;
   address: string;
@@ -60,13 +60,13 @@ interface Customer {
   email: string;
 }
 
-async function fetchCustomers(): Promise<Customer[]> {
-  const response = await fetch("http://localhost:5000/admin/customers");
-  if (!response.ok) {
-    throw new Error("Failed to fetch customers");
-  }
-  return response.json();
-}
+// async function fetchCustomers(): Promise<Customer[]> {
+//   const response = await fetch("http://localhost:5000/admin/customers");
+//   if (!response.ok) {
+//     throw new Error("Failed to fetch customers");
+//   }
+//   return response.json();
+// }
 
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -146,10 +146,10 @@ const Customers = () => {
 
   //   try {
   //     // If you have deleteCustomer in '@/lib/queries' that performs the API call:
-  //     // await deleteCustomer(selectedCustomer.customer_id);
+  //     // await deleteCustomer(selectedCustomer.);
 
   //     // Or call the API directly:
-  //     const res = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customer_id}`, {
+  //     const res = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.}`, {
   //       method: 'DELETE',
   //     });
   //     if (!res.ok) throw new Error('Failed to delete customer');
@@ -176,7 +176,7 @@ const Customers = () => {
   const confirmDelete = async () => {
     if (selectedCustomer) {
       try {
-        const response = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customer_id}`, {
+        const response = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customerId}`, {
           method: "DELETE",
         });
         const data = await response.json();
@@ -279,7 +279,7 @@ const Customers = () => {
   // const confirmDelete = () => {
   //   if (selectedCustomer) {
   //     try {
-  //       deleteCustomer(selectedCustomer.customer_id);
+  //       deleteCustomer(selectedCustomer.customerId);
   //       loadCustomers();
   //       toast({
   //         title: 'Success',
@@ -300,7 +300,7 @@ const Customers = () => {
   // const handleSubmitForm = () => {
     // try {
       // if (isEditing && selectedCustomer) {
-      //   // updateCustomer(selectedCustomer.customer_id, formData);
+      //   // updateCustomer(selectedCustomer.customerId, formData);
       //   toast({
       //     title: 'Success',
       //     description: 'Customer updated successfully',
@@ -446,7 +446,7 @@ const Customers = () => {
                   </TableRow>
                 ) : (
                   currentCustomers.map((customer) => (
-                    <TableRow key={customer.customer_id}>
+                    <TableRow key={customer.customerId}>
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell>
                         <Badge className={getTypeBadgeColor(customer.type)}>
