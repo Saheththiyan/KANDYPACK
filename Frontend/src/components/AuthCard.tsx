@@ -7,9 +7,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { validateEmail, calculatePasswordStrength, mockSignIn, setAuthToken, type LoginCredentials } from '@/lib/mockAuth';
+import { validateEmail, calculatePasswordStrength, setAuthToken, type LoginCredentials } from '@/lib/mockAuth';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+
 
 export const AuthCard = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export const AuthCard = () => {
     role: undefined,
     rememberMe: false,
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -31,38 +32,42 @@ export const AuthCard = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.email) {
       newErrors.email = 'Email is required.';
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Enter a valid email address.';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required.';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters.';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
     setErrorMessage('');
-    
+
     try {
-      const response = await mockSignIn(formData);
-      
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      }).then(res => res.json());
+
       if (response.success && response.user && response.token) {
         // Store auth token and user data
         setAuthToken(response.token, response.user.role, response.user.email, response.user.name);
-        
+
         // Route based on role
         if (response.user.role === 'Customer') {
           navigate('/customer');
@@ -71,7 +76,7 @@ export const AuthCard = () => {
         } else {
           navigate('/dashboard');
         }
-        
+
         toast({
           title: "Sign in successful",
           description: `Welcome back, ${response.user.name}!`,
@@ -171,7 +176,7 @@ export const AuthCard = () => {
                 )}
               </Button>
             </div>
-            
+
             {/* Password Strength Indicator */}
             {formData.password && (
               <div className="space-y-1">
@@ -180,15 +185,14 @@ export const AuthCard = () => {
                   <div className={`h-1 flex-1 rounded ${passwordStrength !== 'weak' ? getPasswordStrengthColor() : 'bg-muted'}`} />
                   <div className={`h-1 flex-1 rounded ${passwordStrength === 'strong' ? getPasswordStrengthColor() : 'bg-muted'}`} />
                 </div>
-                <p className={`text-xs font-medium ${
-                  passwordStrength === 'weak' ? 'text-danger' : 
-                  passwordStrength === 'medium' ? 'text-warning' : 'text-success'
-                }`}>
+                <p className={`text-xs font-medium ${passwordStrength === 'weak' ? 'text-danger' :
+                    passwordStrength === 'medium' ? 'text-warning' : 'text-success'
+                  }`}>
                   Password strength: {passwordStrength}
                 </p>
               </div>
             )}
-            
+
             {errors.password && (
               <p id="password-error" className="text-sm text-danger">{errors.password}</p>
             )}
@@ -199,9 +203,9 @@ export const AuthCard = () => {
             <Label className="text-sm font-medium text-foreground">
               Role <span className="text-muted-foreground">(optional)</span>
             </Label>
-            <Select 
-              value={formData.role || ''} 
-              onValueChange={(value: 'Admin' | 'Customer') => 
+            <Select
+              value={formData.role || ''}
+              onValueChange={(value: 'Admin' | 'Customer') =>
                 setFormData(prev => ({ ...prev, role: value }))
               }
             >
@@ -221,7 +225,7 @@ export const AuthCard = () => {
               id="remember"
               data-testid="remember-checkbox"
               checked={formData.rememberMe}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setFormData(prev => ({ ...prev, rememberMe: checked === true }))
               }
             />
