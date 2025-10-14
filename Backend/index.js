@@ -14,7 +14,9 @@ import deliveryScheduleRouter from "./routers/deliveryScheduleRouter.js";
 import trainScheduleRouter from "./routers/trainScheduleRouter.js";
 import orderItemRouter from "./routers/orderItemRouter.js";
 import adminRouter from "./routers/adminRouter.js";
+import mostOrderedRouter from "./routers/reports/mostOrderedRouter.js";
 import reportsRouter from "./routers/reports/reportsRouter.js";
+import authRouter from "./routers/authRouter.js";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
@@ -42,6 +44,8 @@ app.use("/trainSchedule", trainScheduleRouter);
 app.use("/orderItems", orderItemRouter);
 app.use("/admin", adminRouter);
 app.use("/reports", reportsRouter);
+app.use("/mostOrdered", mostOrderedRouter);
+app.use("/api/auth", authRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);

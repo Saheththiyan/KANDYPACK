@@ -154,7 +154,7 @@ const MostOrdered = () => {
                   <th className="px-4 py-3">Rank</th>
                   <th className="px-4 py-3">Item Name</th>
                   <th className="px-4 py-3 text-right">Units Sold</th>
-                  <th className="px-4 py-3 text-right">% of Total</th>
+                  {/* <th className="px-4 py-3 text-right">% of Total</th> */}
                   <th className="px-4 py-3 text-right">Revenue</th>
                 </tr>
               </thead>
@@ -170,7 +170,7 @@ const MostOrdered = () => {
                     </td>
                     <td className="px-4 py-3 font-medium">{item.name}</td>
                     <td className="px-4 py-3 text-right">{formatNumber(item.unitsSold)}</td>
-                    <td className="px-4 py-3 text-right">{item.percentageOfTotal.toFixed(1)}%</td>
+                    {/* <td className="px-4 py-3 text-right">{item.percentageOfTotal.toFixed(1)}%</td> */}
                     <td className="px-4 py-3 text-right">{formatCurrency(item.revenue)}</td>
                   </tr>
                 ))}
