@@ -4,6 +4,6 @@ import * as truckUsageController from "../../controllers/reports/truckUsageContr
 const router = express.Router();
 
 // GET /reports/truck-usage?month=2024-09
-router.get("/", truckUsageController.getTruckUsage);
+router.get("/", truckUsageController.getTruckUsages);
 
 export default router;
