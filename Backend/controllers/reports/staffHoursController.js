@@ -1,20 +1,24 @@
 import { sortDriversByHour } from "../../models/driverModel.js";
-import { getAssistantHour } from "../../models/assistantModel.js";
+import { sortAssistantsByHour } from "../../models/assistantModel.js";
 
 export async function getDriverHours(req, res) {
-  const { from, to } = req.query;
-
-  const driverHours = await sortDriversByHour();
-  console.log("from to is not implemented");
-  return res.json({ from, to, staff: driverHours });
+  // const { from, to } = req.query;
+  try {
+    const driverHours = await sortDriversByHour();
+    res.json(driverHours);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
 
 
 export async function getAssistantHours(req, res) {
-  const { from, to } = req.query;
-
-  const assistantHours = await getAssistantHour(from, to);
-  return res.json({ from, to, staff: assistantHours });
+  try {
+    const assistantHours = await sortAssistantsByHour();
+    res.json(assistantHours);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
 
 // export default { getDriverHours, getAssistantHours };
