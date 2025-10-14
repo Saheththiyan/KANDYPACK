@@ -5,16 +5,33 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { Package, TrendingUp, DollarSign } from 'lucide-react';
-import { fetchMostOrdered, MostOrderedItem } from '@/lib/mockAdminApi';
+// import { fetchMostOrdered, MostOrderedItem } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+
+interface MostOrderedItem {
+  id: string;
+  name: string;
+  unitsSold: number;
+  revenue: number;
+}
 
 const MostOrdered = () => {
   const [itemsData, setItemsData] = useState<MostOrderedItem[]>([]);
-  const [selectedQuarter, setSelectedQuarter] = useState('2024 Q4');
+  const [selectedQuarter, setSelectedQuarter] = useState('2025 Q4');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const quarters = ['2024 Q4', '2024 Q3', '2024 Q2', '2024 Q1'];
+  const quarters = ['2025 Q4', '2025 Q3', '2025 Q2', '2025 Q1'];
+
+  async function fetchMostOrdered(quarterString: string) {
+    const [year, quarterLabel] = quarterString.split(' ');
+    const quarter = quarterLabel.replace('Q', '');
+
+    const response = await fetch(`http://localhost:5000/admin/mostOrdered?year=${year}&quarter=${quarter}`);
+    const data = await response.json();
+    return data.top;
+  }
+
 
   useEffect(() => {
     const loadItemsData = async () => {
@@ -36,8 +53,8 @@ const MostOrdered = () => {
     loadItemsData();
   }, [selectedQuarter, toast]);
 
-  const totalUnits = itemsData.reduce((sum, item) => sum + item.unitsSold, 0);
-  const totalRevenue = itemsData.reduce((sum, item) => sum + item.revenue, 0);
+  const totalUnits = itemsData.reduce((sum, item) => sum + Number(item.unitsSold), 0);
+  const totalRevenue = itemsData.reduce((sum, item) => sum + Number(item.revenue), 0);
 
   const formatCurrency = (value: number) => `Rs ${value.toLocaleString()}`;
   const formatNumber = (value: number) => value.toLocaleString();
