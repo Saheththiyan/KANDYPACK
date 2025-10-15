@@ -31,7 +31,7 @@ export const BrandPane = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">Kandypack Logistics</h1>
-            <p className="text-sm text-muted-foreground">Rail + Road Distribution Platform</p>
+            <p className="text-sm text-muted-foreground">Rail & Road Distribution Platform</p>
           </div>
         </div>
 

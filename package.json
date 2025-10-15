@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
+    "class-variance-authority": "^0.7.1",
+    "lucide-react": "^0.545.0",
+    "react-router-dom": "^7.9.4",
+    "recharts": "^3.2.1"
+  }
+}

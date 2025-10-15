@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,7 +44,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Eye, Pencil, Trash2, Users } from 'lucide-react';
+import { Search, Plus, Eye, Pencil, Trash2, Users, Building2, ShoppingBag } from 'lucide-react';
 import { initDatabase } from '@/lib/db';
 import {
   getAllCustomers,
@@ -93,7 +99,7 @@ const Customers = () => {
       const data = getAllCustomers();
       setCustomers(data);
       setFilteredCustomers(data);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to load customers',
@@ -150,7 +156,7 @@ const Customers = () => {
           title: 'Success',
           description: 'Customer deleted successfully',
         });
-      } catch (error) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Failed to delete customer',
@@ -180,7 +186,7 @@ const Customers = () => {
       loadCustomers();
       setIsFormModalOpen(false);
       setSelectedCustomer(null);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: `Failed to ${isEditing ? 'update' : 'add'} customer`,
@@ -216,70 +222,78 @@ const Customers = () => {
     );
   }
 
+  // Small radial percentage (just aesthetic, not data-driven)
+  const total = customers.length;
+  const retail = customers.filter(c => c.type === 'Retail').length;
+  const wholesale = customers.filter(c => c.type === 'Wholesale').length;
+  const corp = customers.filter(c => c.type === 'Corporate').length;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* header */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Customer Management</h2>
         <p className="text-muted-foreground">
-          View and manage customer information
+          Manage, add, and analyze your customer base.
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{customers.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Retail Customers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {customers.filter((c) => c.type === 'Retail').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Corporate Customers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {customers.filter((c) => c.type === 'Corporate').length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <Card>
+      {/* analytics overview */}
+      <Card className="overflow-hidden">
         <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <CardTitle>Customer List</CardTitle>
-              <CardDescription>
-                View, search, and manage all customers
-              </CardDescription>
-            </div>
-            <Button onClick={handleAddCustomer}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Customer
-            </Button>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            Customer Overview
+          </CardTitle>
+          <CardDescription>Customer distribution by type</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Search */}
+          <div className="grid sm:grid-cols-3 gap-6 text-center">
+            <div className="flex flex-col items-center">
+              <div className="w-20 h-20 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center">
+                <ShoppingBag className="text-blue-600 h-6 w-6" />
+              </div>
+              <h4 className="mt-2 font-semibold text-foreground">{retail}</h4>
+              <p className="text-sm text-muted-foreground">Retail Customers</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-20 h-20 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
+                <Users className="text-green-600 h-6 w-6" />
+              </div>
+              <h4 className="mt-2 font-semibold text-foreground">{wholesale}</h4>
+              <p className="text-sm text-muted-foreground">Wholesale Customers</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-20 h-20 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center">
+                <Building2 className="text-purple-600 h-6 w-6" />
+              </div>
+              <h4 className="mt-2 font-semibold text-foreground">{corp}</h4>
+              <p className="text-sm text-muted-foreground">Corporate Clients</p>
+            </div>
+          </div>
+
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            Total Customers: <span className="font-semibold text-foreground">{total}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* main table section */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 flex flex-col sm:flex-row justify-between gap-4 sm:items-center">
+          <div>
+            <CardTitle>Customer List</CardTitle>
+            <CardDescription>View, search, and manage all customers</CardDescription>
+          </div>
+          <Button onClick={handleAddCustomer} className="whitespace-nowrap">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Customer
+          </Button>
+        </CardHeader>
+        <CardContent>
           <div className="flex items-center mb-4">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name, city, or email..."
                 value={searchTerm}
@@ -289,11 +303,10 @@ const Customers = () => {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="rounded-md border">
+          <div className="overflow-x-auto rounded-lg border shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/40">
                   <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>City</TableHead>
@@ -311,37 +324,23 @@ const Customers = () => {
                   </TableRow>
                 ) : (
                   currentCustomers.map((customer) => (
-                    <TableRow key={customer.customer_id}>
+                    <TableRow key={customer.customer_id} className="hover:bg-accent/30">
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell>
-                        <Badge className={getTypeBadgeColor(customer.type)}>
-                          {customer.type}
-                        </Badge>
+                        <Badge className={getTypeBadgeColor(customer.type)}>{customer.type}</Badge>
                       </TableCell>
                       <TableCell>{customer.city}</TableCell>
                       <TableCell>{customer.phone}</TableCell>
                       <TableCell>{customer.email}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewCustomer(customer)}
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => handleViewCustomer(customer)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditCustomer(customer)}
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteCustomer(customer)}
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -353,12 +352,12 @@ const Customers = () => {
             </Table>
           </div>
 
-          {/* Pagination */}
+          {/* pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredCustomers.length)} of{' '}
-                {filteredCustomers.length} customers
+                Showing {startIndex + 1}–{Math.min(endIndex, filteredCustomers.length)} of{' '}
+                {filteredCustomers.length}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -383,45 +382,23 @@ const Customers = () => {
         </CardContent>
       </Card>
 
-      {/* View Modal */}
+      {/* view modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Customer Details</DialogTitle>
-            <DialogDescription>
-              View complete customer information
-            </DialogDescription>
+            <DialogDescription>View complete customer information</DialogDescription>
           </DialogHeader>
           {selectedCustomer && (
-            <div className="space-y-4">
-              <div>
-                <Label className="text-muted-foreground">Name</Label>
-                <p className="font-medium">{selectedCustomer.name}</p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Type</Label>
-                <p>
-                  <Badge className={getTypeBadgeColor(selectedCustomer.type)}>
-                    {selectedCustomer.type}
-                  </Badge>
-                </p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Address</Label>
-                <p className="font-medium">{selectedCustomer.address}</p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">City</Label>
-                <p className="font-medium">{selectedCustomer.city}</p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Phone</Label>
-                <p className="font-medium">{selectedCustomer.phone}</p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Email</Label>
-                <p className="font-medium">{selectedCustomer.email}</p>
-              </div>
+            <div className="space-y-3">
+              {Object.entries(selectedCustomer).map(([key, val]) =>
+                key !== 'customer_id' ? (
+                  <div key={key}>
+                    <Label className="text-muted-foreground capitalize">{key}</Label>
+                    <p className="font-medium">{val as string}</p>
+                  </div>
+                ) : null
+              )}
             </div>
           )}
           <DialogFooter>
@@ -430,7 +407,7 @@ const Customers = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add/Edit Modal */}
+      {/* add/edit modal */}
       <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -458,7 +435,7 @@ const Customers = () => {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Retail">Retail</SelectItem>
@@ -516,20 +493,22 @@ const Customers = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* delete dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the customer{' '}
-              <span className="font-semibold">{selectedCustomer?.name}</span>. This action cannot
-              be undone.
+              This will permanently delete{' '}
+              <span className="font-semibold">{selectedCustomer?.name}</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

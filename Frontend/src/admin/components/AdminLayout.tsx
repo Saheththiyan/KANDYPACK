@@ -53,38 +53,48 @@ export const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+      {/* Top accent line */}
+      <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-purple-500/80" />
+
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
+      <header
+        className="sticky top-0 z-50 border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/70"
+        role="banner"
+      >
         <div className="flex h-16 items-center justify-between px-4 lg:px-6">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               className="lg:hidden"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             >
               {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">K</span>
+
+            <div className="flex items-center gap-3">
+              <div className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-violet-600 shadow-inner flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm tracking-wide">K</span>
               </div>
-              <div>
+              <div className="leading-tight">
                 <h1 className="font-semibold text-foreground">Kandypack Admin</h1>
                 <p className="text-xs text-muted-foreground">Management Portal</p>
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-4">
+
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="hidden sm:block text-right">
               <p className="text-sm font-medium text-foreground">{auth?.name}</p>
-              <p className="text-xs text-muted-foreground">{auth?.role} • {auth?.email}</p>
+              <p className="text-xs text-muted-foreground">
+                {auth?.role} • {auth?.email}
+              </p>
             </div>
             <DarkModeToggle />
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
               Sign out
             </Button>
           </div>
@@ -93,35 +103,95 @@ export const AdminLayout = () => {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`
-          fixed lg:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-in-out
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          border-r bg-card/30 backdrop-blur supports-[backdrop-filter]:bg-card/50 mt-16 lg:mt-0
-        `}>
-          <nav className="space-y-1 p-4">
-            {navItems.map((item) => {
-              if (item.children) {
+        <aside
+          className={[
+            'fixed lg:static inset-y-0 left-0 z-40 w-72 transform transition-transform duration-200 ease-in-out',
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+            'border-r bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/70',
+            'mt-16 lg:mt-0'
+          ].join(' ')}
+          aria-label="Primary"
+        >
+          <nav className="p-4">
+            {/* Section: Main */}
+            <div className="px-3 pb-2">
+              <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground/70">
+                Overview
+              </p>
+            </div>
+
+            {navItems
+              .filter((n) => !n.children)
+              .map((item) => {
+                const Icon = item.icon;
+                const active = isActivePath(item.path, item.exact);
                 return (
-                  <div key={item.label} className="space-y-1">
-                    <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-muted-foreground">
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={[
+                      'group relative flex items-center gap-3 px-3 py-2.5 text-sm rounded-md transition-colors',
+                      active
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                    ].join(' ')}
+                  >
+                    {/* left active rail */}
+                    <span
+                      className={[
+                        'absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r',
+                        active ? 'bg-primary-foreground/80' : 'bg-transparent'
+                      ].join(' ')}
+                    />
+                    <Icon className="h-4.5 w-4.5 opacity-90" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+
+            {/* Separator */}
+            <div className="my-3 border-t border-border/60" />
+
+            {/* Section: Reports */}
+            <div className="px-3 pb-2">
+              <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground/70">
+                Reports
+              </p>
+            </div>
+
+            {navItems
+              .filter((n) => n.children)
+              .map((group) => {
+                const GroupIcon = group.icon;
+                return (
+                  <div key={group.label} className="mb-2">
+                    <div className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground">
+                      <GroupIcon className="h-4 w-4" />
+                      <span>{group.label}</span>
                     </div>
-                    <div className="ml-4 space-y-1">
-                      {item.children.map((child) => {
+                    <div className="ml-2 space-y-1.5">
+                      {group.children!.map((child) => {
                         const ChildIcon = child.icon;
-                        const isActive = isActivePath(child.path);
+                        const active = isActivePath(child.path);
                         return (
                           <Link
                             key={child.path}
                             to={child.path}
                             onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center space-x-2 px-3 py-2 text-sm rounded-md transition-colors ${
-                              isActive
-                                ? 'bg-primary text-primary-foreground'
+                            className={[
+                              'group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                              active
+                                ? 'bg-primary/90 text-primary-foreground shadow-sm'
                                 : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                            }`}
+                            ].join(' ')}
                           >
+                            <span
+                              className={[
+                                'absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r',
+                                active ? 'bg-primary-foreground/80' : 'bg-transparent'
+                              ].join(' ')}
+                            />
                             <ChildIcon className="h-4 w-4" />
                             <span>{child.label}</span>
                           </Link>
@@ -130,40 +200,30 @@ export const AdminLayout = () => {
                     </div>
                   </div>
                 );
-              }
-
-              const Icon = item.icon;
-              const isActive = isActivePath(item.path, item.exact);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center space-x-2 px-3 py-2 text-sm rounded-md transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+              })}
           </nav>
         </aside>
 
-        {/* Overlay for mobile */}
+        {/* Mobile overlay */}
         {sidebarOpen && (
-          <div 
+          <button
+            type="button"
+            aria-label="Close sidebar overlay"
             className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6">
-          <Outlet />
+        <main className="flex-1 p-4 lg:p-8">
+          {/* Content canvas */}
+          <div className="mx-auto max-w-[1400px]">
+            <div className="rounded-2xl border bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/70 shadow-sm p-2 sm:p-3">
+              <div className="rounded-xl border bg-background p-3 sm:p-6">
+                <Outlet />
+              </div>
+            </div>
+          </div>
         </main>
       </div>
     </div>
