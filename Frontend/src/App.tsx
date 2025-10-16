@@ -22,6 +22,7 @@ import DriverHours from "./admin/pages/reports/DriverHours";
 import TruckUsage from "./admin/pages/reports/TruckUsage";
 import CustomerHistory from "./admin/pages/reports/CustomerHistory";
 import Customers from "./admin/pages/Customers";
+import Product from "./admin/pages/Products";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => {
             }>
               <Route index element={<AdminDashboard />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="products" element={<Product />} />
               <Route path="reports/quarterly-sales" element={<QuarterlySales />} />
               <Route path="reports/most-ordered" element={<MostOrdered />} />
               <Route path="reports/city-route-breakdown" element={<CityRoute />} />
