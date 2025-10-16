@@ -7,6 +7,7 @@ import {
 import { Package, TrendingUp, DollarSign } from 'lucide-react';
 // import { fetchMostOrdered, MostOrderedItem } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from "../../../lib/config";
 
 interface MostOrderedItem {
   id: string;
@@ -27,7 +28,7 @@ const MostOrdered = () => {
     const [year, quarterLabel] = quarterString.split(' ');
     const quarter = quarterLabel.replace('Q', '');
 
-    const response = await fetch(`http://localhost:5000/admin/mostOrdered?year=${year}&quarter=${quarter}`);
+    const response = await fetch(`${API_URL}/admin/mostOrdered?year=${year}&quarter=${quarter}`);
     const data = await response.json();
     return data.top;
   }

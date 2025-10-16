@@ -9,6 +9,7 @@ import {
 import { Clock, AlertTriangle, Users, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 // import { fetchDriverHours, DriverHoursData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from "../../../lib/config";
 
 interface Driver {
   driver_id: string;
@@ -40,7 +41,7 @@ const DriverHours = () => {
   // const weeks = ['2024-W10', '2024-W09', '2024-W08', '2024-W07'];
 
   async function fetchDrivers(): Promise<Driver[]> {
-    const response = await fetch("http://localhost:5000/admin/staffHours/driver");
+    const response = await fetch(`${API_URL}/admin/staffHours/driver`);
     if (!response.ok) {
       throw new Error("Failed to fetch Drivers");
     }
@@ -69,7 +70,7 @@ const DriverHours = () => {
   }, [selectedWeek, toast]);
 
   async function fetchAssistants(): Promise<Assitant[]> {
-    const response = await fetch("http://localhost:5000/admin/staffHours/assistant");
+    const response = await fetch(`${API_URL}/admin/staffHours/assistant`);
     if (!response.ok) {
       throw new Error("Failed to fetch Assistants");
     }
