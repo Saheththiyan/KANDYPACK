@@ -7,7 +7,7 @@ export async function getAdmins() {
 }
 
 export async function getAdminByEmail(email) {
-  const [admins] = await db.query(`SELECT * FROM admin WHERE email = ?`, [
+  const [admins] = await db.query(`SELECT * FROM Admin WHERE email = ?`, [
     email,
   ]);
 

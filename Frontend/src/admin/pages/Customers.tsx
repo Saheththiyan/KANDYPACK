@@ -39,6 +39,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Eye, Pencil, Trash2, Users } from 'lucide-react';
+import { API_URL } from "../../lib/config";
 import { initDatabase } from '@/lib/db';
 import {
   getAllCustomers,
@@ -51,7 +52,7 @@ import {
 const ITEMS_PER_PAGE = 10;
 
 interface Customer {
-  customerId: string;
+  customer_id: string;
   name: string;
   type: string;
   address: string;
@@ -90,7 +91,7 @@ const Customers = () => {
   const { toast } = useToast();
 
   async function fetchCustomers(): Promise<Customer[]> {
-    const response = await fetch("http://localhost:5000/admin/customers");
+    const response = await fetch(`${API_URL}/admin/customers`);
     if (!response.ok) {
       throw new Error("Failed to fetch customers");
     }
@@ -176,7 +177,7 @@ const Customers = () => {
   const confirmDelete = async () => {
     if (selectedCustomer) {
       try {
-        const response = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customerId}`, {
+        const response = await fetch(`${API_URL}/admin/customers/${selectedCustomer.customer_id}`, {
           method: "DELETE",
         });
         const data = await response.json();
@@ -446,7 +447,7 @@ const Customers = () => {
                   </TableRow>
                 ) : (
                   currentCustomers.map((customer) => (
-                    <TableRow key={customer.customerId}>
+                    <TableRow key={customer.customer_id}>
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell>
                         <Badge className={getTypeBadgeColor(customer.type)}>

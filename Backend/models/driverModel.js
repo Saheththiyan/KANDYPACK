@@ -7,7 +7,7 @@ export async function getDrivers() {
 
 export async function getDriversByID(id) {
   const [driver] = await db.query(
-    `SELECT * FROM driver
+    `SELECT * FROM Driver
     WHERE driver_id = ?`,
     [id]
   );
@@ -16,15 +16,15 @@ export async function getDriversByID(id) {
 
 export async function sortDriversByHour() {
   const [drivers] = await db.query(
-    `SELECT * FROM driver
-    ORDER BY weekly_hours DESC`
+    `SELECT * FROM Driver
+     ORDER BY weekly_hours DESC`
   );
   return drivers;
 }
 
 export async function getActiveDrives() {
   const [drivers] = await db.query(
-    `SELECT * FROM driver
+    `SELECT * FROM Driver
     WHERE status = "active" `
   );
   return drivers;

@@ -5,25 +5,41 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { MapPin, Package, DollarSign } from 'lucide-react';
-import { fetchCityRouteData, CityRouteData } from '@/lib/mockAdminApi';
+// import { fetchCityRouteData, CityRouteData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from "../../../lib/config";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d', '#ffc658'];
 
+interface CityRouteData { 
+  city: string; 
+  stops: string; 
+  orders: number; 
+  sales_value: number; 
+}
+
 const CityRoute = () => {
   const [routeData, setRouteData] = useState<CityRouteData[]>([]);
-  const [selectedQuarter, setSelectedQuarter] = useState('2024 Q4');
+  const [selectedQuarter, setSelectedQuarter] = useState('2025 Q4');
   const [selectedCity, setSelectedCity] = useState('All Cities');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const quarters = ['2024 Q4', '2024 Q3', '2024 Q2', '2024 Q1'];
+  // const quarters = ['2024 Q4', '2024 Q3', '2024 Q2', '2024 Q1'];
+
+  async function fetchCityRouteData(): Promise<CityRouteData[]> { 
+    const response = await fetch(`${API_URL}/admin/cityRouteSales`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch Sales");
+    }
+    return response.json();
+  }
 
   useEffect(() => {
     const loadRouteData = async () => {
       setLoading(true);
       try {
-        const data = await fetchCityRouteData(selectedQuarter);
+        const data = await fetchCityRouteData();
         setRouteData(data);
       } catch (error) {
         toast({
@@ -43,19 +59,19 @@ const CityRoute = () => {
   const cityData = routeData.reduce((acc, curr) => {
     const existing = acc.find(item => item.city === curr.city);
     if (existing) {
-      existing.value += curr.value;
+      existing.value += curr.sales_value;
       existing.orders += curr.orders;
-      existing.volume += curr.volume;
+      // existing.volume += curr.volume;
     } else {
       acc.push({
         city: curr.city,
-        value: curr.value,
-        orders: curr.orders,
-        volume: curr.volume
+        value: curr.sales_value,
+        orders: curr.orders
+        // volume: curr.volume
       });
     }
     return acc;
-  }, [] as { city: string; value: number; orders: number; volume: number; }[]);
+  }, [] as { city: string; value: number; orders: number; }[]);
 
   // Filter route data based on selected city
   const filteredRouteData = selectedCity === 'All Cities' 
@@ -64,9 +80,9 @@ const CityRoute = () => {
 
   const cities = ['All Cities', ...Array.from(new Set(routeData.map(item => item.city)))];
 
-  const totalValue = routeData.reduce((sum, item) => sum + item.value, 0);
-  const totalOrders = routeData.reduce((sum, item) => sum + item.orders, 0);
-  const totalVolume = routeData.reduce((sum, item) => sum + item.volume, 0);
+  const totalValue = routeData.reduce((sum, item) => sum + Number(item.sales_value), 0);
+  const totalOrders = routeData.reduce((sum, item) => sum + Number(item.orders), 0);
+  // const totalVolume = routeData.reduce((sum, item) => sum + item.volume, 0);
 
   const formatCurrency = (value: number) => `Rs ${value.toLocaleString()}`;
   const formatNumber = (value: number) => value.toLocaleString();
@@ -95,7 +111,7 @@ const CityRoute = () => {
             Sales distribution across cities and delivery routes
           </p>
         </div>
-        <div className="flex space-x-2">
+        {/* <div className="flex space-x-2">
           <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Quarter" />
@@ -116,7 +132,7 @@ const CityRoute = () => {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
       </div>
 
       {/* Summary Cards */}
@@ -153,7 +169,7 @@ const CityRoute = () => {
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{cities.length - 1}</div>
+            <div className="text-2xl font-bold">{cities.length}</div>
             <p className="text-xs text-muted-foreground">
               Cities served
             </p>
@@ -200,18 +216,18 @@ const CityRoute = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={filteredRouteData}>
+              <BarChart data={filteredRouteData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="route" />
-                <YAxis tickFormatter={(value) => `Rs ${(value / 1000000).toFixed(1)}M`} />
+                <XAxis dataKey="stops" />
+                <YAxis
+                  tickFormatter={(value) => `Rs ${(value).toFixed(0)}`} />
                 <Tooltip 
                   formatter={(value, name) => [
-                    name === 'value' ? formatCurrency(Number(value)) : formatNumber(Number(value)),
-                    name === 'value' ? 'Sales Value' : name === 'orders' ? 'Orders' : 'Volume'
+                    name === 'Sales Value' ? formatCurrency(Number(value)) : formatNumber(Number(value)), name
                   ]}
                 />
                 <Legend />
-                <Bar dataKey="value" fill="hsl(var(--primary))" name="Sales Value" />
+                <Bar dataKey="sales_value" fill="hsl(var(--primary))" name="Sales Value" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -235,17 +251,17 @@ const CityRoute = () => {
                   <th className="px-4 py-3">Route</th>
                   <th className="px-4 py-3 text-right">Orders</th>
                   <th className="px-4 py-3 text-right">Sales Value</th>
-                  <th className="px-4 py-3 text-right">Volume</th>
+                  {/* <th className="px-4 py-3 text-right">Volume</th> */}
                 </tr>
               </thead>
               <tbody>
                 {filteredRouteData.map((item, index) => (
                   <tr key={index} className="border-b">
                     <td className="px-4 py-3 font-medium">{item.city}</td>
-                    <td className="px-4 py-3">{item.route}</td>
+                    <td className="px-4 py-3">{item.stops}</td>
                     <td className="px-4 py-3 text-right">{formatNumber(item.orders)}</td>
-                    <td className="px-4 py-3 text-right">{formatCurrency(item.value)}</td>
-                    <td className="px-4 py-3 text-right">{formatNumber(item.volume)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrency(item.sales_value)}</td>
+                    {/* <td className="px-4 py-3 text-right">{formatNumber(item.volume)}</td> */}
                   </tr>
                 ))}
               </tbody>
