@@ -39,6 +39,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Eye, Pencil, Trash2, Users } from 'lucide-react';
+import { API_URL } from "../../lib/config";
 import { initDatabase } from '@/lib/db';
 import {
   getAllCustomers,
@@ -90,7 +91,7 @@ const Customers = () => {
   const { toast } = useToast();
 
   async function fetchCustomers(): Promise<Customer[]> {
-    const response = await fetch("http://localhost:5000/admin/customers");
+    const response = await fetch(`${API_URL}/admin/customers`);
     if (!response.ok) {
       throw new Error("Failed to fetch customers");
     }
@@ -176,7 +177,7 @@ const Customers = () => {
   const confirmDelete = async () => {
     if (selectedCustomer) {
       try {
-        const response = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customer_id}`, {
+        const response = await fetch(`${API_URL}/admin/customers/${selectedCustomer.customer_id}`, {
           method: "DELETE",
         });
         const data = await response.json();
