@@ -7,6 +7,7 @@ import {
 import { MapPin, Package, DollarSign } from 'lucide-react';
 // import { fetchCityRouteData, CityRouteData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from "../../../lib/config";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d', '#ffc658'];
 
@@ -27,7 +28,7 @@ const CityRoute = () => {
   // const quarters = ['2024 Q4', '2024 Q3', '2024 Q2', '2024 Q1'];
 
   async function fetchCityRouteData(): Promise<CityRouteData[]> { 
-    const response = await fetch("http://localhost:5000/admin/cityRouteSales");
+    const response = await fetch(`${API_URL}/admin/cityRouteSales`);
     if (!response.ok) {
       throw new Error("Failed to fetch Sales");
     }
