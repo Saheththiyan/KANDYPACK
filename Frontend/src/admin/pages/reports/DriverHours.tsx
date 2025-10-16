@@ -3,13 +3,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { Clock, AlertTriangle, Users, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Clock, AlertTriangle, Users, CheckCircle, ChevronRight, ChevronLeft, Plus, Eye, Trash2, Pencil} from 'lucide-react';
 // import { fetchDriverHours, DriverHoursData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from "../../../lib/config";
+import { Button } from '@/components/ui/button';
 
 interface Driver {
   driver_id: string;
@@ -48,26 +69,7 @@ const DriverHours = () => {
     return response.json();
   }
 
-  useEffect(() => {
-    const loadHoursData = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchDrivers();
-        // console.log(data);
-        setDriverHoursData(data);
-      } catch (error) {
-        toast({
-          title: 'Error loading hours data',
-          description: 'Failed to load driver hours data. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadHoursData();
-  }, [selectedWeek, toast]);
+  
 
   async function fetchAssistants(): Promise<Assitant[]> {
     const response = await fetch(`${API_URL}/admin/staffHours/assistant`);
@@ -77,25 +79,7 @@ const DriverHours = () => {
     return response.json();
   }
 
-  useEffect(() => {
-    const loadHoursData = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchAssistants();
-        setAssistantHoursData(data);
-      } catch (error) {
-        toast({
-          title: 'Error loading hours data',
-          description: 'Failed to load driver hours data. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadHoursData();
-  }, [selectedWeek, toast]);
+  
 
   // Process data for chart
   const chartData1 = driverHoursData.reduce((acc, curr) => {
@@ -125,6 +109,203 @@ const DriverHours = () => {
     }
     return acc;
   }, [] as any[]);
+
+  
+
+  // --- Driver modal & form state ---
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [isViewDriverOpen, setIsViewDriverOpen] = useState(false);
+  const [isDriverFormOpen, setIsDriverFormOpen] = useState(false);
+  const [isDeleteDriverOpen, setIsDeleteDriverOpen] = useState(false);
+  const [isEditingDriver, setIsEditingDriver] = useState(false);
+  const [driverFormData, setDriverFormData] = useState({
+    name: '',
+    license_no: '',
+    weekly_hours: 0,
+    status: 'Active' as Driver['status'],
+  });
+
+  // --- Assistant modal & form state ---
+  const [selectedAssistant, setSelectedAssistant] = useState<Assitant | null>(null);
+  const [isViewAssistantOpen, setIsViewAssistantOpen] = useState(false);
+  const [isAssistantFormOpen, setIsAssistantFormOpen] = useState(false);
+  const [isDeleteAssistantOpen, setIsDeleteAssistantOpen] = useState(false);
+  const [isEditingAssistant, setIsEditingAssistant] = useState(false);
+  const [assistantFormData, setAssistantFormData] = useState({
+    name: '',
+    weekly_hours: 0,
+    status: 'Active' as Assitant['status'],
+  });
+
+  // Load helpers so we can call after mutations
+  const loadDrivers = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchDrivers();
+      setDriverHoursData(data);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load drivers', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAssistants = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchAssistants();
+      setAssistantHoursData(data);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load assistants', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // wire previously inline effects to use these loaders
+  useEffect(() => { loadDrivers(); }, [selectedWeek]);
+  useEffect(() => { loadAssistants(); }, [selectedWeek]);
+
+  // --- Driver handlers ---
+  const handleAddDriver = () => {
+    setDriverFormData({ name: '', license_no: '', weekly_hours: 0, status: 'Active' });
+    setIsEditingDriver(false);
+    setIsDriverFormOpen(true);
+  };
+
+  const handleViewDriver = (driver: Driver) => {
+    setSelectedDriver(driver);
+    setIsViewDriverOpen(true);
+  };
+
+  const handleEditDriver = (driver: Driver) => {
+    setSelectedDriver(driver);
+    setDriverFormData({
+      name: driver.name,
+      license_no: driver.license_no,
+      weekly_hours: driver.weekly_hours,
+      status: driver.status,
+    });
+    setIsEditingDriver(true);
+    setIsDriverFormOpen(true);
+  };
+
+  const handleDeleteDriver = (driver: Driver) => {
+    setSelectedDriver(driver);
+    setIsDeleteDriverOpen(true);
+  };
+
+  const confirmDeleteDriver = async () => {
+    if (!selectedDriver) return;
+    try {
+      const res = await fetch(`${API_URL}/drivers/${selectedDriver.driver_id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to delete driver');
+      toast({ title: 'Success', description: 'Driver deleted' });
+      await loadDrivers();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Delete failed', variant: 'destructive' });
+    } finally {
+      setIsDeleteDriverOpen(false);
+      setSelectedDriver(null);
+    }
+  };
+
+  const submitDriverForm = async () => {
+    try {
+      const payload = { ...driverFormData };
+      let res;
+      if (isEditingDriver && selectedDriver) {
+        res = await fetch(`${API_URL}/drivers/${selectedDriver.driver_id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetch(`${API_URL}/drivers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Save failed');
+      toast({ title: 'Success', description: isEditingDriver ? 'Driver updated' : 'Driver added' });
+      setIsDriverFormOpen(false);
+      setSelectedDriver(null);
+      await loadDrivers();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Save failed', variant: 'destructive' });
+    }
+  };
+
+  // --- Assistant handlers ---
+  const handleAddAssistant = () => {
+    setAssistantFormData({ name: '', weekly_hours: 0, status: 'Active' });
+    setIsEditingAssistant(false);
+    setIsAssistantFormOpen(true);
+  };
+
+  const handleViewAssistant = (assistant: Assitant) => {
+    setSelectedAssistant(assistant);
+    setIsViewAssistantOpen(true);
+  };
+
+  const handleEditAssistant = (assistant: Assitant) => {
+    setSelectedAssistant(assistant);
+    setAssistantFormData({ name: assistant.name, weekly_hours: assistant.weekly_hours, status: assistant.status });
+    setIsEditingAssistant(true);
+    setIsAssistantFormOpen(true);
+  };
+
+  const handleDeleteAssistant = (assistant: Assitant) => {
+    setSelectedAssistant(assistant);
+    setIsDeleteAssistantOpen(true);
+  };
+
+  const confirmDeleteAssistant = async () => {
+    if (!selectedAssistant) return;
+    try {
+      const res = await fetch(`${API_URL}/assistants/${selectedAssistant.assistant_id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to delete assistant');
+      toast({ title: 'Success', description: 'Assistant deleted' });
+      await loadAssistants();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Delete failed', variant: 'destructive' });
+    } finally {
+      setIsDeleteAssistantOpen(false);
+      setSelectedAssistant(null);
+    }
+  };
+
+  const submitAssistantForm = async () => {
+    try {
+      const payload = { ...assistantFormData };
+      let res;
+      if (isEditingAssistant && selectedAssistant) {
+        res = await fetch(`${API_URL}/assistants/${selectedAssistant.assistant_id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetch(`${API_URL}/assistants`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Save failed');
+      toast({ title: 'Success', description: isEditingAssistant ? 'Assistant updated' : 'Assistant added' });
+      setIsAssistantFormOpen(false);
+      setSelectedAssistant(null);
+      await loadAssistants();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Save failed', variant: 'destructive' });
+    }
+  };
 
   // Statistics
   // const violations = hoursData.filter(item => item.status === 'Exceeded');
@@ -262,7 +443,7 @@ const DriverHours = () => {
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={driverHoursData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-90} textAnchor='end' interval={0} height={100}/>
                 <YAxis />
                 <Tooltip 
                   formatter={(value, name) => [`${value} hours`, name === 'hours' ? 'Hours Worked' : name]}
@@ -300,7 +481,7 @@ const DriverHours = () => {
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={assistantHoursData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-90} textAnchor='end' interval={0} height={100}/>
                 <YAxis />
                 <Tooltip 
                   formatter={(value, name) => [`${value} hours`, name === 'hours' ? 'Hours Worked' : name]}
@@ -332,8 +513,16 @@ const DriverHours = () => {
       {/* Data Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Driver Working Hours Detail</CardTitle>
-          <CardDescription>Complete working hours breakdown</CardDescription>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle>Driver Working Hours Detail</CardTitle>
+              <CardDescription>Complete working hours breakdown</CardDescription>
+            </div>
+            <Button onClick={handleAddDriver}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Driver
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="relative overflow-x-auto">
@@ -346,6 +535,7 @@ const DriverHours = () => {
                   <th className="px-4 py-3 text-right">Hours</th>
                   {/* <th className="px-4 py-3 text-right">Limit</th> */}
                   <th className="px-4 py-3">Status</th>
+                  <th className='px-4 py-3 text-right'>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -358,6 +548,29 @@ const DriverHours = () => {
                       <Badge variant={item.status === 'Active' ? 'default' : 'destructive'}>
                         {item.status}
                       </Badge>
+                    </td>
+                    <td className='px-4 py-3 text-right'> 
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDriver(item)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditDriver(item)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteDriver(item)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                     </td>
                   </tr>
                 ))}
@@ -408,8 +621,16 @@ const DriverHours = () => {
       {/* Data Table - Assistants*/}
       <Card>
         <CardHeader>
-          <CardTitle>Assistants Hours Detail</CardTitle>
-          <CardDescription>Complete working hours breakdown</CardDescription>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle>Assistant Working Hours Detail</CardTitle>
+              <CardDescription>Complete working hours breakdown</CardDescription>
+            </div>
+            <Button onClick={handleAddAssistant}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Assistant
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="relative overflow-x-auto">
@@ -422,6 +643,7 @@ const DriverHours = () => {
                   <th className="px-4 py-3 text-right">Hours</th>
                   {/* <th className="px-4 py-3 text-right">Limit</th> */}
                   <th className="px-4 py-3">Status</th>
+                  <th className='px-4 py-3 text-right'>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -434,6 +656,29 @@ const DriverHours = () => {
                         {item.status}
                       </Badge>
                     </td>
+                    <td className='px-4 py-3 text-right'> 
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewAssistant(item)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditAssistant(item)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteAssistant(item)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                    </td>                    
                   </tr>
                 ))}
               </tbody>
@@ -501,6 +746,178 @@ const DriverHours = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* --- Driver Modals --- */}
+      <Dialog open={isViewDriverOpen} onOpenChange={setIsViewDriverOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Driver Details</DialogTitle>
+            <DialogDescription>View driver information</DialogDescription>
+          </DialogHeader>
+          {selectedDriver && (
+            <div className="space-y-4">
+              <div>
+                <Label>Name</Label>
+                <p className="font-medium">{selectedDriver.name}</p>
+              </div>
+              <div>
+                <Label>License Number</Label>
+                <p className="font-medium">{selectedDriver.license_no}</p>
+              </div>
+              <div>
+                <Label>Weekly Hours</Label>
+                <p className="font-medium">{selectedDriver.weekly_hours}</p>
+              </div>
+              <div>
+                <Label>Status</Label>
+                <p className="font-medium">{selectedDriver.status}</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsViewDriverOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDriverFormOpen} onOpenChange={setIsDriverFormOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isEditingDriver ? 'Edit Driver' : 'Add Driver'}</DialogTitle>
+            <DialogDescription>
+              {isEditingDriver ? 'Update driver details' : 'Enter new driver information'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Name</Label>
+              <Input value={driverFormData.name} onChange={(e) => setDriverFormData({ ...driverFormData, name: e.target.value })} />
+            </div>
+            <div>
+              <Label>License Number</Label>
+              <Input value={driverFormData.license_no} onChange={(e) => setDriverFormData({ ...driverFormData, license_no: e.target.value })} />
+            </div>
+            <div>
+              <Label>Weekly Hours</Label>
+              <Input type="number" value={driverFormData.weekly_hours} onChange={(e) => setDriverFormData({ ...driverFormData, weekly_hours: Number(e.target.value) })} />
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={driverFormData.status} onValueChange={(v: Driver['status']) => setDriverFormData({ ...driverFormData, status: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="On Leave">On Leave</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDriverFormOpen(false)}>Cancel</Button>
+            <Button onClick={submitDriverForm}>{isEditingDriver ? 'Update' : 'Add'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isDeleteDriverOpen} onOpenChange={setIsDeleteDriverOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the driver <span className="font-semibold">{selectedDriver?.name}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteDriver} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* --- Assistant Modals --- */}
+      <Dialog open={isViewAssistantOpen} onOpenChange={setIsViewAssistantOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assistant Details</DialogTitle>
+            <DialogDescription>View assistant information</DialogDescription>
+          </DialogHeader>
+          {selectedAssistant && (
+            <div className="space-y-4">
+              <div>
+                <Label>Name</Label>
+                <p className="font-medium">{selectedAssistant.name}</p>
+              </div>
+              <div>
+                <Label>Weekly Hours</Label>
+                <p className="font-medium">{selectedAssistant.weekly_hours}</p>
+              </div>
+              <div>
+                <Label>Status</Label>
+                <p className="font-medium">{selectedAssistant.status}</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsViewAssistantOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAssistantFormOpen} onOpenChange={setIsAssistantFormOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isEditingAssistant ? 'Edit Assistant' : 'Add Assistant'}</DialogTitle>
+            <DialogDescription>
+              {isEditingAssistant ? 'Update assistant details' : 'Enter new assistant information'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Name</Label>
+              <Input value={assistantFormData.name} onChange={(e) => setAssistantFormData({ ...assistantFormData, name: e.target.value })} />
+            </div>
+            <div>
+              <Label>Weekly Hours</Label>
+              <Input type="number" value={assistantFormData.weekly_hours} onChange={(e) => setAssistantFormData({ ...assistantFormData, weekly_hours: Number(e.target.value) })} />
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={assistantFormData.status} onValueChange={(v: Assitant['status']) => setAssistantFormData({ ...assistantFormData, status: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="On Leave">On Leave</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAssistantFormOpen(false)}>Cancel</Button>
+            <Button onClick={submitAssistantForm}>{isEditingAssistant ? 'Update' : 'Add'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isDeleteAssistantOpen} onOpenChange={setIsDeleteAssistantOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the assistant <span className="font-semibold">{selectedAssistant?.name}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteAssistant} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -177,7 +177,7 @@ const Customers = () => {
   const confirmDelete = async () => {
     if (selectedCustomer) {
       try {
-        const response = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.customer_id}`, {
+        const response = await fetch(`${API_URL}/admin/customers/${selectedCustomer.customer_id}`, {
           method: "DELETE",
         });
         const data = await response.json();
