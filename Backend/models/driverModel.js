@@ -25,7 +25,19 @@ export async function sortDriversByHour() {
 export async function getActiveDrives() {
   const [drivers] = await db.query(
     `SELECT * FROM Driver
-    WHERE status = "active" `
+    WHERE status = "Active" `
   );
   return drivers;
+}
+
+export async function addDriver(driverData) {
+  const { name, license_no } = driverData;
+
+  const query = `
+    INSERT INTO Driver (name, license_no)
+    VALUES (?,?)
+  `;
+
+  const [result] = await db.query(query, [name, license_no]);
+  return result;
 }

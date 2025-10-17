@@ -33,8 +33,8 @@ CREATE TABLE Driver (
     driver_id CHAR(36) NOT NULL,
     name VARCHAR(100),
     license_no VARCHAR(20),
-    weekly_hours INT,
-    status VARCHAR(20),
+    weekly_hours INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'Active',
     PRIMARY KEY (driver_id)
 );
 
@@ -363,3 +363,17 @@ JOIN Store s ON r.store_id = s.store_id
 JOIN Delivery_Schedule ds ON r.route_id = ds.route_id
 JOIN Delivers d ON ds.delivery_id = d.delivery_id
 JOIN `Order` o ON d.order_id = o.order_id;
+
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_driver
+BEFORE INSERT ON Driver
+FOR EACH ROW
+BEGIN
+IF NEW.driver_id IS NULL THEN
+SET NEW.driver_id = UUID();
+END IF;
+END $$
+
+DELIMITER ;
