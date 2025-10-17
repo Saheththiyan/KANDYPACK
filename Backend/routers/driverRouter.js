@@ -10,4 +10,6 @@ router.get("/:id", driver.getDriverByID);
 
 router.post("/", driver.addNewDriver);
 
+router.delete("/:driver_id", driver.deleteDriver);
+
 export default router;

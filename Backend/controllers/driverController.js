@@ -55,3 +55,21 @@ export async function addNewDriver(req, res) {
     });
   }
 }
+
+export async function deleteDriver(req, res) {
+  try {
+    const { driver_id } = req.params;
+    const result = await driver.removeDriver(driver_id);
+
+    if (result.affectedRows == 0) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    res.status(200).json({ message: "Driver deleted successfully!" });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
+  }
+}
