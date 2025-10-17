@@ -11,8 +11,8 @@ CREATE TABLE Admin (
 CREATE TABLE Assistant (
     assistant_id CHAR(36) NOT NULL,
     name VARCHAR(100),
-    weekly_hours INT,
-    status VARCHAR(20),
+    weekly_hours INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'Active',
     PRIMARY KEY (assistant_id)
 );
 
@@ -373,6 +373,19 @@ FOR EACH ROW
 BEGIN
 IF NEW.driver_id IS NULL THEN
 SET NEW.driver_id = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_assistant
+BEFORE INSERT ON Assistant
+FOR EACH ROW
+BEGIN
+IF NEW.assistant_id IS NULL THEN
+SET NEW.assistant_id = UUID();
 END IF;
 END $$
 
