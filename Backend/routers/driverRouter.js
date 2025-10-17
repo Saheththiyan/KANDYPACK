@@ -8,4 +8,6 @@ router.get("/hours", driver.sortByHours);
 router.get("/active", driver.activeDrivers);
 router.get("/:id", driver.getDriverByID);
 
+router.post("/", driver.addNewDriver);
+
 export default router;

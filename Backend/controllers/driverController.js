@@ -36,3 +36,22 @@ export async function activeDrivers(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function addNewDriver(req, res) {
+  try {
+    const driverData = req.body;
+
+    const result = await driver.addDriver(driverData);
+
+    res.status(201).json({
+      message: "Driver added successfully!",
+      data: result,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Something went wrong",
+      error: error.message,
+    });
+  }
+}
