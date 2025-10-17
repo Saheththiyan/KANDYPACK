@@ -390,3 +390,16 @@ END IF;
 END $$
 
 DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_product
+BEFORE INSERT ON Product
+FOR EACH ROW
+BEGIN
+IF NEW.product_id IS NULL THEN
+SET NEW.product_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
