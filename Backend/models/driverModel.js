@@ -41,3 +41,13 @@ export async function addDriver(driverData) {
   const [result] = await db.query(query, [name, license_no]);
   return result;
 }
+
+export async function removeDriver(driver_id) {
+  const query = `
+    DELETE FROM Driver 
+    WHERE driver_id = ?
+  `;
+
+  const [result] = await db.query(query, [driver_id]);
+  return result;
+}

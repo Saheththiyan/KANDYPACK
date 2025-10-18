@@ -11,8 +11,8 @@ CREATE TABLE Admin (
 CREATE TABLE Assistant (
     assistant_id CHAR(36) NOT NULL,
     name VARCHAR(100),
-    weekly_hours INT,
-    status VARCHAR(20),
+    weekly_hours INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'Active',
     PRIMARY KEY (assistant_id)
 );
 
@@ -373,6 +373,71 @@ FOR EACH ROW
 BEGIN
 IF NEW.driver_id IS NULL THEN
 SET NEW.driver_id = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_assistant
+BEFORE INSERT ON Assistant
+FOR EACH ROW
+BEGIN
+IF NEW.assistant_id IS NULL THEN
+SET NEW.assistant_id = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_product
+BEFORE INSERT ON Product
+FOR EACH ROW
+BEGIN
+IF NEW.product_id IS NULL THEN
+SET NEW.product_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_store
+BEFORE INSERT ON Store
+FOR EACH ROW
+BEGIN
+IF NEW.store_id IS NULL THEN
+SET NEW.store_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_route
+BEFORE INSERT ON Route
+FOR EACH ROW
+BEGIN
+IF NEW.route_id IS NULL THEN
+SET NEW.route_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_truck
+BEFORE INSERT ON Truck
+FOR EACH ROW
+BEGIN
+IF NEW.truck_id IS NULL THEN
+SET NEW.truck_id  = UUID();
 END IF;
 END $$
 
