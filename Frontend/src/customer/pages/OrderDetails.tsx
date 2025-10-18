@@ -9,6 +9,8 @@ import { Progress } from '@/components/ui/progress';
 import { fetchOrder, advanceOrderStatus, Order } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { getAuthToken } from '@/lib/mockAuth';
+import { API_URL } from '@/lib/config';
 
 const TimelineItem = ({ status, timestamp, completed }: {
   status: string;
@@ -16,9 +18,8 @@ const TimelineItem = ({ status, timestamp, completed }: {
   completed: boolean;
 }) => (
   <div className="flex items-start space-x-3">
-    <div className={`mt-1 w-4 h-4 rounded-full border-2 ${
-      completed ? 'bg-primary border-primary' : 'border-muted-foreground'
-    }`}>
+    <div className={`mt-1 w-4 h-4 rounded-full border-2 ${completed ? 'bg-primary border-primary' : 'border-muted-foreground'
+      }`}>
       {completed && <CheckCircle className="w-3 h-3 text-primary-foreground" />}
     </div>
     <div className="flex-1">
@@ -40,13 +41,22 @@ const CustomerOrderDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const auth = getAuthToken();
+
   useEffect(() => {
     const loadOrder = async () => {
       if (!id) return;
-      
+
       setIsLoading(true);
       try {
-        const orderData = await fetchOrder(id);
+        const orderData = await fetch(`${API_URL}/orders/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+        }).then(res => res.json());
+
         setOrder(orderData);
       } catch (error) {
         console.error('Failed to load order:', error);
@@ -65,7 +75,7 @@ const CustomerOrderDetails = () => {
 
   const handleRefreshStatus = async () => {
     if (!order) return;
-    
+
     setIsRefreshing(true);
     try {
       const updatedOrder = await advanceOrderStatus(order.id);
@@ -170,7 +180,7 @@ const CustomerOrderDetails = () => {
           <Badge variant="secondary" className="text-sm">
             {order.status}
           </Badge>
-          <Button 
+          <Button
             onClick={handleRefreshStatus}
             disabled={isRefreshing}
             variant="outline"
@@ -214,9 +224,9 @@ const CustomerOrderDetails = () => {
                   </p>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-3">
                 {order.items.map((item, index) => (
                   <div key={index} className="flex items-center justify-between">
@@ -258,8 +268,8 @@ const CustomerOrderDetails = () => {
                   <p><strong>Space Used:</strong> {order.logistics.rail.spaceUsed} units</p>
                   <p><strong>Remaining Capacity:</strong> {order.logistics.rail.remainingCapacity} units</p>
                   <div className="mt-2">
-                    <Progress 
-                      value={(order.logistics.rail.allocatedCapacity / (order.logistics.rail.allocatedCapacity + order.logistics.rail.remainingCapacity)) * 100} 
+                    <Progress
+                      value={(order.logistics.rail.allocatedCapacity / (order.logistics.rail.allocatedCapacity + order.logistics.rail.remainingCapacity)) * 100}
                       className="w-full"
                     />
                   </div>

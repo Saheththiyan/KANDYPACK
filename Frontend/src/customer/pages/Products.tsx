@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchProducts, addToCart, type Product } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
+import { getAuthToken } from '@/lib/mockAuth';
+import { API_URL } from '@/lib/config';
 
 const ProductCard = ({ product }: { product: Product }) => {
   const [quantity, setQuantity] = useState(1);
@@ -125,12 +127,20 @@ const CustomerProducts = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const auth = getAuthToken();
+
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchProducts(searchQuery, currentPage, 12);
-        
+        const data = await fetch(`${API_URL}/customer/products?search=${encodeURIComponent(searchQuery)}&page=${currentPage}&sort=${sortBy}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+        }).then(res => res.json());
+
         // Sort products
         let sortedProducts = [...data.products];
         switch (sortBy) {
@@ -145,7 +155,7 @@ const CustomerProducts = () => {
             sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
             break;
         }
-        
+
         setProducts(sortedProducts);
         setTotalPages(data.totalPages);
       } catch (error) {
@@ -174,7 +184,7 @@ const CustomerProducts = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Products</h1>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <Card key={i} className="h-full">
@@ -214,7 +224,7 @@ const CustomerProducts = () => {
             className="pl-10"
           />
         </div>
-        
+
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort by" />
