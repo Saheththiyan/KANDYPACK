@@ -12,6 +12,7 @@ export async function addStore(storeData) {
     VALUES (?,?,?,?)
   `;
   const [result] = await db.query(query, [name, city, address, capacity]);
+  return result;
 }
 
 export async function removeStore(store_id) {
