@@ -28,7 +28,7 @@ const MostOrdered = () => {
     const [year, quarterLabel] = quarterString.split(' ');
     const quarter = quarterLabel.replace('Q', '');
 
-    const response = await fetch(`${API_URL}/admin/mostOrdered?year=${year}&quarter=${quarter}`);
+    const response = await fetch(`${API_URL}/reports/most-ordered?year=${year}&quarter=${quarter}`);
     const data = await response.json();
     return data.top;
   }
