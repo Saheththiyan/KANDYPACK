@@ -1,7 +1,11 @@
 import express from "express";
 import * as store from "../controllers/storeController.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
+
+// Apply authentication to all store routes
+router.use(authenticateToken);
 
 router.get("/", store.getAllStores);
 

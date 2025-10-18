@@ -63,7 +63,7 @@ interface Customer {
 }
 
 // async function fetchCustomers(): Promise<Customer[]> {
-//   const response = await fetch("http://localhost:5000/admin/customers");
+//   const response = await fetch(`${API_URL}/admin/customers`);
 //   if (!response.ok) {
 //     throw new Error("Failed to fetch customers");
 //   }
@@ -154,7 +154,7 @@ const Customers = () => {
   //     // await deleteCustomer(selectedCustomer.);
 
   //     // Or call the API directly:
-  //     const res = await fetch(`http://localhost:5000/admin/customers/${selectedCustomer.}`, {
+  //     const res = await fetch(`${API_URL}/admin/customers/${selectedCustomer.customer_id}`, {
   //       method: 'DELETE',
   //     });
   //     if (!res.ok) throw new Error('Failed to delete customer');
