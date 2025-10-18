@@ -9,8 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { validateEmail, calculatePasswordStrength, setAuthToken, type LoginCredentials } from '@/lib/mockAuth';
 import { toast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate} from 'react-router-dom';
 
 export const AuthCard = () => {
   const navigate = useNavigate();

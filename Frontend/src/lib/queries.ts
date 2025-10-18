@@ -107,3 +107,115 @@ export const searchCustomers = (searchTerm: string): Customer[] => {
     return customer as Customer;
   });
 };
+
+// ============================================
+// PRODUCT QUERIES
+// ============================================
+
+export interface Product {
+  product_id: string;
+  name: string;
+  description: string;
+  unit_price: number;
+  space_unit: number;
+}
+
+// Get all products
+export const getAllProducts = (sortBy: 'name' | 'price' = 'name'): Product[] => {
+  const db = getDatabase();
+  const orderClause = sortBy === 'price' ? 'unit_price ASC' : 'name ASC';
+  const result = db.exec(`SELECT * FROM Product ORDER BY ${orderClause}`);
+  
+  if (result.length === 0) return [];
+  
+  const columns = result[0].columns;
+  const values = result[0].values;
+  
+  return values.map(row => {
+    const product: any = {};
+    columns.forEach((col, idx) => {
+      product[col] = row[idx];
+    });
+    return product as Product;
+  });
+};
+
+// Get product by ID
+export const getProductById = (productId: string): Product | null => {
+  const db = getDatabase();
+  const result = db.exec(
+    'SELECT * FROM Product WHERE product_id = ?',
+    [productId]
+  );
+  
+  if (result.length === 0 || result[0].values.length === 0) return null;
+  
+  const columns = result[0].columns;
+  const row = result[0].values[0];
+  
+  const product: any = {};
+  columns.forEach((col, idx) => {
+    product[col] = row[idx];
+  });
+  
+  return product as Product;
+};
+
+// Add new product
+export const addProduct = (product: Omit<Product, 'product_id'>): string => {
+  const db = getDatabase();
+  const productId = `p${Date.now()}`;
+  
+  db.run(
+    `INSERT INTO Product (product_id, name, description, unit_price, space_unit) 
+     VALUES (?, ?, ?, ?, ?)`,
+    [productId, product.name, product.description, product.unit_price, product.space_unit]
+  );
+  
+  return productId;
+};
+
+// Update product
+export const updateProduct = (productId: string, product: Omit<Product, 'product_id'>): void => {
+  const db = getDatabase();
+  
+  db.run(
+    `UPDATE Product 
+     SET name = ?, description = ?, unit_price = ?, space_unit = ?
+     WHERE product_id = ?`,
+    [product.name, product.description, product.unit_price, product.space_unit, productId]
+  );
+};
+
+// Delete product
+export const deleteProduct = (productId: string): void => {
+  const db = getDatabase();
+  db.run('DELETE FROM Product WHERE product_id = ?', [productId]);
+};
+
+// Search products
+export const searchProducts = (searchTerm: string, sortBy: 'name' | 'price' = 'name'): Product[] => {
+  const db = getDatabase();
+  const searchPattern = `%${searchTerm}%`;
+  const orderClause = sortBy === 'price' ? 'unit_price ASC' : 'name ASC';
+  
+  const result = db.exec(
+    `SELECT * FROM Product 
+     WHERE name LIKE ? OR description LIKE ?
+     ORDER BY ${orderClause}`,
+    [searchPattern, searchPattern]
+  );
+  
+  if (result.length === 0) return [];
+  
+  const columns = result[0].columns;
+  const values = result[0].values;
+  
+  return values.map(row => {
+    const product: any = {};
+    columns.forEach((col, idx) => {
+      product[col] = row[idx];
+    });
+    return product as Product;
+  });
+};
