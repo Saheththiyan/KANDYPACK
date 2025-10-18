@@ -7,6 +7,7 @@ import { Search, Download, Package, TrendingUp } from 'lucide-react';
 import { fetchCustomerHistory, CustomerOrderHistoryItem } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/lib/config';
+import { getAuthToken } from '@/lib/mockAuth';
 
 const CustomerHistory = () => {
   const [orderHistory, setOrderHistory] = useState<CustomerOrderHistoryItem[]>([]);
@@ -14,12 +15,19 @@ const CustomerHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const auth = getAuthToken();
 
   useEffect(() => {
     const loadOrderHistory = async () => {
       setLoading(true);
       try {
-        const data = await fetch(`${API_URL}/reports/customer-history?customerId=${}`).then(res => res.json());
+        const data = await fetch(`${API_URL}/reports/customer-history?customerId=${auth.userId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+        });
         setOrderHistory(data);
         setFilteredOrders(data);
       } catch (error) {

@@ -25,7 +25,7 @@ export const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('kandypack_user');
+    localStorage.removeItem('auth');
     navigate('/login');
   };
 

@@ -70,228 +70,228 @@ export interface Order {
 }
 
 // Mock product data
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    sku: 'DET-001',
-    name: 'Premium Laundry Detergent',
-    category: 'Detergents',
-    price: 450,
-    image: '/placeholder.svg',
-    description: 'High-quality concentrated laundry detergent with enzyme action.',
-    spaceConsumption: 24,
-    stock: 150
-  },
-  {
-    id: '2',
-    sku: 'SOAP-001',
-    name: 'Antibacterial Hand Soap',
-    category: 'Soaps',
-    price: 180,
-    image: '/placeholder.svg',
-    description: 'Gentle antibacterial hand soap with moisturizing formula.',
-    spaceConsumption: 36,
-    stock: 200
-  },
-  {
-    id: '3',
-    sku: 'TIS-001',
-    name: 'Premium Facial Tissue',
-    category: 'Tissues',
-    price: 320,
-    image: '/placeholder.svg',
-    description: 'Soft and absorbent facial tissues, 3-ply construction.',
-    spaceConsumption: 12,
-    stock: 80
-  },
-  {
-    id: '4',
-    sku: 'DET-002',
-    name: 'Fabric Softener',
-    category: 'Detergents',
-    price: 380,
-    image: '/placeholder.svg',
-    description: 'Leaves clothes soft and fresh with long-lasting fragrance.',
-    spaceConsumption: 20,
-    stock: 120
-  },
-  {
-    id: '5',
-    sku: 'CLEAN-001',
-    name: 'All-Purpose Cleaner',
-    category: 'Cleaners',
-    price: 220,
-    image: '/placeholder.svg',
-    description: 'Powerful multi-surface cleaner for kitchen and bathroom.',
-    spaceConsumption: 30,
-    stock: 90
-  },
-  {
-    id: '6',
-    sku: 'SOAP-002',
-    name: 'Dishwashing Liquid',
-    category: 'Soaps',
-    price: 160,
-    image: '/placeholder.svg',
-    description: 'Cuts through grease with gentle formula for hands.',
-    spaceConsumption: 28,
-    stock: 180
-  },
-  {
-    id: '7',
-    sku: 'TIS-002',
-    name: 'Kitchen Paper Towels',
-    category: 'Tissues',
-    price: 280,
-    image: '/placeholder.svg',
-    description: 'Extra absorbent paper towels for kitchen cleaning.',
-    spaceConsumption: 16,
-    stock: 100
-  },
-  {
-    id: '8',
-    sku: 'CLEAN-002',
-    name: 'Glass Cleaner',
-    category: 'Cleaners',
-    price: 190,
-    image: '/placeholder.svg',
-    description: 'Streak-free shine for windows and mirrors.',
-    spaceConsumption: 32,
-    stock: 75
-  },
-  {
-    id: '9',
-    sku: 'DET-003',
-    name: 'Stain Remover',
-    category: 'Detergents',
-    price: 350,
-    image: '/placeholder.svg',
-    description: 'Powerful stain removal for tough stains and spots.',
-    spaceConsumption: 40,
-    stock: 60
-  },
-  {
-    id: '10',
-    sku: 'SOAP-003',
-    name: 'Body Wash',
-    category: 'Soaps',
-    price: 420,
-    image: '/placeholder.svg',
-    description: 'Moisturizing body wash with natural extracts.',
-    spaceConsumption: 24,
-    stock: 140
-  },
-  {
-    id: '11',
-    sku: 'TIS-003',
-    name: 'Toilet Paper',
-    category: 'Tissues',
-    price: 380,
-    image: '/placeholder.svg',
-    description: 'Soft and strong toilet paper, 2-ply comfort.',
-    spaceConsumption: 8,
-    stock: 200
-  },
-  {
-    id: '12',
-    sku: 'CLEAN-003',
-    name: 'Floor Cleaner',
-    category: 'Cleaners',
-    price: 240,
-    image: '/placeholder.svg',
-    description: 'Deep cleaning floor cleaner with fresh scent.',
-    spaceConsumption: 25,
-    stock: 85
-  },
-  {
-    id: '13',
-    sku: 'DET-004',
-    name: 'Bleach',
-    category: 'Detergents',
-    price: 180,
-    image: '/placeholder.svg',
-    description: 'Whitening and disinfecting bleach for laundry.',
-    spaceConsumption: 36,
-    stock: 110
-  },
-  {
-    id: '14',
-    sku: 'SOAP-004',
-    name: 'Shampoo',
-    category: 'Soaps',
-    price: 520,
-    image: '/placeholder.svg',
-    description: 'Nourishing shampoo for all hair types.',
-    spaceConsumption: 20,
-    stock: 95
-  },
-  {
-    id: '15',
-    sku: 'TIS-004',
-    name: 'Napkins',
-    category: 'Tissues',
-    price: 150,
-    image: '/placeholder.svg',
-    description: 'Premium dining napkins for restaurants and homes.',
-    spaceConsumption: 50,
-    stock: 160
-  },
-  {
-    id: '16',
-    sku: 'CLEAN-004',
-    name: 'Bathroom Cleaner',
-    category: 'Cleaners',
-    price: 260,
-    image: '/placeholder.svg',
-    description: 'Specialized cleaner for bathroom tiles and fixtures.',
-    spaceConsumption: 28,
-    stock: 70
-  },
-  {
-    id: '17',
-    sku: 'DET-005',
-    name: 'Wool Wash',
-    category: 'Detergents',
-    price: 480,
-    image: '/placeholder.svg',
-    description: 'Gentle detergent specially formulated for wool and delicates.',
-    spaceConsumption: 30,
-    stock: 45
-  },
-  {
-    id: '18',
-    sku: 'SOAP-005',
-    name: 'Conditioner',
-    category: 'Soaps',
-    price: 490,
-    image: '/placeholder.svg',
-    description: 'Deep conditioning treatment for smooth, healthy hair.',
-    spaceConsumption: 20,
-    stock: 85
-  },
-  {
-    id: '19',
-    sku: 'TIS-005',
-    name: 'Wet Wipes',
-    category: 'Tissues',
-    price: 220,
-    image: '/placeholder.svg',
-    description: 'Antibacterial wet wipes for hands and surfaces.',
-    spaceConsumption: 60,
-    stock: 130
-  },
-  {
-    id: '20',
-    sku: 'CLEAN-005',
-    name: 'Carpet Cleaner',
-    category: 'Cleaners',
-    price: 380,
-    image: '/placeholder.svg',
-    description: 'Deep cleaning solution for carpets and upholstery.',
-    spaceConsumption: 22,
-    stock: 55
-  }
-];
+// const mockProducts: Product[] = [
+//   {
+//     id: '1',
+//     sku: 'DET-001',
+//     name: 'Premium Laundry Detergent',
+//     category: 'Detergents',
+//     price: 450,
+//     image: '/placeholder.svg',
+//     description: 'High-quality concentrated laundry detergent with enzyme action.',
+//     spaceConsumption: 24,
+//     stock: 150
+//   },
+//   {
+//     id: '2',
+//     sku: 'SOAP-001',
+//     name: 'Antibacterial Hand Soap',
+//     category: 'Soaps',
+//     price: 180,
+//     image: '/placeholder.svg',
+//     description: 'Gentle antibacterial hand soap with moisturizing formula.',
+//     spaceConsumption: 36,
+//     stock: 200
+//   },
+//   {
+//     id: '3',
+//     sku: 'TIS-001',
+//     name: 'Premium Facial Tissue',
+//     category: 'Tissues',
+//     price: 320,
+//     image: '/placeholder.svg',
+//     description: 'Soft and absorbent facial tissues, 3-ply construction.',
+//     spaceConsumption: 12,
+//     stock: 80
+//   },
+//   {
+//     id: '4',
+//     sku: 'DET-002',
+//     name: 'Fabric Softener',
+//     category: 'Detergents',
+//     price: 380,
+//     image: '/placeholder.svg',
+//     description: 'Leaves clothes soft and fresh with long-lasting fragrance.',
+//     spaceConsumption: 20,
+//     stock: 120
+//   },
+//   {
+//     id: '5',
+//     sku: 'CLEAN-001',
+//     name: 'All-Purpose Cleaner',
+//     category: 'Cleaners',
+//     price: 220,
+//     image: '/placeholder.svg',
+//     description: 'Powerful multi-surface cleaner for kitchen and bathroom.',
+//     spaceConsumption: 30,
+//     stock: 90
+//   },
+//   {
+//     id: '6',
+//     sku: 'SOAP-002',
+//     name: 'Dishwashing Liquid',
+//     category: 'Soaps',
+//     price: 160,
+//     image: '/placeholder.svg',
+//     description: 'Cuts through grease with gentle formula for hands.',
+//     spaceConsumption: 28,
+//     stock: 180
+//   },
+//   {
+//     id: '7',
+//     sku: 'TIS-002',
+//     name: 'Kitchen Paper Towels',
+//     category: 'Tissues',
+//     price: 280,
+//     image: '/placeholder.svg',
+//     description: 'Extra absorbent paper towels for kitchen cleaning.',
+//     spaceConsumption: 16,
+//     stock: 100
+//   },
+//   {
+//     id: '8',
+//     sku: 'CLEAN-002',
+//     name: 'Glass Cleaner',
+//     category: 'Cleaners',
+//     price: 190,
+//     image: '/placeholder.svg',
+//     description: 'Streak-free shine for windows and mirrors.',
+//     spaceConsumption: 32,
+//     stock: 75
+//   },
+//   {
+//     id: '9',
+//     sku: 'DET-003',
+//     name: 'Stain Remover',
+//     category: 'Detergents',
+//     price: 350,
+//     image: '/placeholder.svg',
+//     description: 'Powerful stain removal for tough stains and spots.',
+//     spaceConsumption: 40,
+//     stock: 60
+//   },
+//   {
+//     id: '10',
+//     sku: 'SOAP-003',
+//     name: 'Body Wash',
+//     category: 'Soaps',
+//     price: 420,
+//     image: '/placeholder.svg',
+//     description: 'Moisturizing body wash with natural extracts.',
+//     spaceConsumption: 24,
+//     stock: 140
+//   },
+//   {
+//     id: '11',
+//     sku: 'TIS-003',
+//     name: 'Toilet Paper',
+//     category: 'Tissues',
+//     price: 380,
+//     image: '/placeholder.svg',
+//     description: 'Soft and strong toilet paper, 2-ply comfort.',
+//     spaceConsumption: 8,
+//     stock: 200
+//   },
+//   {
+//     id: '12',
+//     sku: 'CLEAN-003',
+//     name: 'Floor Cleaner',
+//     category: 'Cleaners',
+//     price: 240,
+//     image: '/placeholder.svg',
+//     description: 'Deep cleaning floor cleaner with fresh scent.',
+//     spaceConsumption: 25,
+//     stock: 85
+//   },
+//   {
+//     id: '13',
+//     sku: 'DET-004',
+//     name: 'Bleach',
+//     category: 'Detergents',
+//     price: 180,
+//     image: '/placeholder.svg',
+//     description: 'Whitening and disinfecting bleach for laundry.',
+//     spaceConsumption: 36,
+//     stock: 110
+//   },
+//   {
+//     id: '14',
+//     sku: 'SOAP-004',
+//     name: 'Shampoo',
+//     category: 'Soaps',
+//     price: 520,
+//     image: '/placeholder.svg',
+//     description: 'Nourishing shampoo for all hair types.',
+//     spaceConsumption: 20,
+//     stock: 95
+//   },
+//   {
+//     id: '15',
+//     sku: 'TIS-004',
+//     name: 'Napkins',
+//     category: 'Tissues',
+//     price: 150,
+//     image: '/placeholder.svg',
+//     description: 'Premium dining napkins for restaurants and homes.',
+//     spaceConsumption: 50,
+//     stock: 160
+//   },
+//   {
+//     id: '16',
+//     sku: 'CLEAN-004',
+//     name: 'Bathroom Cleaner',
+//     category: 'Cleaners',
+//     price: 260,
+//     image: '/placeholder.svg',
+//     description: 'Specialized cleaner for bathroom tiles and fixtures.',
+//     spaceConsumption: 28,
+//     stock: 70
+//   },
+//   {
+//     id: '17',
+//     sku: 'DET-005',
+//     name: 'Wool Wash',
+//     category: 'Detergents',
+//     price: 480,
+//     image: '/placeholder.svg',
+//     description: 'Gentle detergent specially formulated for wool and delicates.',
+//     spaceConsumption: 30,
+//     stock: 45
+//   },
+//   {
+//     id: '18',
+//     sku: 'SOAP-005',
+//     name: 'Conditioner',
+//     category: 'Soaps',
+//     price: 490,
+//     image: '/placeholder.svg',
+//     description: 'Deep conditioning treatment for smooth, healthy hair.',
+//     spaceConsumption: 20,
+//     stock: 85
+//   },
+//   {
+//     id: '19',
+//     sku: 'TIS-005',
+//     name: 'Wet Wipes',
+//     category: 'Tissues',
+//     price: 220,
+//     image: '/placeholder.svg',
+//     description: 'Antibacterial wet wipes for hands and surfaces.',
+//     spaceConsumption: 60,
+//     stock: 130
+//   },
+//   {
+//     id: '20',
+//     sku: 'CLEAN-005',
+//     name: 'Carpet Cleaner',
+//     category: 'Cleaners',
+//     price: 380,
+//     image: '/placeholder.svg',
+//     description: 'Deep cleaning solution for carpets and upholstery.',
+//     spaceConsumption: 22,
+//     stock: 55
+//   }
+// ];
 
 // Sri Lankan cities for delivery  
 export const cities = [

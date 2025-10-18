@@ -31,6 +31,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Eye, Pencil, Trash2, Package, CheckCircle, XCircle } from 'lucide-react';
 import { API_URL } from '../../lib/config';
+import { getAuthToken } from '@/lib/mockAuth';
 
 interface Product {
   id: string;
@@ -166,6 +167,8 @@ const AdminProducts = () => {
     description: '',
   });
 
+  const auth = getAuthToken();
+
   const ITEMS_PER_PAGE = 12;
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -174,7 +177,13 @@ const AdminProducts = () => {
   };
 
   async function fetchProducts(): Promise<Product[]> {
-    const response = await fetch(`${API_URL}/admin/products`);
+    const response = await fetch(`${API_URL}/admin/products`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch products");
     }

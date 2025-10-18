@@ -16,15 +16,15 @@ export async function getQuarterlyOrders(year) {
       (SELECT 1 AS q UNION SELECT 2 UNION SELECT 3 UNION SELECT 4) q
     LEFT JOIN (
       SELECT 
-        QUARTER(orderDate) AS quarter,
+        QUARTER(order_date) AS quarter,
         COUNT(*) AS totalOrders,
-        SUM(totalAmount) AS totalRevenue
+        SUM(total_value) AS totalRevenue
       FROM 
         \`Order\`
       WHERE 
-        YEAR(orderDate) = ?
+        YEAR(order_date) = ?
       GROUP BY 
-        QUARTER(orderDate)
+        QUARTER(order_date)
     ) t ON t.quarter = q.q
     ORDER BY 
       q.q;

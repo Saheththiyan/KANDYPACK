@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchOrders, type Order } from '@/lib/mockApi';
+import { getAuthToken } from '@/lib/mockAuth';
+import { API_URL } from '@/lib/config';
 
 const StatusBadge = ({ status }: { status: Order['status'] }) => {
   const variants = {
@@ -48,7 +50,7 @@ const OrderCard = ({ order }: { order: Order }) => {
           <StatusBadge status={order.status} />
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -83,11 +85,20 @@ const CustomerOrders = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('date-desc');
 
+  const auth = getAuthToken();
+
   useEffect(() => {
     const loadOrders = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchOrders();
+        const data = await fetch(`${API_URL}/customer/orders`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+        }).then(res => res.json()).then(res => res.orders);
+        
         setOrders(data);
         setFilteredOrders(data);
       } catch (error) {
@@ -133,7 +144,7 @@ const CustomerOrders = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Order History</h1>
         </div>
-        
+
         <div className="grid gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <Card key={i}>

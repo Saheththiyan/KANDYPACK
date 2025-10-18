@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Trash2, Calendar, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,22 +10,31 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getCart, updateCartItem, removeFromCart, createOrder, cities, CartItem } from '@/lib/mockApi';
+import { getCart, updateCartItem, removeFromCart, createOrder, cities, CartItem } from '@/lib/api';
 import { getAuthToken } from '@/lib/mockAuth';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
+
+// NEW: robust number coercion for prices
+const toNumber = (val: unknown): number => {
+  const n = typeof val === 'number' ? val : Number.parseFloat(String(val ?? '0'));
+  return Number.isFinite(n) ? n : 0;
+};
 
 const CartItemRow = ({ item, onUpdate, onRemove }: {
   item: CartItem;
   onUpdate: (id: string, quantity: number) => void;
   onRemove: (id: string) => void;
 }) => {
+  const unitPrice = toNumber(item.product.price);
+  const lineTotal = unitPrice * item.quantity;
+
   return (
     <div className="flex items-center space-x-4 py-4 border-b last:border-b-0">
       <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-        <img 
-          src={item.product.image} 
+        <img
+          src={item.product.image}
           alt={item.product.name}
           className="w-full h-full object-cover rounded-lg"
           onError={(e) => {
@@ -33,13 +42,13 @@ const CartItemRow = ({ item, onUpdate, onRemove }: {
           }}
         />
       </div>
-      
+
       <div className="flex-1 min-w-0">
         <h3 className="font-medium truncate">{item.product.name}</h3>
         <p className="text-sm text-muted-foreground">SKU: {item.product.sku}</p>
-        <p className="text-sm font-medium text-primary">Rs. {item.product.price.toFixed(2)}</p>
+        <p className="text-sm font-medium text-primary">Rs. {unitPrice.toFixed(2)}</p>
       </div>
-      
+
       <div className="flex items-center space-x-2">
         <Button
           variant="outline"
@@ -59,9 +68,9 @@ const CartItemRow = ({ item, onUpdate, onRemove }: {
           <Plus className="w-3 h-3" />
         </Button>
       </div>
-      
+
       <div className="text-right">
-        <p className="font-medium">Rs. {(item.product.price * item.quantity).toFixed(2)}</p>
+        <p className="font-medium">Rs. {lineTotal.toFixed(2)}</p>
         <Button
           variant="ghost"
           size="sm"
@@ -92,13 +101,13 @@ const CustomerCart = () => {
 
   useEffect(() => {
     setCart(getCart());
-    
+
     const handleCartUpdate = () => {
       setCart(getCart());
     };
 
     window.addEventListener('cartUpdated', handleCartUpdate);
-    
+
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
     };
@@ -118,7 +127,8 @@ const CustomerCart = () => {
     });
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  // UPDATED: use toNumber for robust subtotal calc
+  const subtotal = cart.reduce((sum, item) => sum + (toNumber(item.product.price) * item.quantity), 0);
   const deliveryFee = 200;
   const total = subtotal + deliveryFee;
 
@@ -129,7 +139,7 @@ const CustomerCart = () => {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (cart.length === 0) {
       toast({
         title: 'Cart is empty',
@@ -194,7 +204,7 @@ const CustomerCart = () => {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Shopping Cart</h1>
-        
+
         <Card>
           <CardContent className="py-12 text-center">
             <ShoppingCart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -214,7 +224,7 @@ const CustomerCart = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Shopping Cart</h1>
-      
+
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2">
@@ -227,9 +237,9 @@ const CustomerCart = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-0">
-                {cart.map((item, index) => (
+                {cart.map((item) => (
                   <CartItemRow
-                    key={index}
+                    key={item.product.id}
                     item={item}
                     onUpdate={handleUpdateQuantity}
                     onRemove={handleRemoveItem}
@@ -347,7 +357,7 @@ const CustomerCart = () => {
                         mode="single"
                         selected={deliveryDate}
                         onSelect={setDeliveryDate}
-                        disabled={(date) => 
+                        disabled={(date) =>
                           date < addDays(new Date(), 7) || date < new Date()
                         }
                         initialFocus

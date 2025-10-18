@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, Plus, Minus, Package } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Package, LogIn } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchProducts, addToCart } from '@/lib/api';
+import { fetchProducts } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
-import { getAuthToken } from '@/lib/mockAuth';
-import { API_URL } from '@/lib/config';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -26,65 +25,126 @@ interface Product {
 
 const PAGE_SIZE = 16;
 
-const ProductCard = ({ product }: { product: Product }) => {
+const SignInPrompt = ({
+  open,
+  onOpenChange,
+  redirect = '/products',
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  redirect?: string;
+}) => {
+  const navigate = useNavigate();
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <LogIn className="w-5 h-5" />
+            Sign in required
+          </DialogTitle>
+          <DialogDescription>
+            Please sign in to add items to your cart and checkout.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col sm:flex-row gap-2 pt-2">
+          <Button
+            className="flex-1"
+            onClick={() => navigate(`/login?redirect=${encodeURIComponent(redirect)}`)}
+          >
+            <LogIn className="w-4 h-4 mr-2" />
+            Sign in
+          </Button>
+          <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+            Keep browsing
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const ProductCard = ({
+  product,
+  onRequireSignin,
+}: {
+  product: Product;
+  onRequireSignin: () => void;
+}) => {
   const [quantity, setQuantity] = useState(1);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const handleAddToCart = () => {
-    try {
-      addToCart(product, quantity);
-      toast({ title: 'Added to cart', description: `${quantity}x ${product.name} added to your cart.` });
-      setQuantity(1);
-    } catch {
-      toast({ title: 'Error', description: 'Failed to add item to cart.', variant: 'destructive' });
-    }
+    onRequireSignin();
   };
 
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
-        <CardDescription className="text-sm">SKU: {product.sku} • {product.category}</CardDescription>
+        <CardDescription className="text-sm">
+          SKU: {product.sku} • {product.category}
+        </CardDescription>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col justify-between">
         <div className="space-y-2 mb-4">
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-primary">Rs {product.price.toLocaleString()}</span>
+            <span className="text-2xl font-bold text-primary">
+              Rs {product.price.toLocaleString()}
+            </span>
             <Badge variant={product.stock > 0 ? 'secondary' : 'destructive'}>
               {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground">Space: {product.spaceConsumption} units/box</p>
+          <p className="text-sm text-muted-foreground">
+            Space: {product.spaceConsumption} units/box
+          </p>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="h-8 w-8 p-0">
-              <Plus className="w-3 h-3 rotate-180" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="h-8 w-8 p-0"
+            >
+              <Minus className="w-3 h-3" />
             </Button>
             <span className="w-8 text-center font-medium">{quantity}</span>
-            <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)} className="h-8 w-8 p-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setQuantity(quantity + 1)}
+              className="h-8 w-8 p-0"
+            >
               <Plus className="w-3 h-3" />
             </Button>
           </div>
 
           <div className="flex space-x-2">
-            <Button onClick={handleAddToCart} disabled={product.stock === 0} className="flex-1" size="sm">
+            <Button
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              className="flex-1"
+              size="sm"
+            >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Add to Cart
             </Button>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">Details</Button>
-              </DialogTrigger>
+            <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+              <Button variant="outline" size="sm" onClick={() => setIsDetailsOpen(true)}>
+                Details
+              </Button>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>{product.name}</DialogTitle>
                   <DialogDescription>{product.description}</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <p><strong>Price:</strong> Rs {product.price.toLocaleString()}</p>
                   <p><strong>Category:</strong> {product.category}</p>
                   <p><strong>Stock:</strong> {product.stock} units</p>
@@ -110,6 +170,13 @@ const CustomerProducts = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [serverTotalPages, setServerTotalPages] = useState(1);
   const [serverTotal, setServerTotal] = useState(0);
+  const [signinOpen, setSigninOpen] = useState(false);
+
+  // guest mode
+  useEffect(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  }, []);
 
   // debounce search input
   useEffect(() => {
@@ -117,60 +184,27 @@ const CustomerProducts = () => {
     return () => clearTimeout(t);
   }, [searchQuery]);
 
-  // fetch page from server whenever search/sort/page changes
-  const [totalPages, setTotalPages] = useState(1);
-
-  const auth = getAuthToken();
-
+  // fetch a page from the server whenever search/sort/page changes
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(`${API_URL}/customer/products?search=${encodeURIComponent(searchQuery)}&page=${currentPage}&sort=${sortBy}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
-          },
-        }).then(res => res.json());
-
-        // Sort products
-        let sortedProducts = [...res.products];
-        switch (sortBy) {
-          case 'price-low':
-            sortedProducts.sort((a, b) => a.price - b.price);
-            break;
-          case 'price-high':
-            sortedProducts.sort((a, b) => b.price - a.price);
-            break;
-          case 'name':
-          default:
-            sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
-            break;
+        const res = await fetchProducts(debouncedQuery, currentPage, PAGE_SIZE, sortBy);
+        if (!cancelled) {
+          // map to the Product UI shape (already normalized in api.ts)
+          setProducts(res.products as any);
+          setServerTotal(res.total);
+          setServerTotalPages(res.totalPages);
         }
-        // const res = await fetchProducts(debouncedQuery, currentPage, PAGE_SIZE, sortBy);
-        if (cancelled) return;
-
-        // api.ts already normalizes; this is a safety mapping if needed:
-        const mapped: Product[] = res.products.map((p: any) => ({
-          id: p.product_id ?? p.id,
-          name: p.name,
-          description: p.description,
-          price: Number(p.unit_price ?? p.price),
-          spaceConsumption: Number(p.space_unit ?? p.spaceConsumption),
-          stock: Number(p.stock ?? 0),
-          sku: `SKU-${String(p.product_id ?? p.id).substring(0, 8)}`,
-          category: p.category ?? 'Product',
-          image: '/placeholder.svg',
-        }));
-        setProducts(mapped);
-        setServerTotal(res.total);
-        setServerTotalPages(res.totalPages);
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to load products:', error);
-          toast({ title: 'Error', description: 'Failed to load products. Please try again.', variant: 'destructive' });
+          toast({
+            title: 'Error',
+            description: 'Failed to load products. Please try again.',
+            variant: 'destructive',
+          });
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -180,13 +214,36 @@ const CustomerProducts = () => {
   }, [debouncedQuery, sortBy, currentPage]);
 
   // reset to page 1 when search/sort changes
-  useEffect(() => { setCurrentPage(1); }, [debouncedQuery, sortBy]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedQuery, sortBy]);
+
+  const handleSearch = (q: string) => setSearchQuery(q);
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-6 py-8 space-y-8 max-w-7xl">
+      {/* Top guest notice banner */}
+      <div className="flex items-center justify-between p-4 border rounded-md bg-muted/30">
+        <p className="text-sm">
+          You’re browsing as a guest.{' '}
+          <span className="text-muted-foreground">
+            Sign in to add items to your cart and checkout.
+          </span>
+        </p>
+        <Button asChild>
+          <Link to="/login?redirect=/products">
+            <LogIn className="w-4 h-4 mr-2" />
+            Sign in
+          </Link>
+        </Button>
+      </div>
+
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Products</h1>
-        <Badge variant="secondary">{serverTotal} product{serverTotal !== 1 ? 's' : ''}</Badge>
+        <Badge variant="secondary">
+          {serverTotal} product{serverTotal !== 1 ? 's' : ''}
+        </Badge>
       </div>
 
       {/* Search and Sort */}
@@ -196,7 +253,7 @@ const CustomerProducts = () => {
           <Input
             placeholder="Search products by name..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -213,7 +270,7 @@ const CustomerProducts = () => {
         </Select>
       </div>
 
-      {/* Loading / Empty / Grid */}
+      {/* Product grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -242,12 +299,16 @@ const CustomerProducts = () => {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onRequireSignin={() => setSigninOpen(true)}
+              />
             ))}
           </div>
 
           {serverTotalPages > 1 && (
-            <div className="flex justify-center space-x-2">
+            <div className="flex justify-center space-x-2 pt-4">
               <Button
                 variant="outline"
                 disabled={currentPage === 1}
@@ -269,6 +330,9 @@ const CustomerProducts = () => {
           )}
         </>
       )}
+
+      {/* Sign-in popup */}
+      <SignInPrompt open={signinOpen} onOpenChange={setSigninOpen} redirect="/products" />
     </div>
   );
 };
