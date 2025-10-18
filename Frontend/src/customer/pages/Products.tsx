@@ -7,8 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchProducts, addToCart, type Product } from '@/lib/mockApi';
+import { fetchProducts, addToCart } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
+
+// Define the Product interface to match the API response
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  spaceConsumption: number;
+  stock: number;
+  sku: string;
+  category: string;
+  image: string;
+}
 
 const ProductCard = ({ product }: { product: Product }) => {
   const [quantity, setQuantity] = useState(1);
@@ -131,8 +144,21 @@ const CustomerProducts = () => {
         setIsLoading(true);
         const data = await fetchProducts(searchQuery, currentPage, 12);
         
+        // Transform API products to match the expected format
+        const transformedProducts: Product[] = data.products.map((product: any) => ({
+          id: product.product_id,
+          name: product.name,
+          description: product.description,
+          price: product.unit_price,
+          spaceConsumption: product.space_unit,
+          stock: product.stock,
+          sku: `SKU-${product.product_id.substring(0, 8)}`, // Generate SKU from product ID
+          category: 'Product', // Default category
+          image: '/placeholder.svg' // Default image
+        }));
+        
         // Sort products
-        let sortedProducts = [...data.products];
+        let sortedProducts = [...transformedProducts];
         switch (sortBy) {
           case 'price-low':
             sortedProducts.sort((a, b) => a.price - b.price);
