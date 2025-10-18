@@ -5,7 +5,6 @@ export async function getTrucks() {
   return trucks;
 }
 
-
 export async function getTruckUsage(month) {
   const [usage] = await db.query(
     `SELECT t.truck_id AS truckId, 
@@ -23,4 +22,24 @@ export async function getTruckUsage(month) {
     [month]
   );
   return usage;
+}
+
+export async function addTruck(truckData) {
+  const { license_plate, capacity, status } = truckData;
+
+  const query = `
+    INSERT INTO Truck(license_plate, capacity, status)
+    VALUES (?,?,?)
+  `;
+  const [result] = await db.query(query, [license_plate, capacity, status]);
+  return result;
+}
+
+export async function removeTruck(truck_id) {
+  const query = `
+    DELETE FROM Truck
+    WHERE truck_id = ?
+  `;
+  const [result] = await db.query(query, [truck_id]);
+  return result;
 }

@@ -7,7 +7,7 @@ export async function getDrivers() {
 
 export async function getDriversByID(id) {
   const [driver] = await db.query(
-    `SELECT * FROM driver
+    `SELECT * FROM Driver
     WHERE driver_id = ?`,
     [id]
   );
@@ -16,16 +16,38 @@ export async function getDriversByID(id) {
 
 export async function sortDriversByHour() {
   const [drivers] = await db.query(
-    `SELECT * FROM driver
-    ORDER BY weekly_hours DESC`
+    `SELECT * FROM Driver
+     ORDER BY weekly_hours DESC`
   );
   return drivers;
 }
 
 export async function getActiveDrives() {
   const [drivers] = await db.query(
-    `SELECT * FROM driver
-    WHERE status = "active" `
+    `SELECT * FROM Driver
+    WHERE status = "Active" `
   );
   return drivers;
+}
+
+export async function addDriver(driverData) {
+  const { name, license_no } = driverData;
+
+  const query = `
+    INSERT INTO Driver (name, license_no)
+    VALUES (?,?)
+  `;
+
+  const [result] = await db.query(query, [name, license_no]);
+  return result;
+}
+
+export async function removeDriver(driver_id) {
+  const query = `
+    DELETE FROM Driver 
+    WHERE driver_id = ?
+  `;
+
+  const [result] = await db.query(query, [driver_id]);
+  return result;
 }

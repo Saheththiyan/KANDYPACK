@@ -1,0 +1,829 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Search, Plus, Eye, Pencil, Trash2, Package, CheckCircle, XCircle } from 'lucide-react';
+import { API_URL } from '../../lib/config';
+
+interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  stock: number;
+  spaceConsumption: number;
+  description: string;
+}
+
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: 'prod_001',
+    name: 'Kandy Pack Premium Tea (250g)',
+    sku: 'KP-TEA-250',
+    category: 'Beverages',
+    price: 249.0,
+    stock: 120,
+    spaceConsumption: 0.5,
+    description: 'Rich Ceylon black tea with aromatic flavor.',
+  },
+  {
+    id: 'prod_002',
+    name: 'Rice Box - 5kg',
+    sku: 'KP-RICE-5KG',
+    category: 'Staples',
+    price: 1199.0,
+    stock: 32,
+    spaceConsumption: 5.0,
+    description: 'Long grain rice, ideal for daily meals.',
+  },
+  {
+    id: 'prod_003',
+    name: 'Coconut Oil 1L',
+    sku: 'KP-OIL-1L',
+    category: 'Cooking',
+    price: 799.0,
+    stock: 8,
+    spaceConsumption: 1.2,
+    description: 'Cold pressed virgin coconut oil.',
+  },
+  {
+    id: 'prod_004',
+    name: 'Glass Bottle - 500ml',
+    sku: 'KP-GLASS-500',
+    category: 'Packaging',
+    price: 59.0,
+    stock: 0,
+    spaceConsumption: 0.2,
+    description: 'Reusable glass bottle, BPA free.',
+  },
+  {
+    id: 'prod_005',
+    name: 'Hand Sanitizer 250ml',
+    sku: 'KP-SAN-250',
+    category: 'Hygiene',
+    price: 299.0,
+    stock: 45,
+    spaceConsumption: 0.3,
+    description: 'Alcohol based sanitizer with gentle formula.',
+  },
+  {
+    id: 'prod_006',
+    name: 'Chocolate Assorted Box',
+    sku: 'KP-CHOCO-BOX',
+    category: 'Confectionery',
+    price: 499.0,
+    stock: 200,
+    spaceConsumption: 0.6,
+    description: 'Assorted chocolates, great for gifting.',
+  },
+  {
+    id: 'prod_007',
+    name: 'Detergent Powder 2kg',
+    sku: 'KP-DET-2KG',
+    category: 'Household',
+    price: 649.0,
+    stock: 16,
+    spaceConsumption: 2.0,
+    description: 'High-efficiency detergent for front-loaders.',
+  },
+  {
+    id: 'prod_008',
+    name: 'Snack Pack - Mixed Nuts',
+    sku: 'KP-NUTS-100',
+    category: 'Snacks',
+    price: 179.0,
+    stock: 58,
+    spaceConsumption: 0.15,
+    description: 'Roasted mixed nuts (100g).',
+    },
+{
+    id: 'prod_001',
+    name: 'Kandy Pack Premium Tea (250g)',
+    sku: 'KP-TEA-250',
+    category: 'Beverages',
+    price: 249.0,
+    stock: 120,
+    spaceConsumption: 0.5,
+    description: 'Rich Ceylon black tea with aromatic flavor.',
+  },
+  {
+    id: 'prod_002',
+    name: 'Rice Box - 5kg',
+    sku: 'KP-RICE-5KG',
+    category: 'Staples',
+    price: 1199.0,
+    stock: 32,
+    spaceConsumption: 5.0,
+    description: 'Long grain rice, ideal for daily meals.',
+  },
+  {
+    id: 'prod_003',
+    name: 'Coconut Oil 1L',
+    sku: 'KP-OIL-1L',
+    category: 'Cooking',
+    price: 799.0,
+    stock: 8,
+    spaceConsumption: 1.2,
+    description: 'Cold pressed virgin coconut oil.',
+  },
+  {
+    id: 'prod_004',
+    name: 'Glass Bottle - 500ml',
+    sku: 'KP-GLASS-500',
+    category: 'Packaging',
+    price: 59.0,
+    stock: 0,
+    spaceConsumption: 0.2,
+    description: 'Reusable glass bottle, BPA free.',
+  },
+  {
+    id: 'prod_005',
+    name: 'Hand Sanitizer 250ml',
+    sku: 'KP-SAN-250',
+    category: 'Hygiene',
+    price: 299.0,
+    stock: 45,
+    spaceConsumption: 0.3,
+    description: 'Alcohol based sanitizer with gentle formula.',
+  },
+  {
+    id: 'prod_006',
+    name: 'Chocolate Assorted Box',
+    sku: 'KP-CHOCO-BOX',
+    category: 'Confectionery',
+    price: 499.0,
+    stock: 200,
+    spaceConsumption: 0.6,
+    description: 'Assorted chocolates, great for gifting.',
+  },
+  {
+    id: 'prod_007',
+    name: 'Detergent Powder 2kg',
+    sku: 'KP-DET-2KG',
+    category: 'Household',
+    price: 649.0,
+    stock: 16,
+    spaceConsumption: 2.0,
+    description: 'High-efficiency detergent for front-loaders.',
+  },
+  {
+    id: 'prod_008',
+    name: 'Snack Pack - Mixed Nuts',
+    sku: 'KP-NUTS-100',
+    category: 'Snacks',
+    price: 179.0,
+    stock: 58,
+    spaceConsumption: 0.15,
+    description: 'Roasted mixed nuts (100g).',
+  }
+];
+
+const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
+  <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${
+    type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+  }`}>
+    {type === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+    <span className="font-medium">{message}</span>
+    <button onClick={onClose} className="ml-2 text-gray-500 hover:text-gray-700">×</button>
+  </div>
+);
+
+const ProductCard = ({ product, onView, onEdit, onDelete }: { 
+  product: Product; 
+  onView: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) => {
+  const getStockBadgeColor = (stock: number) => {
+    if (stock === 0) return 'bg-red-100 text-red-800';
+    if (stock < 20) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getStockStatus = (stock: number) => {
+    if (stock === 0) return 'Out of Stock';
+    if (stock < 20) return 'Low Stock';
+    return 'In Stock';
+  };
+
+  return (
+    <Card className="h-full flex flex-col hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
+            <CardDescription className="text-sm mt-1">
+              SKU: {product.sku} • {product.category}
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="flex-1 flex flex-col justify-between">
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-primary">
+              Rs {product.price.toLocaleString()}
+            </span>
+            <Badge className={getStockBadgeColor(product.stock)}>
+              {getStockStatus(product.stock)}
+            </Badge>
+          </div>
+          
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Stock:</span>
+              <span className="font-medium">{product.stock} units</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Space:</span>
+              <span className="font-medium">{product.spaceConsumption} units/box</span>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {product.description}
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onView}
+            className="flex-1"
+          >
+            <Eye className="w-4 h-4 mr-1" />
+            View
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onEdit}
+            className="flex-1"
+          >
+            <Pencil className="w-4 h-4 mr-1" />
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDelete}
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const AdminProducts = () => {
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    sku: '',
+    category: '',
+    price: '',
+    stock: '',
+    spaceConsumption: '',
+    description: '',
+  });
+
+  const ITEMS_PER_PAGE = 12;
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  async function fetchProducts(): Promise<Product[]> {
+    const response = await fetch(`${API_URL}/admin/products`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch products");
+    }
+    return response.json();
+  }
+
+  const searchAndSortProducts = (term: string, products: Product[], sort: string): Product[] => {
+    let results = products;
+    
+    // Search
+    const lowerTerm = term.toLowerCase().trim();
+    if (lowerTerm) {
+      results = results.filter(p =>
+        p.name.toLowerCase().includes(lowerTerm) ||
+        p.sku.toLowerCase().includes(lowerTerm) ||
+        p.category.toLowerCase().includes(lowerTerm)
+      );
+    }
+
+    // Sort
+    switch (sort) {
+      case 'price-low':
+        results.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        results.sort((a, b) => b.price - a.price);
+        break;
+      case 'stock-low':
+        results.sort((a, b) => a.stock - b.stock);
+        break;
+      case 'stock-high':
+        results.sort((a, b) => b.stock - a.stock);
+        break;
+      case 'name':
+      default:
+        results.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+    }
+
+    return results;
+  };
+
+  useEffect(() => {
+    const results = searchAndSortProducts(searchTerm, products, sortBy);
+    setFilteredProducts(results);
+    setCurrentPage(1);
+  }, [searchTerm, products, sortBy]);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchProducts();
+      setProducts(data);
+      setFilteredProducts(data);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to load products', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddProduct = () => {
+    setFormData({
+      name: '',
+      sku: '',
+      category: '',
+      price: '',
+      stock: '',
+      spaceConsumption: '',
+      description: '',
+    });
+    setIsEditing(false);
+    setIsFormModalOpen(true);
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setFormData({
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      spaceConsumption: product.spaceConsumption.toString(),
+      description: product.description,
+    });
+    setIsEditing(true);
+    setIsFormModalOpen(true);
+  };
+
+  const handleViewProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setIsViewModalOpen(true);
+  };
+
+  const handleDeleteProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedProduct) {
+      try {
+        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.id}`, {
+          method: "DELETE",
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to delete product");
+        }
+        showToast('Product deleted successfully', 'success');
+        await loadProducts();
+      } catch (error) {
+        showToast(error.message || 'Failed to delete product', 'error');
+      } finally {
+        setIsDeleteDialogOpen(false);
+        setSelectedProduct(null);
+      }
+    }
+  };
+
+  const handleSubmitForm = async () => {
+    try {
+      const productData = {
+        name: formData.name,
+        sku: formData.sku,
+        category: formData.category,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        spaceConsumption: parseFloat(formData.spaceConsumption),
+        description: formData.description,
+      };
+
+      if (isEditing && selectedProduct) {
+        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData),
+        });
+        if (!response.ok) throw new Error('Failed to update product');
+        showToast('Product updated successfully', 'success');
+      } else {
+        const response = await fetch(`${API_URL}/admin/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData),
+        });
+        if (!response.ok) throw new Error('Failed to add product');
+        showToast('Product added successfully', 'success');
+      }
+      await loadProducts();
+      setIsFormModalOpen(false);
+      setSelectedProduct(null);
+    } catch (error) {
+      showToast(`Failed to ${isEditing ? 'update' : 'add'} product`, 'error');
+    }
+  };
+
+  const getStockBadgeColor = (stock: number) => {
+    if (stock === 0) return 'bg-red-100 text-red-800';
+    if (stock < 20) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getStockStatus = (stock: number) => {
+    if (stock === 0) return 'Out of Stock';
+    if (stock < 20) return 'Low Stock';
+    return 'In Stock';
+  };
+
+  // Pagination
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 p-6">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Product Management</h2>
+          <p className="text-muted-foreground">
+            Manage your inventory and product catalog
+          </p>
+        </div>
+        <Button onClick={handleAddProduct}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Product
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{products.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">In Stock</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {products.filter((p) => p.stock > 0).length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {products.filter((p) => p.stock > 0 && p.stock < 20).length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {products.filter((p) => p.stock === 0).length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Sort */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Name (A-Z)</SelectItem>
+            <SelectItem value="price-low">Price (Low to High)</SelectItem>
+            <SelectItem value="price-high">Price (High to Low)</SelectItem>
+            <SelectItem value="stock-low">Stock (Low to High)</SelectItem>
+            <SelectItem value="stock-high">Stock (High to Low)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Products Grid */}
+      {currentProducts.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No products found</h3>
+            <p className="text-muted-foreground">
+              Try adjusting your search terms or add a new product.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {currentProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onView={() => handleViewProduct(product)}
+                onEdit={() => handleEditProduct(product)}
+                onDelete={() => handleDeleteProduct(product)}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center space-x-2">
+              <Button
+                variant="outline"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                Previous
+              </Button>
+              <span className="flex items-center px-4">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* View Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Product Details</DialogTitle>
+            <DialogDescription>
+              View complete product information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedProduct && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-muted-foreground">Name</Label>
+                <p className="font-medium">{selectedProduct.name}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">SKU</Label>
+                <p className="font-medium">{selectedProduct.sku}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Category</Label>
+                <p className="font-medium">{selectedProduct.category}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Price</Label>
+                <p className="font-medium">Rs {selectedProduct.price.toLocaleString()}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Stock</Label>
+                <p>
+                  <Badge className={getStockBadgeColor(selectedProduct.stock)}>
+                    {getStockStatus(selectedProduct.stock)} ({selectedProduct.stock} units)
+                  </Badge>
+                </p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Space Consumption</Label>
+                <p className="font-medium">{selectedProduct.spaceConsumption} units per box</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Description</Label>
+                <p className="font-medium">{selectedProduct.description}</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsViewModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Modal */}
+      <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+            <DialogDescription>
+              {isEditing ? 'Update product information' : 'Enter new product details'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Product Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Product name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="sku">SKU</Label>
+              <Input
+                id="sku"
+                value={formData.sku}
+                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                placeholder="SKU-001"
+              />
+            </div>
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Input
+                id="category"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                placeholder="Electronics, Groceries, etc."
+              />
+            </div>
+            <div>
+              <Label htmlFor="price">Price (Rs)</Label>
+              <Input
+                id="price"
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="stock">Stock Quantity</Label>
+              <Input
+                id="stock"
+                type="number"
+                value={formData.stock}
+                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <Label htmlFor="spaceConsumption">Space Consumption (units per box)</Label>
+              <Input
+                id="spaceConsumption"
+                type="number"
+                value={formData.spaceConsumption}
+                onChange={(e) => setFormData({ ...formData, spaceConsumption: e.target.value })}
+                placeholder="0.0"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Product description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsFormModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitForm}>
+              {isEditing ? 'Update' : 'Add'} Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the product{' '}
+              <span className="font-semibold">{selectedProduct?.name}</span>. This action cannot
+              be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default AdminProducts;
