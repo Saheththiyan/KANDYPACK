@@ -7,6 +7,8 @@ export interface Product {
   unit_price: number;
   space_unit: number;
   stock: number;
+
+  // Derived fields for UI convenience
   id: string;
   sku: string;
   price: number;
@@ -28,49 +30,51 @@ export interface CartItem {
   quantity: number;
 }
 
-export const fetchProducts = async (query?: string, page: number = 1, pageSize: number = 12): Promise<ProductResponse> => {
-  try {
-    // Build the URL with query parameters
-    let url = `${API_URL}/products?page=${page}&pageSize=${pageSize}`;
-    if (query) {
-      url += `&search=${encodeURIComponent(query)}`;
-    }
+export const fetchProducts = async (
+  search: string = '',
+  page: number = 1,
+  pageSize: number = 12,
+  sortBy: 'name' | 'price-low' | 'price-high' = 'name'
+): Promise<ProductResponse> => {
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+    sortBy,
+  });
+  if (search && search.trim()) params.set('search', search.trim());
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
-    }
-
-    const products = await response.json();
-    
-    // Transform the data to match the expected format
-    const transformedProducts = products.map((product: any) => ({
-      product_id: product.product_id,
-      id: product.product_id,
-      name: product.name,
-      description: product.description,
-      unit_price: product.unit_price,
-      price: product.unit_price,
-      space_unit: product.space_unit,
-      spaceConsumption: product.space_unit,
-      stock: product.stock || 0,
-      sku: `SKU-${product.product_id.substring(0, 8)}`,
-      category: 'Product',
-      image: '/placeholder.svg'
-    }));
-
-    return {
-      products: transformedProducts,
-      total: transformedProducts.length,
-      page: page,
-      pageSize: pageSize,
-      totalPages: 1 // For now, we'll assume a single page
-    };
-  } catch (error) {
-    console.error('API Error:', error);
-    throw error;
+  const res = await fetch(`${API_URL}/products?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch products: ${res.status} ${res.statusText}`);
   }
+
+  const server = await res.json(); // { products, total, page, pageSize, totalPages }
+
+  const normalized = (server.products || []).map((p: any): Product => ({
+    product_id: p.product_id,
+    name: p.name,
+    description: p.description,
+    unit_price: Number(p.unit_price),
+    space_unit: Number(p.space_unit),
+    stock: Number(p.stock ?? 0),
+
+    id: String(p.product_id),
+    sku: `SKU-${String(p.product_id).substring(0, 8)}`,
+    price: Number(p.unit_price),
+    image: '/placeholder.svg',
+    category: 'Product',
+    spaceConsumption: Number(p.space_unit),
+  }));
+
+  return {
+    products: normalized,
+    total: Number(server.total ?? normalized.length),
+    page: Number(server.page ?? page),
+    pageSize: Number(server.pageSize ?? pageSize),
+    totalPages: Number(server.totalPages ?? 1),
+  };
 };
+
 
 // Cart management (localStorage-based)
 export const getCart = (): CartItem[] => {

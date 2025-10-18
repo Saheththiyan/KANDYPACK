@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, ShoppingCart, Plus, Minus, Package, LogIn } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ interface Product {
   image: string;
 }
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 16;
 
 const SignInPrompt = ({
   open,
@@ -135,7 +135,6 @@ const ProductCard = ({
               Add to Cart
             </Button>
 
-            {/* Details dialog */}
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
               <Button variant="outline" size="sm" onClick={() => setIsDetailsOpen(true)}>
                 Details
@@ -161,7 +160,7 @@ const ProductCard = ({
 };
 
 const CustomerProducts = () => {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -169,6 +168,8 @@ const CustomerProducts = () => {
   const [sortBy, setSortBy] = useState<'name' | 'price-low' | 'price-high'>('name');
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [serverTotalPages, setServerTotalPages] = useState(1);
+  const [serverTotal, setServerTotal] = useState(0);
   const [signinOpen, setSigninOpen] = useState(false);
 
   // guest mode
@@ -183,85 +184,36 @@ const CustomerProducts = () => {
     return () => clearTimeout(t);
   }, [searchQuery]);
 
-  // load ALL products once, then filter/sort/paginate locally
+  // fetch a page from the server whenever search/sort/page changes
   useEffect(() => {
-    const loadAll = async () => {
+    let cancelled = false;
+    (async () => {
       try {
         setIsLoading(true);
-
-        // 1) first page to know total pages
-        const first = await fetchProducts('', 1, PAGE_SIZE);
-        const toProduct = (p: any): Product => ({
-          id: p.product_id,
-          name: p.name,
-          description: p.description,
-          price: Number(p.unit_price),
-          spaceConsumption: p.space_unit,
-          stock: p.stock,
-          sku: `SKU-${p.product_id.substring(0, 8)}`,
-          category: 'Product',
-          image: '/placeholder.svg',
-        });
-
-        let combined: Product[] = first.products.map(toProduct);
-
-        const totalPages = Math.max(1, Number(first.totalPages ?? 1));
-        if (totalPages > 1) {
-          const promises = [];
-          for (let page = 2; page <= totalPages; page++) {
-            promises.push(fetchProducts('', page, PAGE_SIZE));
-          }
-          const rest = await Promise.all(promises);
-          for (const res of rest) {
-            combined = combined.concat(res.products.map(toProduct));
-          }
+        const res = await fetchProducts(debouncedQuery, currentPage, PAGE_SIZE, sortBy);
+        if (!cancelled) {
+          // map to the Product UI shape (already normalized in api.ts)
+          setProducts(res.products as any);
+          setServerTotal(res.total);
+          setServerTotalPages(res.totalPages);
         }
-
-        setAllProducts(combined);
       } catch (error) {
-        console.error('Failed to load products:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load products. Please try again.',
-          variant: 'destructive',
-        });
+        if (!cancelled) {
+          console.error('Failed to load products:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load products. Please try again.',
+            variant: 'destructive',
+          });
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
-    };
-    loadAll();
-  }, []);
+    })();
+    return () => { cancelled = true; };
+  }, [debouncedQuery, sortBy, currentPage]);
 
-  // derive filtered/sorted/paginated view
-  const { visibleProducts, totalPages, totalFiltered } = useMemo(() => {
-    const filtered = debouncedQuery
-      ? allProducts.filter(p => p.name?.toLowerCase().includes(debouncedQuery))
-      : allProducts;
-
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return a.price - b.price;
-        case 'price-high':
-          return b.price - a.price;
-        default:
-          return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-      }
-    });
-
-    const total = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-    const page = Math.min(currentPage, total);
-    const start = (page - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-
-    return {
-      visibleProducts: sorted.slice(start, end),
-      totalPages: total,
-      totalFiltered: sorted.length,
-    };
-  }, [allProducts, debouncedQuery, sortBy, currentPage]);
-
-  // jump back to page 1 when search/sort changes
+  // reset to page 1 when search/sort changes
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedQuery, sortBy]);
@@ -289,6 +241,9 @@ const CustomerProducts = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Products</h1>
+        <Badge variant="secondary">
+          {serverTotal} product{serverTotal !== 1 ? 's' : ''}
+        </Badge>
       </div>
 
       {/* Search and Sort */}
@@ -332,7 +287,7 @@ const CustomerProducts = () => {
             </Card>
           ))}
         </div>
-      ) : visibleProducts.length === 0 ? (
+      ) : products.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -343,7 +298,7 @@ const CustomerProducts = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {visibleProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -352,7 +307,7 @@ const CustomerProducts = () => {
             ))}
           </div>
 
-          {totalPages > 1 && (
+          {serverTotalPages > 1 && (
             <div className="flex justify-center space-x-2 pt-4">
               <Button
                 variant="outline"
@@ -362,12 +317,12 @@ const CustomerProducts = () => {
                 Previous
               </Button>
               <span className="flex items-center px-4">
-                Page {currentPage} of {totalPages}
+                Page {currentPage} of {serverTotalPages}
               </span>
               <Button
                 variant="outline"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === serverTotalPages}
+                onClick={() => setCurrentPage((p) => Math.min(serverTotalPages, p + 1))}
               >
                 Next
               </Button>
