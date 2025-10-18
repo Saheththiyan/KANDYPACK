@@ -1,7 +1,11 @@
 import express from "express";
 import * as assistant from "../controllers/assistantController.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
+
+// Apply authentication to all assistant routes
+router.use(authenticateToken);
 
 router.get("/", assistant.getAllAssistants);
 

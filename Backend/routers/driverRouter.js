@@ -1,7 +1,11 @@
 import express from "express";
 import * as driver from "../controllers/driverController.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
+
+// Apply authentication to all driver routes
+router.use(authenticateToken);
 
 router.get("/", driver.getAllDrivers);
 router.get("/hours", driver.sortByHours);
