@@ -34,7 +34,7 @@ const CustomerHome = () => {
     <div className="space-y-8">
       {/* Welcome Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold">Welcome back{auth?.name ? `, ${auth.name}` : ''}!</h1>
+        <h1 className="text-4xl font-bold">Welcome{auth?.name ? `, ${auth.name}` : ''}!</h1>
         <p className="text-xl text-muted-foreground">
           {auth?.email || 'customer@kandypack.lk'}
         </p>
