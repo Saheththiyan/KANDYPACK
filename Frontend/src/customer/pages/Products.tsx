@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, ShoppingCart, Plus, Minus, Package } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,8 @@ interface Product {
   category: string;
   image: string;
 }
+
+const PAGE_SIZE = 16;
 
 const ProductCard = ({ product }: { product: Product }) => {
   const [quantity, setQuantity] = useState(1);
@@ -76,7 +78,7 @@ const ProductCard = ({ product }: { product: Product }) => {
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               className="h-8 w-8 p-0"
             >
-              <Minus className="w-3 h-3" />
+              <Plus className="w-3 h-3 rotate-180" />
             </Button>
             <span className="w-8 text-center font-medium">{quantity}</span>
             <Button
@@ -131,49 +133,66 @@ const ProductCard = ({ product }: { product: Product }) => {
 };
 
 const CustomerProducts = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+  const [debouncedQuery, setDebouncedQuery] = useState(''); // debounce to avoid flicker
+  const [sortBy, setSortBy] = useState<'name' | 'price-low' | 'price-high'>('name');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
+  // Debounce search input
   useEffect(() => {
-    const loadProducts = async () => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim().toLowerCase()), 250);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Load ALL products once, then filter/sort/paginate locally
+  useEffect(() => {
+    const loadAllProducts = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchProducts(searchQuery, currentPage, 12);
-        
-        // Transform API products to match the expected format
-        const transformedProducts: Product[] = data.products.map((product: any) => ({
-          id: product.product_id,
-          name: product.name,
-          description: product.description,
-          price: product.unit_price,
-          spaceConsumption: product.space_unit,
-          stock: product.stock,
-          sku: `SKU-${product.product_id.substring(0, 8)}`, // Generate SKU from product ID
-          category: 'Product', // Default category
-          image: '/placeholder.svg' // Default image
+
+        // 1) fetch first page to know total pages
+        const first = await fetchProducts('', 1, PAGE_SIZE);
+        const firstBatch: Product[] = first.products.map((p: any) => ({
+          id: p.product_id,
+          name: p.name,
+          description: p.description,
+          price: p.unit_price,
+          spaceConsumption: p.space_unit,
+          stock: p.stock,
+          sku: `SKU-${p.product_id.substring(0, 8)}`,
+          category: 'Product',
+          image: '/placeholder.svg',
         }));
-        
-        // Sort products
-        let sortedProducts = [...transformedProducts];
-        switch (sortBy) {
-          case 'price-low':
-            sortedProducts.sort((a, b) => a.price - b.price);
-            break;
-          case 'price-high':
-            sortedProducts.sort((a, b) => b.price - a.price);
-            break;
-          case 'name':
-          default:
-            sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
-            break;
+
+        let combined = [...firstBatch];
+
+        // 2) fetch remaining pages in parallel (if any)
+        const totalPages: number = first.totalPages ?? 1;
+        if (totalPages > 1) {
+          const promises = [];
+          for (let page = 2; page <= totalPages; page++) {
+            promises.push(fetchProducts('', page, PAGE_SIZE));
+          }
+          const rest = await Promise.all(promises);
+          for (const res of rest) {
+            const batch: Product[] = res.products.map((p: any) => ({
+              id: p.product_id,
+              name: p.name,
+              description: p.description,
+              price: p.unit_price,
+              spaceConsumption: p.space_unit,
+              stock: p.stock,
+              sku: `SKU-${p.product_id.substring(0, 8)}`,
+              category: 'Product',
+              image: '/placeholder.svg',
+            }));
+            combined = combined.concat(batch);
+          }
         }
-        
-        setProducts(sortedProducts);
-        setTotalPages(data.totalPages);
+
+        setAllProducts(combined);
       } catch (error) {
         console.error('Failed to load products:', error);
         toast({
@@ -186,12 +205,47 @@ const CustomerProducts = () => {
       }
     };
 
-    loadProducts();
-  }, [searchQuery, currentPage, sortBy]);
+    loadAllProducts();
+  }, []);
+
+  // Derived list: filter by name, sort, then paginate
+  const { visibleProducts, totalPages } = useMemo(() => {
+    // filter by name (case-insensitive)
+    const filtered = debouncedQuery
+      ? allProducts.filter(p => p.name?.toLowerCase().includes(debouncedQuery))
+      : allProducts;
+
+    // sort
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      }
+    });
+
+    // paginate
+    const total = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+    const page = Math.min(currentPage, total);
+    const start = (page - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    return {
+      visibleProducts: sorted.slice(start, end),
+      totalPages: total,
+    };
+  }, [allProducts, debouncedQuery, sortBy, currentPage]);
+
+  // Reset to page 1 whenever search or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedQuery, sortBy]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setCurrentPage(1);
   };
 
   if (isLoading) {
@@ -200,7 +254,7 @@ const CustomerProducts = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Products</h1>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <Card key={i} className="h-full">
@@ -224,9 +278,6 @@ const CustomerProducts = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Products</h1>
-        <Badge variant="secondary">
-          {products.length} product{products.length !== 1 ? 's' : ''}
-        </Badge>
       </div>
 
       {/* Search and Sort */}
@@ -234,40 +285,38 @@ const CustomerProducts = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder="Search products..."
+            placeholder="Search products by name..."
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
           />
         </div>
-        
-        <Select value={sortBy} onValueChange={setSortBy}>
+
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="name">Name (A-Z)</SelectItem>
-            <SelectItem value="price-low">Price (Low to High)</SelectItem>
-            <SelectItem value="price-high">Price (High to Low)</SelectItem>
+            <SelectItem value="name">Name (A–Z)</SelectItem>
+            <SelectItem value="price-low">Price (Low → High)</SelectItem>
+            <SelectItem value="price-high">Price (High → Low)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {products.length === 0 ? (
+      {visibleProducts.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No products found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search terms.
-            </p>
+            <p className="text-muted-foreground">Try adjusting your search terms.</p>
           </CardContent>
         </Card>
       ) : (
         <>
           {/* Products Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {visibleProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
@@ -278,7 +327,7 @@ const CustomerProducts = () => {
               <Button
                 variant="outline"
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
                 Previous
               </Button>
@@ -288,7 +337,7 @@ const CustomerProducts = () => {
               <Button
                 variant="outline"
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               >
                 Next
               </Button>
