@@ -20,3 +20,13 @@ export async function addProduct(productData) {
   ]);
   return result;
 }
+
+export async function removeProduct(product_id) {
+  const query = `
+    DELETE FROM Product
+    WHERE product_id = ?
+  `;
+
+  const [result] = await db.query(query, [product_id]);
+  return result;
+}

@@ -26,3 +26,21 @@ export async function addNewProduct(req, res) {
       .json({ message: "Something went wrong", error: error.message });
   }
 }
+
+export async function deleteProduct(req, res) {
+  try {
+    const { product_id } = req.params;
+    const result = await product.removeProduct(product_id);
+
+    if (result.affectedRows == 0) {
+      return res.status(404).json({ message: "Product not Found" });
+    }
+
+    res.status(200).json({ message: "Product successfully removed!" });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
+  }
+}

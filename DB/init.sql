@@ -403,3 +403,42 @@ END IF;
 END $$
 
 DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_store
+BEFORE INSERT ON Store
+FOR EACH ROW
+BEGIN
+IF NEW.store_id IS NULL THEN
+SET NEW.store_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_route
+BEFORE INSERT ON Route
+FOR EACH ROW
+BEGIN
+IF NEW.route_id IS NULL THEN
+SET NEW.route_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_truck
+BEFORE INSERT ON Truck
+FOR EACH ROW
+BEGIN
+IF NEW.truck_id IS NULL THEN
+SET NEW.truck_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
