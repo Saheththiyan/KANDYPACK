@@ -25,14 +25,14 @@ const QuarterlySales = () => {
     const loadSalesData = async () => {
       setLoading(true);
       try {
-        const data = await fetch(`${API_URL}/reports/quarterly-sales?year=${selectedYear}`, {
+        const data = await fetch(`${API_URL}/reports/quarterly?year=${selectedYear}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
           },
         }).then(res => res.json()).then(res => res.sales);
-        setSalesData(data);
+        setSalesData(data || []);
       } catch (error) {
         toast({
           title: 'Error loading sales data',
