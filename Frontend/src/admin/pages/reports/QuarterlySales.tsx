@@ -9,6 +9,7 @@ import {
 import { TrendingUp, DollarSign, Package } from 'lucide-react';
 import { fetchQuarterlySales, QuarterlySalesData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from '@/lib/config';
 
 const QuarterlySales = () => {
   const [salesData, setSalesData] = useState<QuarterlySalesData[]>([]);
@@ -22,7 +23,7 @@ const QuarterlySales = () => {
     const loadSalesData = async () => {
       setLoading(true);
       try {
-        const data = await fetchQuarterlySales(parseInt(selectedYear));
+        const data = await fetch(`${API_URL}/reports/quarterly?year=${selectedYear}`);
         setSalesData(data);
       } catch (error) {
         toast({

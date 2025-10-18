@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Download, Package, TrendingUp } from 'lucide-react';
 import { fetchCustomerHistory, CustomerOrderHistoryItem } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from '@/lib/config';
 
 const CustomerHistory = () => {
   const [orderHistory, setOrderHistory] = useState<CustomerOrderHistoryItem[]>([]);
@@ -18,7 +19,7 @@ const CustomerHistory = () => {
     const loadOrderHistory = async () => {
       setLoading(true);
       try {
-        const data = await fetchCustomerHistory();
+        const data = await fetch(`${API_URL}/reports/customer-history?customerId=${}`).then(res => res.json());
         setOrderHistory(data);
         setFilteredOrders(data);
       } catch (error) {
