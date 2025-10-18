@@ -48,6 +48,7 @@ import {
   deleteCustomer,
   searchCustomers,
 } from '@/lib/queries';
+import { getAuthToken } from '@/lib/mockAuth';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -77,6 +78,9 @@ const Customers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  const auth = getAuthToken();  
+
   // const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   // const [isEditing, setIsEditing] = useState(false);
@@ -179,6 +183,10 @@ const Customers = () => {
       try {
         const response = await fetch(`${API_URL}/admin/customers/${selectedCustomer.customer_id}`, {
           method: "DELETE",
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
         });
         const data = await response.json();
         if (!response.ok) {

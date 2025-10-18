@@ -8,6 +8,7 @@ import { Package, TrendingUp, DollarSign } from 'lucide-react';
 // import { fetchMostOrdered, MostOrderedItem } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from "../../../lib/config";
+import { getAuthToken } from '@/lib/mockAuth';
 
 interface MostOrderedItem {
   id: string;
@@ -21,6 +22,7 @@ const MostOrdered = () => {
   const [selectedQuarter, setSelectedQuarter] = useState('2025 Q4');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const auth = getAuthToken();
 
   const quarters = ['2025 Q4', '2025 Q3', '2025 Q2', '2025 Q1'];
 
@@ -28,7 +30,13 @@ const MostOrdered = () => {
     const [year, quarterLabel] = quarterString.split(' ');
     const quarter = quarterLabel.replace('Q', '');
 
-    const response = await fetch(`${API_URL}/reports/most-ordered?year=${year}&quarter=${quarter}`);
+    const response = await fetch(`${API_URL}/reports/most-ordered?year=${year}&quarter=${quarter}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
     const data = await response.json();
     return data.top;
   }

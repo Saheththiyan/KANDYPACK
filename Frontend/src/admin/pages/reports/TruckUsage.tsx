@@ -9,12 +9,15 @@ import {
 import { Truck, Clock, TrendingUp } from 'lucide-react';
 import { TruckUsageData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from '@/lib/config';
+import { getAuthToken } from '@/lib/mockAuth';
 
 const TruckUsage = () => {
   const [usageData, setUsageData] = useState<TruckUsageData[]>([]);
   const [selectedMonth, setSelectedMonth] = useState('2024-03');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const auth = getAuthToken();
 
   const months = [
     { value: '2024-03', label: 'March 2024' },
@@ -25,7 +28,13 @@ const TruckUsage = () => {
 
   const fetchTruckUsage = async (month: string) => {
     const [year, monthNum] = month.split('-');
-    const response = await fetch(`http://localhost:5000/reports/truck-usage?year=${year}&month=${monthNum}`);
+    const response = await fetch(`${API_URL}/reports/truck-usage?year=${year}&month=${monthNum}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
     const data = await response.json();
     return data.usage;
   }

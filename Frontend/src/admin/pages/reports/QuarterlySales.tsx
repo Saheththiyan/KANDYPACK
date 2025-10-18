@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line
 } from 'recharts';
 import { TrendingUp, DollarSign, Package } from 'lucide-react';
 import { fetchQuarterlySales, QuarterlySalesData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from '@/lib/config';
+import { getAuthToken } from '@/lib/mockAuth';
 
 const QuarterlySales = () => {
   const [salesData, setSalesData] = useState<QuarterlySalesData[]>([]);
   const [selectedYear, setSelectedYear] = useState('2024');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const auth = getAuthToken();
 
   const years = ['2024', '2023', '2022'];
 
@@ -22,7 +25,13 @@ const QuarterlySales = () => {
     const loadSalesData = async () => {
       setLoading(true);
       try {
-        const data = await fetchQuarterlySales(parseInt(selectedYear));
+        const data = await fetch(`${API_URL}/reports/quarterly-sales?year=${selectedYear}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+        }).then(res => res.json()).then(res => res.sales);
         setSalesData(data);
       } catch (error) {
         toast({
@@ -163,10 +172,10 @@ const QuarterlySales = () => {
                 <XAxis dataKey="quarter" />
                 <YAxis />
                 <Tooltip formatter={(value) => [formatNumber(Number(value)), 'Volume']} />
-                <Line 
-                  type="monotone" 
-                  dataKey="volume" 
-                  stroke="hsl(var(--primary))" 
+                <Line
+                  type="monotone"
+                  dataKey="volume"
+                  stroke="hsl(var(--primary))"
                   strokeWidth={2}
                   dot={{ fill: 'hsl(var(--primary))' }}
                 />
