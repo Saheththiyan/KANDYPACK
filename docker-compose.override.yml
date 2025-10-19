@@ -10,11 +10,13 @@ services:
       - /usr/src/app/node_modules
     environment:
       - NODE_ENV=development
-    command: npx nodemon index.js
     ports:
       - "5000:5000"
     depends_on:
       - db
+    env_file:
+      - ./.env 
+    entrypoint: ["./wait-for-db.sh", "db", "sh", "-c", "node utils/hashLegacyPasswords.js && npx nodemon index.js"]
 
   frontend:
     build: 
