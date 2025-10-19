@@ -153,9 +153,10 @@ CREATE TABLE Delivers (
 );
 
 INSERT INTO Admin (admin_id, username, email, password) VALUES
-('7e23eb1c-aa68-4297-a8ec-02f5681f2e5c', 'admin1', 'admin1@kandypack.com', 'hashedpass1'),
-('f550ff2e-1080-4b29-af61-f46b009bf1ac', 'admin2', 'admin2@kandypack.com', 'hashedpass2'),
-('0e0862ca-9a7f-4850-bed3-040eba35b0f8', 'admin3', 'admin3@kandypack.com', 'hashedpass3');
+('e0878f40-acea-11f0-876f-aac2fc27919f', 'admin1', 'admin1@kandypack.com', '$2b$10$bJEfbQRwVDjQeCZl0ywVROQPyR1AIncyIN3MVeX/Iq3SbRZZYRYhC'),
+('eb27d4e1-acea-11f0-876f-aac2fc27919f', 'admin2', 'admin2@kandypack.com', '$2b$10$z7VKArhNWxFBFFZ3LeuG.evcZmPBy2xBHvjAWfbEDvmxGV2bXdePG'),
+('f336dbf4-acea-11f0-876f-aac2fc27919f', 'admin3', 'admin3@kandypack.com', '$2b$10$vTh4nJUjmBslcs0vgAKKlOZ5OGWYeHZAOi4C7xtxYgeF5vkvAqJHy'),
+('f85b453f-acea-11f0-876f-aac2fc27919f', 'admin4', 'admin4@kandypack.com', '$2b$10$0UYd4sI4IvuCjHlcIyWXVO7zQI23pUQdyNTI1ZClE502Z9fLZyDoy');
 
 INSERT INTO Assistant (assistant_id, name, weekly_hours, status) VALUES
 ('fd160307-a56a-4f04-b88d-6422d29496a3', 'Alice Johnson', 35, 'Active'),

@@ -11,4 +11,8 @@ router.get("/", admin.getAllAdmins);
 
 router.post("/", admin.addNewAdmin);
 
+router.delete("/:admin_id", admin.deleteAdmin);
+
+router.patch("/:admin_id", admin.patchAdminDetails);
+
 export default router;
