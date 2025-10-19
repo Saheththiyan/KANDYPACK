@@ -5,7 +5,7 @@ import { authenticateToken } from "../middleware/auth.js";
 const router = express.Router();
 
 // Apply authentication to all truck routes
-// router.use(authenticateToken);
+router.use(authenticateToken);
 
 router.get("/", truck.getAllTrucks);
 

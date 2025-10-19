@@ -45,3 +45,28 @@ export async function removeAssistant(assistant_id) {
   const [result] = await db.query(query, [assistant_id]);
   return result;
 }
+
+export async function patchAssistant(assitant_id, assistantData) {
+  const columns = [];
+  const values = [];
+
+  // Dynamically build columns and values
+  for (const [key, value] of Object.entries(assistantData)) {
+    if (value !== undefined) {
+      columns.push(`${key} = ?`);
+      values.push(value);
+    }
+  }
+
+  if (columns.length === 0) return null;
+
+  const query = `
+    UPDATE Assistant
+    SET ${columns.join(", ")}
+    WHERE assistant_id = ?
+  `;
+  values.push(assitant_id);
+
+  const [result] = await db.query(query, values);
+  return result;
+}

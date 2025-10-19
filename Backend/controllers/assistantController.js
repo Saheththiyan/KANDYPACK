@@ -44,3 +44,30 @@ export async function deleteAssistant(req, res) {
     });
   }
 }
+
+export async function patchAssistantDetails(req, res) {
+  try {
+    const assistant_id = req.params.assistant_id;
+    const assistantData = req.body;
+
+    const result = await assistant.patchAssistant(assistant_id, assistantData);
+
+    if (!result || result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "Assistant not found or no fields to update" });
+    }
+
+    res
+      .status(200)
+      .json({
+        message: "Assistant data updated successfully!",
+        data: assistantData,
+      });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong!", error: error.message });
+  }
+}
