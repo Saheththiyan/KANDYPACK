@@ -91,7 +91,7 @@ const CustomerOrders = () => {
     const loadOrders = async () => {
       try {
         setIsLoading(true);
-        const data = await fetch(`${API_URL}/customer/orders`, {
+        const data = await fetch(`${API_URL}/orders`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

@@ -127,7 +127,7 @@ const CustomerProducts = () => {
     (async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(`${API_URL}/customer/products?search=${encodeURIComponent(searchQuery)}&page=${currentPage}&sort=${sortBy}`, {
+        const res = await fetch(`${API_URL}/products?search=${encodeURIComponent(searchQuery)}&page=${currentPage}&sortBy=${sortBy}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
