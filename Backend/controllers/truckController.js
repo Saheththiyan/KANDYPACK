@@ -43,3 +43,27 @@ export async function deleteTruck(req, res) {
       .json({ message: "Something went wrong", error: error.message });
   }
 }
+
+export async function patchTruckDetails(req, res) {
+  try {
+    const truck_id = req.params.truck_id;
+    const truckData = req.body;
+
+    const result = await truck.patchTruck(truck_id, truckData);
+
+    if (!result || result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "Truck not found or no fields to update" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Truck updated successfully!", data: truckData });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong!", error: error.message });
+  }
+}
