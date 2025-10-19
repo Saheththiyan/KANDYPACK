@@ -43,3 +43,28 @@ export async function removeTruck(truck_id) {
   const [result] = await db.query(query, [truck_id]);
   return result;
 }
+
+export async function patchTruck(truck_id, truckData) {
+  const columns = [];
+  const values = [];
+
+  // Dynamically build columns and values
+  for (const [key, value] of Object.entries(truckData)) {
+    if (value !== undefined) {
+      columns.push(`${key} = ?`);
+      values.push(value);
+    }
+  }
+
+  if (columns.length === 0) return null;
+
+  const query = `
+    UPDATE Truck
+    SET ${columns.join(", ")}
+    WHERE truck_id = ?
+  `;
+  values.push(truck_id);
+
+  const [result] = await db.query(query, values);
+  return result;
+}
