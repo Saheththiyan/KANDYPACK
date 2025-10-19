@@ -9,4 +9,6 @@ router.use(authenticateAdmin);
 
 router.get("/", admin.getAllAdmins);
 
+router.post("/", admin.addNewAdmin);
+
 export default router;

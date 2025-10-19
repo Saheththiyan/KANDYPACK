@@ -15,6 +15,19 @@ export async function getAdminByEmail(email) {
 }
 
 export async function validateAdminPassword(admin, password) {
-  // return bcrypt.compare(password, admin.password);
-  return admin.password == password;
+  return bcrypt.compare(password, admin.password);
+  // return admin.password == password;
+}
+
+export async function addAdmin(adminData) {
+  const { username, email, password } = adminData;
+
+  const hashedPassword = await bcrypt.hash(password, 10); // 10 salt rounds
+
+  const query = `
+    INSERT INTO Admin(username, email, password)
+    VALUES(?,?,?)
+  `;
+  const [result] = await db.query(query, [username, email, hashedPassword]);
+  return result;
 }

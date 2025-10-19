@@ -3,7 +3,7 @@ CREATE TABLE Admin (
     admin_id CHAR(36) NOT NULL,
     username VARCHAR(100),
     email VARCHAR(100),
-    password VARCHAR(50),
+    password VARCHAR(255),
     PRIMARY KEY (admin_id)
 );
 
@@ -438,6 +438,19 @@ FOR EACH ROW
 BEGIN
 IF NEW.truck_id IS NULL THEN
 SET NEW.truck_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_admin
+BEFORE INSERT ON Admin
+FOR EACH ROW
+BEGIN
+IF NEW.admin_id IS NULL THEN
+SET NEW.admin_id  = UUID();
 END IF;
 END $$
 
