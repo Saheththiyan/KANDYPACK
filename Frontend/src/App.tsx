@@ -25,6 +25,7 @@ import Customers from "./admin/pages/Customers";
 import Product from "./admin/pages/Products";
 import PublicLandingDashboard from "./pages/PublicLandingDashboard";
 import PublicProducts from "./pages/PublicProducts";
+import Allocations from "./admin/pages/Allocations";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => {
               <Route index element={<AdminDashboard />} />
               <Route path="customers" element={<Customers />} />
               <Route path="products" element={<Product />} />
+              <Route path="allocations" element={<Allocations />} />
               <Route path="reports/quarterly-sales" element={<QuarterlySales />} />
               <Route path="reports/most-ordered" element={<MostOrdered />} />
               <Route path="reports/city-route-breakdown" element={<CityRoute />} />
