@@ -35,7 +35,7 @@ const OrderCard = ({ order }: { order: Order }) => {
     });
   };
 
-  const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+  const itemCount = order?.items ?? [].reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -54,9 +54,9 @@ const OrderCard = ({ order }: { order: Order }) => {
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-2xl font-bold">Rs {order.total.toLocaleString()}</p>
+            <p className="text-2xl font-bold">Rs {order.total_value.toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">
-              Deliver to: {order.customer.address.city}
+              Deliver to: {order?.customer?.address?.city}
             </p>
           </div>
         </div>
@@ -97,7 +97,7 @@ const CustomerOrders = () => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
           },
-        }).then(res => res.json()).then(res => res.orders);
+        }).then(res => res.json());
         
         setOrders(data || []);
         setFilteredOrders(data || []);
