@@ -38,7 +38,7 @@ interface Product {
   name: string;
   sku: string;
   category: string;
-  price: number;
+  unit_price: number;
   stock: number;
   spaceConsumption: number;
   description: string;
@@ -89,7 +89,7 @@ const ProductCard = ({ product, onView, onEdit, onDelete }: {
         <div className="space-y-3 mb-4">
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-primary">
-              Rs {product.price.toLocaleString()}
+              Rs {product.unit_price.toLocaleString()}
             </span>
             <Badge className={getStockBadgeColor(product.stock)}>
               {getStockStatus(product.stock)}
@@ -177,7 +177,7 @@ const AdminProducts = () => {
   };
 
   async function fetchProducts(): Promise<Product[]> {
-    const response = await fetch(`${API_URL}/admin/products`, {
+    const response = await fetch(`${API_URL}/products`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -187,7 +187,8 @@ const AdminProducts = () => {
     if (!response.ok) {
       throw new Error("Failed to fetch products");
     }
-    return response.json();
+    const data =  await response.json();
+    return data.products || [];
   }
 
   const searchAndSortProducts = (term: string, products: Product[], sort: string): Product[] => {
@@ -240,8 +241,8 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const data = await fetchProducts();
-      setProducts(data);
-      setFilteredProducts(data);
+      setProducts(data || []);
+      setFilteredProducts(data || []);
     } catch (err) {
       console.error(err);
       showToast('Failed to load products', 'error');
@@ -270,7 +271,7 @@ const AdminProducts = () => {
       name: product.name,
       sku: product.sku,
       category: product.category,
-      price: product.price.toString(),
+      unit_price: product.unit_price.toString(),
       stock: product.stock.toString(),
       spaceConsumption: product.spaceConsumption.toString(),
       description: product.description,
@@ -316,7 +317,7 @@ const AdminProducts = () => {
         name: formData.name,
         sku: formData.sku,
         category: formData.category,
-        price: parseFloat(formData.price),
+        unit_price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
         spaceConsumption: parseFloat(formData.spaceConsumption),
         description: formData.description,
@@ -535,7 +536,7 @@ const AdminProducts = () => {
               </div>
               <div>
                 <Label className="text-muted-foreground">Price</Label>
-                <p className="font-medium">Rs {selectedProduct.price.toLocaleString()}</p>
+                <p className="font-medium">Rs {selectedProduct.unit_price.toLocaleString()}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">Stock</Label>
