@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Eye, Pencil, Trash2, Package, CheckCircle, XCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '../../lib/config';
 import { getAuthToken } from '@/lib/mockAuth';
 
@@ -42,14 +43,16 @@ interface Product {
   description: string;
 }
 
-const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
-  <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
-    }`}>
-    {type === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-    <span className="font-medium">{message}</span>
-    <button onClick={onClose} className="ml-2 text-gray-500 hover:text-gray-700">×</button>
-  </div>
-);
+// const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
+//   <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+//     }`}>
+//     {type === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+//     <span className="font-medium">{message}</span>
+//     <button onClick={onClose} className="ml-2 text-gray-500 hover:text-gray-700">×</button>
+//   </div>
+// );
+
+
 
 const ProductCard = ({ product, onView, onEdit, onDelete }: {
   product: Product;
@@ -155,7 +158,7 @@ const AdminProducts = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  // const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [formData, setFormData] = useState<Product>({
     name: '',
     unit_price: 0,
@@ -166,13 +169,15 @@ const AdminProducts = () => {
   });
 
   const auth = getAuthToken();
-
+  const { toast } = useToast();
   const ITEMS_PER_PAGE = 12;
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  // const showToast = (message: string, type: 'success' | 'error') => {
+  //   toast({
+  //     message,
+  //     type,
+  //   });
+  // };
 
   async function fetchProducts(): Promise<Product[]> {
     const response = await fetch(`${API_URL}/products`, {
@@ -241,9 +246,12 @@ const AdminProducts = () => {
       const data = await fetchProducts();
       setProducts(data || []);
       setFilteredProducts(data || []);
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to load products', 'error');
+    } catch (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
     } finally {
       setLoading(false);
     }
@@ -289,7 +297,7 @@ const AdminProducts = () => {
   const confirmDelete = async () => {
     if (selectedProduct) {
       try {
-        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
+        const response = await fetch(`${API_URL}/products/${selectedProduct.product_id}`, {
           method: "DELETE",
           headers: {
             'Authorization': `Bearer ${auth.token}`
@@ -299,10 +307,17 @@ const AdminProducts = () => {
         if (!response.ok) {
           throw new Error(data.message || "Failed to delete product");
         }
-        showToast('Product deleted successfully', 'success');
+        toast({
+          title: "Success",
+          description: "Product deleted successfully",
+        });
         await loadProducts();
       } catch (error) {
-        showToast(error.message || 'Failed to delete product', 'error');
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
       } finally {
         setIsDeleteDialogOpen(false);
         setSelectedProduct(null);
@@ -330,7 +345,10 @@ const AdminProducts = () => {
           body: JSON.stringify(productData),
         });
         if (!response.ok) throw new Error('Failed to update product');
-        showToast('Product updated successfully', 'success');
+        toast({
+          title: "Success",
+          description: "Product updated successfully",
+        });
       } else {
         const response = await fetch(`${API_URL}/admin/products`, {
           method: 'POST',
@@ -341,13 +359,20 @@ const AdminProducts = () => {
           body: JSON.stringify(productData),
         });
         if (!response.ok) throw new Error('Failed to add product');
-        showToast('Product added successfully', 'success');
+        toast({
+          title: "Success",
+          description: "Product added successfully",
+        });
       }
       await loadProducts();
       setIsFormModalOpen(false);
       setSelectedProduct(null);
     } catch (error) {
-      showToast(`Failed to ${isEditing ? 'update' : 'add'} product`, 'error');
+      toast({
+        title: "Error",
+        description: `Failed to ${isEditing ? 'update' : 'add'} product`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -378,8 +403,8 @@ const AdminProducts = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    <div className="space-y-6">
+      {/* {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />} */}
 
       {/* Header */}
       <div className="flex items-center justify-between">
