@@ -112,8 +112,8 @@ const ProductCard = ({ product, onView, onEdit, onDelete }: {
 
           <div className="flex gap-2">
             <Button
-              variant="outline"
-              size="sm"
+              // variant="outline"
+              // size="sm"
               onClick={onView}
               className="flex-1"
             >
@@ -121,8 +121,8 @@ const ProductCard = ({ product, onView, onEdit, onDelete }: {
               View
             </Button>
             <Button
-              variant="outline"
-              size="sm"
+              // variant="outline"
+              // size="sm"
               onClick={onEdit}
               className="flex-1"
             >
@@ -130,8 +130,8 @@ const ProductCard = ({ product, onView, onEdit, onDelete }: {
               Edit
             </Button>
             <Button
-              variant="outline"
-              size="sm"
+              // variant="outline"
+              // size="sm"
               onClick={onDelete}
             >
               <Trash2 className="w-4 h-4 text-destructive" />
@@ -484,7 +484,7 @@ const AdminProducts = () => {
           {totalPages > 1 && (
             <div className="flex justify-center space-x-2">
               <Button
-                variant="outline"
+                // variant="outline"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
               >
@@ -494,7 +494,7 @@ const AdminProducts = () => {
                 Page {currentPage} of {totalPages}
               </span>
               <Button
-                variant="outline"
+                // variant="outline"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
               >
@@ -634,7 +634,9 @@ const AdminProducts = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormModalOpen(false)}>
+            <Button
+              // variant="outline" 
+              onClick={() => setIsFormModalOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSubmitForm}>
