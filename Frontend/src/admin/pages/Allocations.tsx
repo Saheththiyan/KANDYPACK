@@ -31,22 +31,48 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Trash2, AlertCircle, Truck as TruckIcon, Users, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  getAllDrivers,
-  getAllAssistants,
-  getAllTrucks,
-  getAllRoutes,
-  getAllAllocations,
-  addAllocation,
-  deleteAllocation,
-  validateAllocation,
-  type Driver,
-  type Assistant,
-  type Truck,
-  type Route,
-  type Allocation,
-  type ValidationError,
-} from '@/lib/allocationQueries';
+
+interface Driver {
+  driver_id: string;
+  name: string;
+  hours_this_week: number;
+}
+
+interface Assistant {
+  assistant_id: string;
+  name: string;
+  hours_this_week: number;
+}
+
+interface Truck {
+  truck_id: string;
+  license_plate: string;
+  status: 'Available' | 'In Use' | 'Maintenance';
+}
+
+interface Route {
+  route_id: string;
+  name: string;
+  city: string;
+  estimated_hours: number;
+}
+
+interface Allocation {
+  allocation_id: string;
+  route_name: string;
+  city: string;
+  truck_license: string;
+  driver_name: string;
+  assistant_name: string;
+  delivery_date: string;
+  delivery_hours: number;
+  status: string;
+}
+
+interface ValidationError {
+  field: string;
+  message: string;
+}
 
 const Allocations = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -69,6 +95,103 @@ const Allocations = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const getAllDrivers = () => {
+    // Mock data - replace with API call
+    return [
+      { driver_id: 'd1', name: 'John Doe', hours_this_week: 32 },
+      { driver_id: 'd2', name: 'Jane Smith', hours_this_week: 28 },
+    ];
+  };
+
+  const getAllAssistants = () => {
+    // Mock data - replace with API call
+    return [
+      { assistant_id: 'a1', name: 'Mike Brown', hours_this_week: 45 },
+      { assistant_id: 'a2', name: 'Sara White', hours_this_week: 50 },
+    ];
+  };
+
+  const getAllTrucks = () => {
+    // Mock data - replace with API call
+    return [
+      { truck_id: 't1', license_plate: 'ABC-123', status: 'Available' },
+      { truck_id: 't2', license_plate: 'XYZ-789', status: 'In Use' },
+    ] as Truck[];
+  };
+
+  const getAllRoutes = () => {
+    // Mock data - replace with API call
+    return [
+      { route_id: 'r1', name: 'Route 1', city: 'City A', estimated_hours: 8 },
+      { route_id: 'r2', name: 'Route 2', city: 'City B', estimated_hours: 6 },
+    ];
+  };
+
+  const getAllAllocations = () => {
+    // Mock data - replace with API call
+    return [
+      {
+        allocation_id: 'alloc1',
+        route_name: 'Route 1',
+        city: 'City A',
+        truck_license: 'ABC-123',
+        driver_name: 'John Doe',
+        assistant_name: 'Mike Brown',
+        delivery_date: '2024-06-15',
+        delivery_hours: 8,
+        status: 'Scheduled',
+      },
+    ];
+  };
+
+  const addAllocation = (allocation: {
+    route_id: string;
+    truck_id: string;
+    driver_id: string;
+    assistant_id: string;
+    delivery_date: string;
+    delivery_hours: number;
+    status: string;
+  }) => {
+    // Map the incoming IDs to the Allocation shape expected by the UI
+    const route = routes.find(r => r.route_id === allocation.route_id);
+    const truck = trucks.find(t => t.truck_id === allocation.truck_id);
+    const driver = drivers.find(d => d.driver_id === allocation.driver_id);
+    const assistant = assistants.find(a => a.assistant_id === allocation.assistant_id);
+
+    const newAllocation: Allocation = {
+      allocation_id: `alloc_${Date.now()}`,
+      route_name: route?.name || '',
+      city: route?.city || '',
+      truck_license: truck?.license_plate || '',
+      driver_name: driver?.name || '',
+      assistant_name: assistant?.name || '',
+      delivery_date: allocation.delivery_date,
+      delivery_hours: allocation.delivery_hours,
+      status: allocation.status,
+    };
+
+    // Mock function - replace with API call
+    console.log('Adding allocation:', newAllocation);
+    setAllocations(prev => [...prev, newAllocation]);
+  };
+
+  const deleteAllocation = (allocationId: string) => {
+    // Mock function - replace with API call
+    console.log('Deleting allocation:', allocationId);
+  };
+
+  const validateAllocation = (
+    driver_id: string,
+    assistant_id: string,
+    delivery_date: string,
+    delivery_hours: number
+  ): ValidationError[] => {
+    const errors: ValidationError[] = [];
+
+    return errors;
+  }
 
   const loadData = () => {
     try {
