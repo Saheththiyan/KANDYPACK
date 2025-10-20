@@ -43,18 +43,39 @@ export async function getProducts({
 }
 
 export async function addProduct(productData) {
-  const { name, description, unit_price, space_unit } = productData;
-
+  const { name, description, unit_price, space_unit, stock } = productData;
   const query = `
-    INSERT INTO Product(name, description, unit_price, space_unit)
-    VALUES (?,?,?,?)
+    INSERT INTO Product(name, description, unit_price, space_unit, stock)
+    VALUES (?,?,?,?,?)
   `;
   const [result] = await db.query(query, [
     name,
     description,
     unit_price,
     space_unit,
+    stock,
   ]);
+  return result;
+}
+
+export async function updateProduct(product_id, productData) {
+  const { name, description, unit_price, space_unit, stock } = productData;
+
+  const query = `
+    UPDATE Product
+    SET name = ?, description = ?, unit_price = ?, space_unit = ?, stock = ?
+    WHERE product_id = ?
+  `;
+
+  const [result] = await db.query(query, [
+    name,
+    description,
+    unit_price,
+    space_unit,
+    stock,
+    product_id,
+  ]);
+
   return result;
 }
 

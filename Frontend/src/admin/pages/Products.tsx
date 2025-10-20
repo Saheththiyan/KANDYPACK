@@ -195,7 +195,8 @@ const AdminProducts = () => {
   }
 
   const searchAndSortProducts = (term: string, products: Product[], sort: string): Product[] => {
-    let results = products;
+    // copy array so we don't mutate the original state
+    let results = products.slice();
 
     // Search
     const lowerTerm = term.toLowerCase().trim();
@@ -210,16 +211,16 @@ const AdminProducts = () => {
     // Sort
     switch (sort) {
       case 'price-low':
-        results.sort((a, b) => a.unit_price - b.unit_price);
+        results.sort((a, b) => Number(a.unit_price) - Number(b.unit_price));
         break;
       case 'price-high':
-        results.sort((a, b) => b.unit_price - a.unit_price);
+        results.sort((a, b) => Number(b.unit_price) - Number(a.unit_price));
         break;
       case 'stock-low':
-        results.sort((a, b) => a.stock - b.stock);
+        results.sort((a, b) => Number(a.stock) - Number(b.stock));
         break;
       case 'stock-high':
-        results.sort((a, b) => b.stock - a.stock);
+        results.sort((a, b) => Number(b.stock) - Number(a.stock));
         break;
       case 'name':
       default:
@@ -244,8 +245,14 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const data = await fetchProducts();
-      setProducts(data || []);
-      setFilteredProducts(data || []);
+      const normalized = (data || []).map((p: any) => ({
+        ...p,
+        unit_price: Number(p.unit_price),
+        stock: Number(p.stock),
+        space_unit: Number(p.space_unit),
+      }));
+      setProducts(normalized);
+      setFilteredProducts(normalized);
     } catch (error) {
         toast({
           title: "Error",
@@ -331,12 +338,12 @@ const AdminProducts = () => {
         name: formData.name,
         unit_price: formData.unit_price,
         stock: formData.stock,
-        spaceConsumption: formData.space_unit,
+        space_unit: formData.space_unit,
         description: formData.description,
       };
 
       if (isEditing && selectedProduct) {
-        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
+        const response = await fetch(`${API_URL}/products/${selectedProduct.product_id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -350,7 +357,7 @@ const AdminProducts = () => {
           description: "Product updated successfully",
         });
       } else {
-        const response = await fetch(`${API_URL}/admin/products`, {
+        const response = await fetch(`${API_URL}/products`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -648,9 +655,9 @@ const AdminProducts = () => {
               />
             </div>
             <div>
-              <Label htmlFor="spaceConsumption">Space Consumption (units per box)</Label>
+              <Label htmlFor="space_unit">Space Consumption (units per box)</Label>
               <Input
-                id="spaceConsumption"
+                id="space_unit"
                 type="number"
                 value={formData.space_unit}
                 onChange={(e) => setFormData({ ...formData, space_unit: parseFloat(e.target.value) })}
