@@ -216,7 +216,7 @@ const DriverHours = () => {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${auth.token}`
-        } 
+        }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to delete driver');
@@ -326,7 +326,10 @@ const DriverHours = () => {
       } else {
         res = await fetch(`${API_URL}/assistants`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(payload),
         });
       }
