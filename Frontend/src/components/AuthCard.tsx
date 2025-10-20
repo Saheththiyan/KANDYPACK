@@ -265,6 +265,13 @@ export const AuthCard = () => {
             >
               Request access
             </button>
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className="text-primary hover:text-primary-hover underline underline-offset-4"
+            >
+              New customer? Sign up
+            </button>
           </div>
         </form>
 

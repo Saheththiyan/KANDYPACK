@@ -25,6 +25,7 @@ CREATE TABLE Customer (
     city VARCHAR(50),
     phone VARCHAR(20),
     email VARCHAR(320),
+    password VARCHAR(50),
     PRIMARY KEY (customer_id)
 );
 
@@ -177,31 +178,31 @@ INSERT INTO Assistant (assistant_id, name, weekly_hours, status) VALUES
 ('5f6a7b8c-9d0e-4f1a-2b3c-4d5e6f7a8b9c', 'Ruwanthi Mendis', 33, 'Active'),
 ('6a7b8c9d-0e1f-4a2b-3c4d-5e6f7a8b9c0d', 'Kasun Jayasinghe', 34, 'Active');
 
-INSERT INTO Customer (customer_id, name, type, address, city, phone, email) VALUES
-('3f0459e3-df95-4ad4-b94c-6b0c67290027', 'Tharaka', 'Retail', '123 Main St', 'New York', '555-0101', 'retailA@example.com'),
-('29fc8097-6caf-4918-adec-0e700393ea6d', 'Buvindu', 'Wholesale', '456 Oak Ave', 'Los Angeles', '555-0102', 'wholesaleB@example.com'),
-('c7538e0f-7ad2-4f9b-85aa-31a7b0487d42', 'Tharumini', 'Corporate', '789 Pine Rd', 'Chicago', '555-0103', 'corporateC@example.com'),
-('b1a4c2d3-6f7e-4abc-9d12-3e4f5a6b7c8d', 'Neela', 'Corporate', '456 Lakeview Dr', 'Miami', '555-0104', 'neela@example.com'),
-('a1b2c3d4-5e6f-4a1b-8c2d-3e4f5a6b7c8d', 'Nimal Wijesinghe', 'Retail', '234 Elm St', 'Boston', '555-0105', 'nimal.w@example.com'),
-('b2c3d4e5-6f7a-4b2c-9d3e-4f5a6b7c8d9e', 'Kusuma Fernando', 'Wholesale', '567 Cedar Ave', 'Miami', '555-0106', 'kusuma.f@example.com'),
-('c3d4e5f6-7a8b-4c3d-0e4f-5a6b7c8d9e0f', 'Lanka Traders', 'Corporate', '890 Birch Rd', 'Seattle', '555-0107', 'lanka.traders@example.com'),
-('d4e5f6a7-8b9c-4d4e-1f5a-6b7c8d9e0f1a', 'Sunil Perera', 'Retail', '123 Spruce Ln', 'Denver', '555-0108', 'sunil.p@example.com'),
-('e5f6a7b8-9c0d-4e5f-2a6b-7c8d9e0f1a2b', 'Amara Silva', 'Wholesale', '456 Pine St', 'Houston', '555-0109', 'amara.s@example.com'),
-('f6a7b8c9-0d1e-4f6a-3b7c-8d9e0f1a2b3c', 'Colombo Sweets', 'Corporate', '789 Oak Dr', 'Atlanta', '555-0110', 'colombo.sweets@example.com'),
-('a7b8c9d0-1e2f-4a7b-4c8d-9e0f1a2b3c4d', 'Ruwan Dissanayake', 'Retail', '101 Maple Ave', 'Phoenix', '555-0111', 'ruwan.d@example.com'),
-('b8c9d0e1-2f3a-4b8c-5d9e-0f1a2b3c4d5e', 'Priya Gunawardena', 'Wholesale', '234 Willow Rd', 'Dallas', '555-0112', 'priya.g@example.com'),
-('c9d0e1f2-3a4b-4c9d-6e0f-1a2b3c4d5e6f', 'Sweet Deals Inc.', 'Corporate', '567 Poplar St', 'San Francisco', '555-0113', 'sweet.deals@example.com'),
-('d0e1f2a3-4b5c-4d0e-7f1a-2b3c4d5e6f7a', 'Anura Jayasinghe', 'Retail', '890 Cedar Ln', 'Portland', '555-0114', 'anura.j@example.com'),
-('e1f2a3b4-5c6d-4e1f-8a2b-3c4d5e6f7a8b', 'Mala Rathnayake', 'Wholesale', '123 Birch Ave', 'Austin', '555-0115', 'mala.r@example.com'),
-('f2a3b4c5-6d7e-4f2a-9b3c-4d5e6f7a8b9c', 'Candy Corner Ltd.', 'Corporate', '456 Elm Dr', 'Philadelphia', '555-0116', 'candy.corner@example.com'),
-('a3b4c5d6-7e8f-4a3b-0c4d-5e6f7a8b9c0d', 'Sanjaya Mendis', 'Retail', '789 Spruce St', 'San Diego', '555-0117', 'sanjaya.m@example.com'),
-('b4c5d6e7-8f9a-4b4c-1d5e-6f7a8b9c0d1e', 'Nayana Kumari', 'Wholesale', '101 Oak Rd', 'Charlotte', '555-0118', 'nayana.k@example.com'),
-('c5d6e7f8-9a0b-4c5d-2e6f-7a8b9c0d1e2f', 'Global Sweets Co.', 'Corporate', '234 Pine Ave', 'Minneapolis', '555-0119', 'global.sweets@example.com'),
-('d6e7f8a9-0b1c-4d6e-3f7a-8b9c0d1e2f3a', 'Kamal Wijeratne', 'Retail', '567 Maple Ln', 'Cleveland', '555-0120', 'kamal.w@example.com'),
-('e7f8a9b0-1c2d-4e7f-4a8b-9c0d1e2f3a4b', 'Dilani Fonseka', 'Wholesale', '890 Cedar Dr', 'Orlando', '555-0121', 'dilani.f@example.com'),
-('f8a9b0c1-2d3e-4f8a-5b9c-0d1e2f3a4b5c', 'Sweet Haven Stores', 'Corporate', '123 Willow St', 'Tampa', '555-0122', 'sweet.haven@example.com'),
-('a9b0c1d2-3e4f-4a9b-6c0d-1e2f3a4b5c6d', 'Ranjith Bandara', 'Retail', '456 Birch Rd', 'St. Louis', '555-0123', 'ranjith.b@example.com'),
-('b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', 'Chathura Senanayake', 'Wholesale', '789 Elm Ave', 'Pittsburgh', '555-0124', 'chathura.s@example.com');
+INSERT INTO Customer (customer_id, name, type, address, city, phone, email, password) VALUES
+('3f0459e3-df95-4ad4-b94c-6b0c67290027', 'Tharaka', 'Retail', '123 Main St', 'New York', '555-0101', 'retailA@example.com', 'password1'),
+('29fc8097-6caf-4918-adec-0e700393ea6d', 'Buvindu', 'Wholesale', '456 Oak Ave', 'Los Angeles', '555-0102', 'wholesaleB@example.com', 'password2'),
+('c7538e0f-7ad2-4f9b-85aa-31a7b0487d42', 'Tharumini', 'Corporate', '789 Pine Rd', 'Chicago', '555-0103', 'corporateC@example.com', 'password3'),
+('b1a4c2d3-6f7e-4abc-9d12-3e4f5a6b7c8d', 'Neela', 'Corporate', '456 Lakeview Dr', 'Miami', '555-0104', 'neela@example.com', 'password4'),
+('a1b2c3d4-5e6f-4a1b-8c2d-3e4f5a6b7c8d', 'Nimal Wijesinghe', 'Retail', '234 Elm St', 'Boston', '555-0105', 'nimal.w@example.com', 'password5'),
+('b2c3d4e5-6f7a-4b2c-9d3e-4f5a6b7c8d9e', 'Kusuma Fernando', 'Wholesale', '567 Cedar Ave', 'Miami', '555-0106', 'kusuma.f@example.com', 'password6'),
+('c3d4e5f6-7a8b-4c3d-0e4f-5a6b7c8d9e0f', 'Lanka Traders', 'Corporate', '890 Birch Rd', 'Seattle', '555-0107', 'lanka.traders@example.com', 'password7'),
+('d4e5f6a7-8b9c-4d4e-1f5a-6b7c8d9e0f1a', 'Sunil Perera', 'Retail', '123 Spruce Ln', 'Denver', '555-0108', 'sunil.p@example.com', 'password8'),
+('e5f6a7b8-9c0d-4e5f-2a6b-7c8d9e0f1a2b', 'Amara Silva', 'Wholesale', '456 Pine St', 'Houston', '555-0109', 'amara.s@example.com', 'password9'),
+('f6a7b8c9-0d1e-4f6a-3b7c-8d9e0f1a2b3c', 'Colombo Sweets', 'Corporate', '789 Oak Dr', 'Atlanta', '555-0110', 'colombo.sweets@example.com', 'password10'),
+('a7b8c9d0-1e2f-4a7b-4c8d-9e0f1a2b3c4d', 'Ruwan Dissanayake', 'Retail', '101 Maple Ave', 'Phoenix', '555-0111', 'ruwan.d@example.com', 'password11'),
+('b8c9d0e1-2f3a-4b8c-5d9e-0f1a2b3c4d5e', 'Priya Gunawardena', 'Wholesale', '234 Willow Rd', 'Dallas', '555-0112', 'priya.g@example.com', 'password12'),
+('c9d0e1f2-3a4b-4c9d-6e0f-1a2b3c4d5e6f', 'Sweet Deals Inc.', 'Corporate', '567 Poplar St', 'San Francisco', '555-0113', 'sweet.deals@example.com', 'password13'),
+('d0e1f2a3-4b5c-4d0e-7f1a-2b3c4d5e6f7a', 'Anura Jayasinghe', 'Retail', '890 Cedar Ln', 'Portland', '555-0114', 'anura.j@example.com', 'password14'),
+('e1f2a3b4-5c6d-4e1f-8a2b-3c4d5e6f7a8b', 'Mala Rathnayake', 'Wholesale', '123 Birch Ave', 'Austin', '555-0115', 'mala.r@example.com', 'password15'),
+('f2a3b4c5-6d7e-4f2a-9b3c-4d5e6f7a8b9c', 'Candy Corner Ltd.', 'Corporate', '456 Elm Dr', 'Philadelphia', '555-0116', 'candy.corner@example.com', 'password16'),
+('a3b4c5d6-7e8f-4a3b-0c4d-5e6f7a8b9c0d', 'Sanjaya Mendis', 'Retail', '789 Spruce St', 'San Diego', '555-0117', 'sanjaya.m@example.com', 'password17'),
+('b4c5d6e7-8f9a-4b4c-1d5e-6f7a8b9c0d1e', 'Nayana Kumari', 'Wholesale', '101 Oak Rd', 'Charlotte', '555-0118', 'nayana.k@example.com', 'password18'),
+('c5d6e7f8-9a0b-4c5d-2e6f-7a8b9c0d1e2f', 'Global Sweets Co.', 'Corporate', '234 Pine Ave', 'Minneapolis', '555-0119', 'global.sweets@example.com', 'password19'),
+('d6e7f8a9-0b1c-4d6e-3f7a-8b9c0d1e2f3a', 'Kamal Wijeratne', 'Retail', '567 Maple Ln', 'Cleveland', '555-0120', 'kamal.w@example.com', 'password20'),
+('e7f8a9b0-1c2d-4e7f-4a8b-9c0d1e2f3a4b', 'Dilani Fonseka', 'Wholesale', '890 Cedar Dr', 'Orlando', '555-0121', 'dilani.f@example.com', 'password21'),
+('f8a9b0c1-2d3e-4f8a-5b9c-0d1e2f3a4b5c', 'Sweet Haven Stores', 'Corporate', '123 Willow St', 'Tampa', '555-0122', 'sweet.haven@example.com', 'password22'),
+('a9b0c1d2-3e4f-4a9b-6c0d-1e2f3a4b5c6d', 'Ranjith Bandara', 'Retail', '456 Birch Rd', 'St. Louis', '555-0123', 'ranjith.b@example.com', 'password23'),
+('b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', 'Chathura Senanayake', 'Wholesale', '789 Elm Ave', 'Pittsburgh', '555-0124', 'chathura.s@example.com', 'password24');
 
 INSERT INTO Driver (driver_id, name, license_no, weekly_hours, status) VALUES
 ('1d672079-260a-48e6-9e5c-2fef6092bdf0', 'David Wilson', 'DL123456', 40, 'Active'),

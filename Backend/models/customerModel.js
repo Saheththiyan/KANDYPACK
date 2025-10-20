@@ -5,6 +5,14 @@ export async function getCustomers() {
   return customers;
 }
 
+export async function getCustomerByEmail(email) {
+  const [rows] = await db.query(
+    "SELECT * FROM Customer WHERE email = ?",
+    [email]
+  );
+  return rows[0];
+}
+
 export async function deleteCustomerById(id) {
   try {
     console.log("Attempting to delete customer with ID:", id);
@@ -13,4 +21,22 @@ export async function deleteCustomerById(id) {
   } catch (error) {
     throw error;
   }
+}
+
+export async function createCustomer({
+  customer_id,
+  name,
+  type,
+  address,
+  city,
+  phone,
+  email,
+  password,
+}) {
+  const [result] = await db.query(
+    `INSERT INTO Customer (customer_id, name, \`type\`, address, city, phone, email, password)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [customer_id, name, type, address, city, phone, email, password]
+  );
+  return result;
 }
