@@ -54,7 +54,7 @@ export async function deleteProduct(req, res) {
     console.log(error);
     res
       .status(500)
-      .json({ message: "Something went wrong", error: error.message });
+      .json({ message: "This product has some existing orders, Therefore it cannot be deleted", error: error.message });
   }
 }
 
