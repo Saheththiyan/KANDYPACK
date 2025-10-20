@@ -66,7 +66,7 @@ export const AuthCard = () => {
 
       if (response.success && response.user && response.token) {
         // Store auth token and user data
-        setAuthToken(response.token, response.user.role, response.user.email, response.user.name);
+        setAuthToken(response.token, response.user.role, response.user.email, response.user.name, response.user.id);
 
         // Route based on role
         if (response.user.role === 'Customer') {
@@ -264,6 +264,13 @@ export const AuthCard = () => {
               className="text-primary hover:text-primary-hover underline underline-offset-4"
             >
               Request access
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className="text-primary hover:text-primary-hover underline underline-offset-4"
+            >
+              New customer? Sign up
             </button>
           </div>
         </form>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,28 +34,25 @@ import { API_URL } from '../../lib/config';
 import { getAuthToken } from '@/lib/mockAuth';
 
 interface Product {
-  id: string;
+  product_id: string;
   name: string;
-  sku: string;
-  category: string;
-  price: number;
+  unit_price: number;
   stock: number;
-  spaceConsumption: number;
+  space_unit: number;
   description: string;
 }
 
 const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
-  <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${
-    type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
-  }`}>
+  <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+    }`}>
     {type === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
     <span className="font-medium">{message}</span>
     <button onClick={onClose} className="ml-2 text-gray-500 hover:text-gray-700">×</button>
   </div>
 );
 
-const ProductCard = ({ product, onView, onEdit, onDelete }: { 
-  product: Product; 
+const ProductCard = ({ product, onView, onEdit, onDelete }: {
+  product: Product;
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -73,74 +70,76 @@ const ProductCard = ({ product, onView, onEdit, onDelete }: {
   };
 
   return (
-    <Card className="h-full flex flex-col hover:shadow-lg transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
-            <CardDescription className="text-sm mt-1">
-              SKU: {product.sku} • {product.category}
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex-1 flex flex-col justify-between">
-        <div className="space-y-3 mb-4">
-          <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-primary">
-              Rs {product.price.toLocaleString()}
-            </span>
-            <Badge className={getStockBadgeColor(product.stock)}>
-              {getStockStatus(product.stock)}
-            </Badge>
-          </div>
-          
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Stock:</span>
-              <span className="font-medium">{product.stock} units</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Space:</span>
-              <span className="font-medium">{product.spaceConsumption} units/box</span>
+    <>
+      <Card className="h-full flex flex-col hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
+              <CardDescription className="text-sm mt-1">
+                {/* SKU: {product.sku} • {product.category} */}
+              </CardDescription>
             </div>
           </div>
+        </CardHeader>
 
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {product.description}
-          </p>
-        </div>
+        <CardContent className="flex-1 flex flex-col justify-between">
+          <div className="space-y-3 mb-4">
+            <div className="flex items-center justify-between">
+              <span className="text-2xl font-bold text-primary">
+                Rs {product.unit_price.toLocaleString()}
+              </span>
+              <Badge className={getStockBadgeColor(product.stock)}>
+                {getStockStatus(product.stock)}
+              </Badge>
+            </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onView}
-            className="flex-1"
-          >
-            <Eye className="w-4 h-4 mr-1" />
-            View
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onEdit}
-            className="flex-1"
-          >
-            <Pencil className="w-4 h-4 mr-1" />
-            Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDelete}
-          >
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Stock:</span>
+                <span className="font-medium">{product.stock} units</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Space:</span>
+                <span className="font-medium">{product.space_unit} units/box</span>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {product.description}
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              // variant="outline"
+              // size="sm"
+              onClick={onView}
+              className="flex-1"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              View
+            </Button>
+            <Button
+              // variant="outline"
+              // size="sm"
+              onClick={onEdit}
+              className="flex-1"
+            >
+              <Pencil className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+            <Button
+              // variant="outline"
+              // size="sm"
+              onClick={onDelete}
+            >
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
@@ -157,14 +156,13 @@ const AdminProducts = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Product>({
     name: '',
-    sku: '',
-    category: '',
-    price: '',
-    stock: '',
-    spaceConsumption: '',
+    unit_price: 0,
+    stock: 0,
+    space_unit: 0,
     description: '',
+    product_id: '',
   });
 
   const auth = getAuthToken();
@@ -177,7 +175,7 @@ const AdminProducts = () => {
   };
 
   async function fetchProducts(): Promise<Product[]> {
-    const response = await fetch(`${API_URL}/admin/products`, {
+    const response = await fetch(`${API_URL}/products`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -187,29 +185,30 @@ const AdminProducts = () => {
     if (!response.ok) {
       throw new Error("Failed to fetch products");
     }
-    return response.json();
+    const data = await response.json();
+    return data.products || [];
   }
 
   const searchAndSortProducts = (term: string, products: Product[], sort: string): Product[] => {
     let results = products;
-    
+
     // Search
     const lowerTerm = term.toLowerCase().trim();
     if (lowerTerm) {
       results = results.filter(p =>
-        p.name.toLowerCase().includes(lowerTerm) ||
-        p.sku.toLowerCase().includes(lowerTerm) ||
-        p.category.toLowerCase().includes(lowerTerm)
+        p.name.toLowerCase().includes(lowerTerm)
+        // p.sku.toLowerCase().includes(lowerTerm) ||
+        // p.category.toLowerCase().includes(lowerTerm)
       );
     }
 
     // Sort
     switch (sort) {
       case 'price-low':
-        results.sort((a, b) => a.price - b.price);
+        results.sort((a, b) => a.unit_price - b.unit_price);
         break;
       case 'price-high':
-        results.sort((a, b) => b.price - a.price);
+        results.sort((a, b) => b.unit_price - a.unit_price);
         break;
       case 'stock-low':
         results.sort((a, b) => a.stock - b.stock);
@@ -240,8 +239,8 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const data = await fetchProducts();
-      setProducts(data);
-      setFilteredProducts(data);
+      setProducts(data || []);
+      setFilteredProducts(data || []);
     } catch (err) {
       console.error(err);
       showToast('Failed to load products', 'error');
@@ -253,12 +252,11 @@ const AdminProducts = () => {
   const handleAddProduct = () => {
     setFormData({
       name: '',
-      sku: '',
-      category: '',
-      price: '',
-      stock: '',
-      spaceConsumption: '',
+      unit_price: 0,
+      space_unit: 0,
       description: '',
+      product_id: '',
+      stock: 0,
     });
     setIsEditing(false);
     setIsFormModalOpen(true);
@@ -267,12 +265,11 @@ const AdminProducts = () => {
   const handleEditProduct = (product: Product) => {
     setSelectedProduct(product);
     setFormData({
+      product_id: product.product_id,
       name: product.name,
-      sku: product.sku,
-      category: product.category,
-      price: product.price.toString(),
-      stock: product.stock.toString(),
-      spaceConsumption: product.spaceConsumption.toString(),
+      unit_price: product.unit_price,
+      stock: product.stock,
+      space_unit: product.space_unit,
       description: product.description,
     });
     setIsEditing(true);
@@ -292,8 +289,11 @@ const AdminProducts = () => {
   const confirmDelete = async () => {
     if (selectedProduct) {
       try {
-        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.id}`, {
+        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
           method: "DELETE",
+          headers: {
+            'Authorization': `Bearer ${auth.token}`
+          }
         });
         const data = await response.json();
         if (!response.ok) {
@@ -314,18 +314,19 @@ const AdminProducts = () => {
     try {
       const productData = {
         name: formData.name,
-        sku: formData.sku,
-        category: formData.category,
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-        spaceConsumption: parseFloat(formData.spaceConsumption),
+        unit_price: formData.unit_price,
+        stock: formData.stock,
+        spaceConsumption: formData.space_unit,
         description: formData.description,
       };
 
       if (isEditing && selectedProduct) {
-        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.id}`, {
+        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(productData),
         });
         if (!response.ok) throw new Error('Failed to update product');
@@ -333,7 +334,10 @@ const AdminProducts = () => {
       } else {
         const response = await fetch(`${API_URL}/admin/products`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(productData),
         });
         if (!response.ok) throw new Error('Failed to add product');
@@ -376,7 +380,7 @@ const AdminProducts = () => {
   return (
     <div className="space-y-6 p-6">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -445,7 +449,7 @@ const AdminProducts = () => {
             className="pl-10"
           />
         </div>
-        
+
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Sort by" />
@@ -476,7 +480,7 @@ const AdminProducts = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {currentProducts.map((product) => (
               <ProductCard
-                key={product.id}
+                key={product.product_id}
                 product={product}
                 onView={() => handleViewProduct(product)}
                 onEdit={() => handleEditProduct(product)}
@@ -489,7 +493,7 @@ const AdminProducts = () => {
           {totalPages > 1 && (
             <div className="flex justify-center space-x-2">
               <Button
-                variant="outline"
+                // variant="outline"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
               >
@@ -499,7 +503,7 @@ const AdminProducts = () => {
                 Page {currentPage} of {totalPages}
               </span>
               <Button
-                variant="outline"
+                // variant="outline"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
               >
@@ -527,15 +531,15 @@ const AdminProducts = () => {
               </div>
               <div>
                 <Label className="text-muted-foreground">SKU</Label>
-                <p className="font-medium">{selectedProduct.sku}</p>
+                {/* <p className="font-medium">{selectedProduct.sku}</p> */}
               </div>
               <div>
                 <Label className="text-muted-foreground">Category</Label>
-                <p className="font-medium">{selectedProduct.category}</p>
+                {/* <p className="font-medium">{selectedProduct.category}</p> */}
               </div>
               <div>
                 <Label className="text-muted-foreground">Price</Label>
-                <p className="font-medium">Rs {selectedProduct.price.toLocaleString()}</p>
+                <p className="font-medium">Rs {selectedProduct.unit_price.toLocaleString()}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">Stock</Label>
@@ -547,7 +551,7 @@ const AdminProducts = () => {
               </div>
               <div>
                 <Label className="text-muted-foreground">Space Consumption</Label>
-                <p className="font-medium">{selectedProduct.spaceConsumption} units per box</p>
+                <p className="font-medium">{selectedProduct.space_unit} units per box</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">Description</Label>
@@ -580,7 +584,7 @@ const AdminProducts = () => {
                 placeholder="Product name"
               />
             </div>
-            <div>
+            {/* <div>
               <Label htmlFor="sku">SKU</Label>
               <Input
                 id="sku"
@@ -588,8 +592,8 @@ const AdminProducts = () => {
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                 placeholder="SKU-001"
               />
-            </div>
-            <div>
+            </div> */}
+            {/* <div>
               <Label htmlFor="category">Category</Label>
               <Input
                 id="category"
@@ -597,14 +601,14 @@ const AdminProducts = () => {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 placeholder="Electronics, Groceries, etc."
               />
-            </div>
+            </div> */}
             <div>
               <Label htmlFor="price">Price (Rs)</Label>
               <Input
                 id="price"
                 type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                value={formData.unit_price}
+                onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) })}
                 placeholder="0.00"
               />
             </div>
@@ -614,7 +618,7 @@ const AdminProducts = () => {
                 id="stock"
                 type="number"
                 value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
                 placeholder="0"
               />
             </div>
@@ -623,8 +627,8 @@ const AdminProducts = () => {
               <Input
                 id="spaceConsumption"
                 type="number"
-                value={formData.spaceConsumption}
-                onChange={(e) => setFormData({ ...formData, spaceConsumption: e.target.value })}
+                value={formData.space_unit}
+                onChange={(e) => setFormData({ ...formData, space_unit: parseFloat(e.target.value) })}
                 placeholder="0.0"
               />
             </div>
@@ -639,7 +643,9 @@ const AdminProducts = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormModalOpen(false)}>
+            <Button
+              // variant="outline" 
+              onClick={() => setIsFormModalOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSubmitForm}>

@@ -12,12 +12,12 @@ services:
       - NODE_ENV=development
     command: npx nodemon index.js
     ports:
-      - "5000:5000"
+      - "5001:5000"
     depends_on:
       - db
 
   frontend:
-    build: 
+    build:
       context: ./Frontend
       dockerfile: Dockerfile.dev
     volumes:

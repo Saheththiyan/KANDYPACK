@@ -99,8 +99,8 @@ const CustomerOrders = () => {
           },
         }).then(res => res.json()).then(res => res.orders);
         
-        setOrders(data);
-        setFilteredOrders(data);
+        setOrders(data || []);
+        setFilteredOrders(data || []);
       } catch (error) {
         console.error('Failed to load orders:', error);
       } finally {

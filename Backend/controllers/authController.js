@@ -2,9 +2,14 @@ import {
   getAdminByEmail,
   validateAdminPassword,
 } from "../models/adminModel.js";
+import {
+  createCustomer,
+  getCustomerByEmail,
+  validateCustomerPassword
+} from "../models/customerModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { getCustomerByEmail } from "../models/customerModel.js";
+import crypto from "crypto";
 dotenv.config();
 
 export async function login(req, res) {
@@ -23,6 +28,7 @@ export async function login(req, res) {
     
     // Determine user and role
     const user = admin || customer;
+    user.id = admin ? admin.admin_id : customer.customer_id;
     const role = admin ? "Admin" : "Customer";
     
     if (!user) {
@@ -45,13 +51,64 @@ export async function login(req, res) {
     const token = jwt.sign(
       { id: user.id, role, email: user.email, name: user.name },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "48h" }
     );
 
     res.json({
       success: true,
       token,
       user: { email: user.email, role, username: user.username },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+export async function registerCustomer(req, res) {
+  const { name, type, address, city, phone, email, password } = req.body;
+
+  if (!name || !type || !address || !city || !phone || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "All customer fields are required",
+    });
+  }
+
+  try {
+    const existingCustomer = await getCustomerByEmail(email);
+
+    if (existingCustomer) {
+      return res.status(409).json({
+        success: false,
+        message: "An account with this email already exists",
+      });
+    }
+
+    const customerId = crypto.randomUUID();
+
+    await createCustomer({
+      customer_id: customerId,
+      name,
+      type,
+      address,
+      city,
+      phone,
+      email,
+      password,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Customer account created successfully",
+      customer: {
+        customer_id: customerId,
+        name,
+        email,
+        type,
+        city,
+        phone,
+      },
     });
   } catch (err) {
     console.error(err);
