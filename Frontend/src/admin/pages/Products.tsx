@@ -336,7 +336,7 @@ const AdminProducts = () => {
       };
 
       if (isEditing && selectedProduct) {
-        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
+        const response = await fetch(`${API_URL}/products/${selectedProduct.product_id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -350,7 +350,7 @@ const AdminProducts = () => {
           description: "Product updated successfully",
         });
       } else {
-        const response = await fetch(`${API_URL}/admin/products`, {
+        const response = await fetch(`${API_URL}/products`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

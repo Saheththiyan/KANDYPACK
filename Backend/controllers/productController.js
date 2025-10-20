@@ -57,3 +57,23 @@ export async function deleteProduct(req, res) {
       .json({ message: "Something went wrong", error: error.message });
   }
 }
+
+export async function updateProduct(req, res) {
+  try {
+    const { product_id } = req.params;
+    const productData = req.body;
+
+    const result = await product.updateProduct(product_id, productData);
+
+    if (result.affectedRows == 0) {
+      return res.status(404).json({ message: "Product not Found" });
+    }
+
+    res.status(200).json({ message: "Product successfully updated!" });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
+  }
+}

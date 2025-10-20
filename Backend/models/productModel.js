@@ -58,6 +58,27 @@ export async function addProduct(productData) {
   return result;
 }
 
+export async function updateProduct(product_id, productData) {
+  const { name, description, unit_price, space_unit, stock } = productData;
+
+  const query = `
+    UPDATE Product
+    SET name = ?, description = ?, unit_price = ?, space_unit = ?, stock = ?
+    WHERE product_id = ?
+  `;
+
+  const [result] = await db.query(query, [
+    name,
+    description,
+    unit_price,
+    space_unit,
+    stock,
+    product_id,
+  ]);
+
+  return result;
+}
+
 export async function removeProduct(product_id) {
   const query = `
     DELETE FROM Product
