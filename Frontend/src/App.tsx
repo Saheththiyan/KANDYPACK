@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useEffect } from "react";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { CustomerLayout } from "./customer/components/CustomerLayout";
@@ -25,6 +26,7 @@ import Customers from "./admin/pages/Customers";
 import Product from "./admin/pages/Products";
 import PublicLandingDashboard from "./pages/PublicLandingDashboard";
 import PublicProducts from "./pages/PublicProducts";
+import Allocations from "./admin/pages/Allocations";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,7 @@ const App = () => {
             <Route path="/" element={<PublicLandingDashboard />} />
             <Route path="/products" element={<PublicProducts />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={
@@ -57,6 +60,7 @@ const App = () => {
               <Route index element={<AdminDashboard />} />
               <Route path="customers" element={<Customers />} />
               <Route path="products" element={<Product />} />
+              <Route path="allocations" element={<Allocations />} />
               <Route path="reports/quarterly-sales" element={<QuarterlySales />} />
               <Route path="reports/most-ordered" element={<MostOrdered />} />
               <Route path="reports/city-route-breakdown" element={<CityRoute />} />
