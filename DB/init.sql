@@ -3,7 +3,7 @@ CREATE TABLE Admin (
     admin_id CHAR(36) NOT NULL,
     username VARCHAR(100),
     email VARCHAR(100),
-    password VARCHAR(50),
+    password VARCHAR(255),
     PRIMARY KEY (admin_id)
 );
 
@@ -11,8 +11,8 @@ CREATE TABLE Admin (
 CREATE TABLE Assistant (
     assistant_id CHAR(36) NOT NULL,
     name VARCHAR(100),
-    weekly_hours INT,
-    status VARCHAR(20),
+    weekly_hours INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'Active',
     PRIMARY KEY (assistant_id)
 );
 
@@ -33,8 +33,8 @@ CREATE TABLE Driver (
     driver_id CHAR(36) NOT NULL,
     name VARCHAR(100),
     license_no VARCHAR(20),
-    weekly_hours INT,
-    status VARCHAR(20),
+    weekly_hours INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'Active',
     PRIMARY KEY (driver_id)
 );
 
@@ -153,9 +153,10 @@ CREATE TABLE Delivers (
 );
 
 INSERT INTO Admin (admin_id, username, email, password) VALUES
-('7e23eb1c-aa68-4297-a8ec-02f5681f2e5c', 'admin1', 'admin1@kandypack.com', 'hashedpass1'),
-('f550ff2e-1080-4b29-af61-f46b009bf1ac', 'admin2', 'admin2@kandypack.com', 'hashedpass2'),
-('0e0862ca-9a7f-4850-bed3-040eba35b0f8', 'admin3', 'admin3@kandypack.com', 'hashedpass3');
+('e0878f40-acea-11f0-876f-aac2fc27919f', 'admin1', 'admin1@kandypack.com', '$2b$10$bJEfbQRwVDjQeCZl0ywVROQPyR1AIncyIN3MVeX/Iq3SbRZZYRYhC'),
+('eb27d4e1-acea-11f0-876f-aac2fc27919f', 'admin2', 'admin2@kandypack.com', '$2b$10$z7VKArhNWxFBFFZ3LeuG.evcZmPBy2xBHvjAWfbEDvmxGV2bXdePG'),
+('f336dbf4-acea-11f0-876f-aac2fc27919f', 'admin3', 'admin3@kandypack.com', '$2b$10$vTh4nJUjmBslcs0vgAKKlOZ5OGWYeHZAOi4C7xtxYgeF5vkvAqJHy'),
+('f85b453f-acea-11f0-876f-aac2fc27919f', 'admin4', 'admin4@kandypack.com', '$2b$10$0UYd4sI4IvuCjHlcIyWXVO7zQI23pUQdyNTI1ZClE502Z9fLZyDoy');
 
 INSERT INTO Assistant (assistant_id, name, weekly_hours, status) VALUES
 ('fd160307-a56a-4f04-b88d-6422d29496a3', 'Alice Johnson', 35, 'Active'),
@@ -363,3 +364,95 @@ JOIN Store s ON r.store_id = s.store_id
 JOIN Delivery_Schedule ds ON r.route_id = ds.route_id
 JOIN Delivers d ON ds.delivery_id = d.delivery_id
 JOIN `Order` o ON d.order_id = o.order_id;
+
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_driver
+BEFORE INSERT ON Driver
+FOR EACH ROW
+BEGIN
+IF NEW.driver_id IS NULL THEN
+SET NEW.driver_id = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_assistant
+BEFORE INSERT ON Assistant
+FOR EACH ROW
+BEGIN
+IF NEW.assistant_id IS NULL THEN
+SET NEW.assistant_id = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_product
+BEFORE INSERT ON Product
+FOR EACH ROW
+BEGIN
+IF NEW.product_id IS NULL THEN
+SET NEW.product_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_store
+BEFORE INSERT ON Store
+FOR EACH ROW
+BEGIN
+IF NEW.store_id IS NULL THEN
+SET NEW.store_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_route
+BEFORE INSERT ON Route
+FOR EACH ROW
+BEGIN
+IF NEW.route_id IS NULL THEN
+SET NEW.route_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_truck
+BEFORE INSERT ON Truck
+FOR EACH ROW
+BEGIN
+IF NEW.truck_id IS NULL THEN
+SET NEW.truck_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_admin
+BEFORE INSERT ON Admin
+FOR EACH ROW
+BEGIN
+IF NEW.admin_id IS NULL THEN
+SET NEW.admin_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;

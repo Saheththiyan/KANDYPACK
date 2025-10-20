@@ -31,6 +31,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Eye, Pencil, Trash2, Package, CheckCircle, XCircle } from 'lucide-react';
 import { API_URL } from '../../lib/config';
+import { getAuthToken } from '@/lib/mockAuth';
 
 interface Product {
   id: string;
@@ -42,169 +43,6 @@ interface Product {
   spaceConsumption: number;
   description: string;
 }
-
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: 'prod_001',
-    name: 'Kandy Pack Premium Tea (250g)',
-    sku: 'KP-TEA-250',
-    category: 'Beverages',
-    price: 249.0,
-    stock: 120,
-    spaceConsumption: 0.5,
-    description: 'Rich Ceylon black tea with aromatic flavor.',
-  },
-  {
-    id: 'prod_002',
-    name: 'Rice Box - 5kg',
-    sku: 'KP-RICE-5KG',
-    category: 'Staples',
-    price: 1199.0,
-    stock: 32,
-    spaceConsumption: 5.0,
-    description: 'Long grain rice, ideal for daily meals.',
-  },
-  {
-    id: 'prod_003',
-    name: 'Coconut Oil 1L',
-    sku: 'KP-OIL-1L',
-    category: 'Cooking',
-    price: 799.0,
-    stock: 8,
-    spaceConsumption: 1.2,
-    description: 'Cold pressed virgin coconut oil.',
-  },
-  {
-    id: 'prod_004',
-    name: 'Glass Bottle - 500ml',
-    sku: 'KP-GLASS-500',
-    category: 'Packaging',
-    price: 59.0,
-    stock: 0,
-    spaceConsumption: 0.2,
-    description: 'Reusable glass bottle, BPA free.',
-  },
-  {
-    id: 'prod_005',
-    name: 'Hand Sanitizer 250ml',
-    sku: 'KP-SAN-250',
-    category: 'Hygiene',
-    price: 299.0,
-    stock: 45,
-    spaceConsumption: 0.3,
-    description: 'Alcohol based sanitizer with gentle formula.',
-  },
-  {
-    id: 'prod_006',
-    name: 'Chocolate Assorted Box',
-    sku: 'KP-CHOCO-BOX',
-    category: 'Confectionery',
-    price: 499.0,
-    stock: 200,
-    spaceConsumption: 0.6,
-    description: 'Assorted chocolates, great for gifting.',
-  },
-  {
-    id: 'prod_007',
-    name: 'Detergent Powder 2kg',
-    sku: 'KP-DET-2KG',
-    category: 'Household',
-    price: 649.0,
-    stock: 16,
-    spaceConsumption: 2.0,
-    description: 'High-efficiency detergent for front-loaders.',
-  },
-  {
-    id: 'prod_008',
-    name: 'Snack Pack - Mixed Nuts',
-    sku: 'KP-NUTS-100',
-    category: 'Snacks',
-    price: 179.0,
-    stock: 58,
-    spaceConsumption: 0.15,
-    description: 'Roasted mixed nuts (100g).',
-    },
-{
-    id: 'prod_001',
-    name: 'Kandy Pack Premium Tea (250g)',
-    sku: 'KP-TEA-250',
-    category: 'Beverages',
-    price: 249.0,
-    stock: 120,
-    spaceConsumption: 0.5,
-    description: 'Rich Ceylon black tea with aromatic flavor.',
-  },
-  {
-    id: 'prod_002',
-    name: 'Rice Box - 5kg',
-    sku: 'KP-RICE-5KG',
-    category: 'Staples',
-    price: 1199.0,
-    stock: 32,
-    spaceConsumption: 5.0,
-    description: 'Long grain rice, ideal for daily meals.',
-  },
-  {
-    id: 'prod_003',
-    name: 'Coconut Oil 1L',
-    sku: 'KP-OIL-1L',
-    category: 'Cooking',
-    price: 799.0,
-    stock: 8,
-    spaceConsumption: 1.2,
-    description: 'Cold pressed virgin coconut oil.',
-  },
-  {
-    id: 'prod_004',
-    name: 'Glass Bottle - 500ml',
-    sku: 'KP-GLASS-500',
-    category: 'Packaging',
-    price: 59.0,
-    stock: 0,
-    spaceConsumption: 0.2,
-    description: 'Reusable glass bottle, BPA free.',
-  },
-  {
-    id: 'prod_005',
-    name: 'Hand Sanitizer 250ml',
-    sku: 'KP-SAN-250',
-    category: 'Hygiene',
-    price: 299.0,
-    stock: 45,
-    spaceConsumption: 0.3,
-    description: 'Alcohol based sanitizer with gentle formula.',
-  },
-  {
-    id: 'prod_006',
-    name: 'Chocolate Assorted Box',
-    sku: 'KP-CHOCO-BOX',
-    category: 'Confectionery',
-    price: 499.0,
-    stock: 200,
-    spaceConsumption: 0.6,
-    description: 'Assorted chocolates, great for gifting.',
-  },
-  {
-    id: 'prod_007',
-    name: 'Detergent Powder 2kg',
-    sku: 'KP-DET-2KG',
-    category: 'Household',
-    price: 649.0,
-    stock: 16,
-    spaceConsumption: 2.0,
-    description: 'High-efficiency detergent for front-loaders.',
-  },
-  {
-    id: 'prod_008',
-    name: 'Snack Pack - Mixed Nuts',
-    sku: 'KP-NUTS-100',
-    category: 'Snacks',
-    price: 179.0,
-    stock: 58,
-    spaceConsumption: 0.15,
-    description: 'Roasted mixed nuts (100g).',
-  }
-];
 
 const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
   <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${
@@ -307,8 +145,8 @@ const ProductCard = ({ product, onView, onEdit, onDelete }: {
 };
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
@@ -329,6 +167,8 @@ const AdminProducts = () => {
     description: '',
   });
 
+  const auth = getAuthToken();
+
   const ITEMS_PER_PAGE = 12;
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -337,7 +177,13 @@ const AdminProducts = () => {
   };
 
   async function fetchProducts(): Promise<Product[]> {
-    const response = await fetch(`${API_URL}/admin/products`);
+    const response = await fetch(`${API_URL}/admin/products`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch products");
     }

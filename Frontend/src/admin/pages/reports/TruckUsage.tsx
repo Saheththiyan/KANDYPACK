@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
 import { Truck, Clock, TrendingUp } from 'lucide-react';
-import { fetchTruckUsage, TruckUsageData } from '@/lib/mockAdminApi';
+import { TruckUsageData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
+import { API_URL } from '@/lib/config';
+import { getAuthToken } from '@/lib/mockAuth';
 
 const TruckUsage = () => {
   const [usageData, setUsageData] = useState<TruckUsageData[]>([]);
   const [selectedMonth, setSelectedMonth] = useState('2024-03');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const auth = getAuthToken();
 
   const months = [
     { value: '2024-03', label: 'March 2024' },
@@ -22,6 +25,21 @@ const TruckUsage = () => {
     { value: '2024-01', label: 'January 2024' },
     { value: '2023-12', label: 'December 2023' },
   ];
+
+  const fetchTruckUsage = async (month: string) => {
+    const [year, monthNum] = month.split('-');
+    const response = await fetch(`${API_URL}/reports/truck-usage?year=${year}&month=${monthNum}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    const data = await response.json();
+    return data.usage;
+  }
+
+
 
   useEffect(() => {
     const loadUsageData = async () => {
@@ -43,9 +61,6 @@ const TruckUsage = () => {
     loadUsageData();
   }, [selectedMonth, toast]);
 
-  const totalTrips = usageData.reduce((sum, item) => sum + item.trips, 0);
-  const totalHours = usageData.reduce((sum, item) => sum + item.hours, 0);
-  const avgUtilization = usageData.reduce((sum, item) => sum + item.utilization, 0) / usageData.length;
 
   const formatNumber = (value: number) => value.toLocaleString();
 
@@ -105,7 +120,7 @@ const TruckUsage = () => {
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(totalTrips)}</div>
+            <div className="text-2xl font-bold">{formatNumber((usageData ?? []).reduce((sum, item) => sum + item.totalDeliveries, 0))}</div>
             <p className="text-xs text-muted-foreground">
               Across all trucks
             </p>
@@ -118,7 +133,7 @@ const TruckUsage = () => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(totalHours)}</div>
+            <div className="text-2xl font-bold">{formatNumber((usageData ?? []).reduce((sum, item) => sum + item.inProgressDeliveries, 0))}</div>
             <p className="text-xs text-muted-foreground">
               Operational hours
             </p>
@@ -131,7 +146,7 @@ const TruckUsage = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgUtilization.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{(usageData ?? []).reduce((sum, item) => sum + item.capacity, 0).toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground">
               Fleet average
             </p>
@@ -176,7 +191,7 @@ const TruckUsage = () => {
                   outerRadius={100}
                   label={(entry) => `${entry.truckId}: ${entry.utilization.toFixed(1)}%`}
                 >
-                  {usageData.map((entry, index) => (
+                  {(usageData ?? []).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -206,7 +221,7 @@ const TruckUsage = () => {
                 </tr>
               </thead>
               <tbody>
-                {usageData.map((item, index) => (
+                {(usageData ?? []).map((item, index) => (
                   <tr key={index} className="border-b">
                     <td className="px-4 py-3 font-medium">{item.truckId}</td>
                     <td className="px-4 py-3 text-right">{formatNumber(item.trips)}</td>

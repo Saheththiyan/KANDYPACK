@@ -23,6 +23,8 @@ import TruckUsage from "./admin/pages/reports/TruckUsage";
 import CustomerHistory from "./admin/pages/reports/CustomerHistory";
 import Customers from "./admin/pages/Customers";
 import Product from "./admin/pages/Products";
+import PublicLandingDashboard from "./pages/PublicLandingDashboard";
+import PublicProducts from "./pages/PublicProducts";
 
 const queryClient = new QueryClient();
 
@@ -42,7 +44,8 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Login />} />
+            <Route path="/" element={<PublicLandingDashboard />} />
+            <Route path="/products" element={<PublicProducts />} />
             <Route path="/login" element={<Login />} />
             
             {/* Admin Routes */}
@@ -64,9 +67,9 @@ const App = () => {
             
             {/* Customer Routes */}
             <Route path="/customer" element={
-              <ProtectedRoute requiredRole="Customer">
+              //<ProtectedRoute requiredRole="Customer">
                 <CustomerLayout />
-              </ProtectedRoute>
+              //</ProtectedRoute>
             }>
               <Route index element={<CustomerHome />} />
               <Route path="products" element={<CustomerProducts />} />
