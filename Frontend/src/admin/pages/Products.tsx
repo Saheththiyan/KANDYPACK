@@ -195,7 +195,8 @@ const AdminProducts = () => {
   }
 
   const searchAndSortProducts = (term: string, products: Product[], sort: string): Product[] => {
-    let results = products;
+    // copy array so we don't mutate the original state
+    let results = products.slice();
 
     // Search
     const lowerTerm = term.toLowerCase().trim();
@@ -210,16 +211,16 @@ const AdminProducts = () => {
     // Sort
     switch (sort) {
       case 'price-low':
-        results.sort((a, b) => a.unit_price - b.unit_price);
+        results.sort((a, b) => Number(a.unit_price) - Number(b.unit_price));
         break;
       case 'price-high':
-        results.sort((a, b) => b.unit_price - a.unit_price);
+        results.sort((a, b) => Number(b.unit_price) - Number(a.unit_price));
         break;
       case 'stock-low':
-        results.sort((a, b) => a.stock - b.stock);
+        results.sort((a, b) => Number(a.stock) - Number(b.stock));
         break;
       case 'stock-high':
-        results.sort((a, b) => b.stock - a.stock);
+        results.sort((a, b) => Number(b.stock) - Number(a.stock));
         break;
       case 'name':
       default:
@@ -244,8 +245,14 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const data = await fetchProducts();
-      setProducts(data || []);
-      setFilteredProducts(data || []);
+      const normalized = (data || []).map((p: any) => ({
+        ...p,
+        unit_price: Number(p.unit_price),
+        stock: Number(p.stock),
+        space_unit: Number(p.space_unit),
+      }));
+      setProducts(normalized);
+      setFilteredProducts(normalized);
     } catch (error) {
         toast({
           title: "Error",
