@@ -130,8 +130,7 @@ const CustomerCart = () => {
 
   // UPDATED: use toNumber for robust subtotal calc
   const subtotal = cart.reduce((sum, item) => sum + (toNumber(item.product.price) * item.quantity), 0);
-  const deliveryFee = 200;
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
 
   const validateDeliveryDate = (date: Date) => {
     const minDate = addDays(new Date(), 7);
@@ -288,10 +287,6 @@ const CustomerCart = () => {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>Rs. {subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>Rs. {deliveryFee.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
