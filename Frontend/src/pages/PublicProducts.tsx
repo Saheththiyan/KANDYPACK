@@ -172,11 +172,7 @@ const CustomerProducts = () => {
   const [serverTotal, setServerTotal] = useState(0);
   const [signinOpen, setSigninOpen] = useState(false);
 
-  // guest mode
-  useEffect(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-  }, []);
+
 
   // debounce search input
   useEffect(() => {
