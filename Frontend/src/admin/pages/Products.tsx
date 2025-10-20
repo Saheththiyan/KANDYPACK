@@ -331,7 +331,7 @@ const AdminProducts = () => {
         name: formData.name,
         unit_price: formData.unit_price,
         stock: formData.stock,
-        spaceConsumption: formData.space_unit,
+        space_unit: formData.space_unit,
         description: formData.description,
       };
 
@@ -648,9 +648,9 @@ const AdminProducts = () => {
               />
             </div>
             <div>
-              <Label htmlFor="spaceConsumption">Space Consumption (units per box)</Label>
+              <Label htmlFor="space_unit">Space Consumption (units per box)</Label>
               <Input
-                id="spaceConsumption"
+                id="space_unit"
                 type="number"
                 value={formData.space_unit}
                 onChange={(e) => setFormData({ ...formData, space_unit: parseFloat(e.target.value) })}
