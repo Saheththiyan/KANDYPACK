@@ -13,4 +13,6 @@ router.post("/", assistant.addNewAssistant);
 
 router.delete("/:assistant_id", assistant.deleteAssistant);
 
+router.patch("/:assistant_id", assistant.patchAssistantDetails);
+
 export default router;

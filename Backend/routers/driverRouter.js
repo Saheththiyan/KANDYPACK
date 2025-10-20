@@ -16,4 +16,6 @@ router.post("/", driver.addNewDriver);
 
 router.delete("/:driver_id", driver.deleteDriver);
 
+router.patch("/:driver_id", driver.patchDriverDetails);
+
 export default router;

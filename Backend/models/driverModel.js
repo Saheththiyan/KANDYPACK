@@ -31,14 +31,19 @@ export async function getActiveDrives() {
 }
 
 export async function addDriver(driverData) {
-  const { name, license_no } = driverData;
+  const { name, license_no, weekly_hours, status } = driverData;
 
   const query = `
-    INSERT INTO Driver (name, license_no)
-    VALUES (?,?)
+    INSERT INTO Driver (name, license_no, weekly_hours, status)
+    VALUES (?,?,?,?)
   `;
 
-  const [result] = await db.query(query, [name, license_no]);
+  const [result] = await db.query(query, [
+    name,
+    license_no,
+    weekly_hours,
+    status,
+  ]);
   return result;
 }
 
@@ -49,5 +54,29 @@ export async function removeDriver(driver_id) {
   `;
 
   const [result] = await db.query(query, [driver_id]);
+  return result;
+}
+export async function patchDriver(driver_id, driverData) {
+  const columns = [];
+  const values = [];
+
+  // Dynamically build columns and values
+  for (const [key, value] of Object.entries(driverData)) {
+    if (value !== undefined) {
+      columns.push(`${key} = ?`);
+      values.push(value);
+    }
+  }
+
+  if (columns.length === 0) return null;
+
+  const query = `
+    UPDATE Driver
+    SET ${columns.join(", ")}
+    WHERE driver_id = ?
+  `;
+  values.push(driver_id);
+
+  const [result] = await db.query(query, values);
   return result;
 }

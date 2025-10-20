@@ -13,4 +13,6 @@ router.post("/", store.addNewStore);
 
 router.delete("/:store_id", store.deleteStore);
 
+router.patch("/:store_id", store.patchStoreDetails);
+
 export default router;

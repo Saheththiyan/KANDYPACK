@@ -91,7 +91,7 @@ const CustomerOrders = () => {
     const loadOrders = async () => {
       try {
         setIsLoading(true);
-        const data = await fetch(`${API_URL}/customer/orders`, {
+        const data = await fetch(`${API_URL}/orders`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -99,8 +99,8 @@ const CustomerOrders = () => {
           },
         }).then(res => res.json()).then(res => res.orders);
         
-        setOrders(data);
-        setFilteredOrders(data);
+        setOrders(data || []);
+        setFilteredOrders(data || []);
       } catch (error) {
         console.error('Failed to load orders:', error);
       } finally {

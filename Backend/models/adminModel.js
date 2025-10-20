@@ -15,6 +15,53 @@ export async function getAdminByEmail(email) {
 }
 
 export async function validateAdminPassword(admin, password) {
-  // return bcrypt.compare(password, admin.password);
-  return admin.password == password;
+  return bcrypt.compare(password, admin.password);
+}
+
+export async function addAdmin(adminData) {
+  const { username, email, password } = adminData;
+
+  const hashedPassword = await bcrypt.hash(password, 10); // 10 salt rounds
+
+  const query = `
+    INSERT INTO Admin(username, email, password)
+    VALUES(?,?,?)
+  `;
+  const [result] = await db.query(query, [username, email, hashedPassword]);
+  return result;
+}
+
+export async function removeAdmin(admin_id) {
+  const query = `
+    DELETE FROM Admin
+    WHERE admin_id = ?
+  `;
+
+  const [result] = await db.query(query, [admin_id]);
+  return result;
+}
+
+export async function patchAdmin(admin_id, adminData) {
+  const columns = [];
+  const values = [];
+
+  // Dynamically build columns and values
+  for (const [key, value] of Object.entries(adminData)) {
+    if (value !== undefined) {
+      columns.push(`${key} = ?`);
+      values.push(value);
+    }
+  }
+
+  if (columns.length === 0) return null;
+
+  const query = `
+    UPDATE Admin
+    SET ${columns.join(", ")}
+    WHERE admin_id = ?
+  `;
+  values.push(admin_id);
+
+  const [result] = await db.query(query, values);
+  return result;
 }

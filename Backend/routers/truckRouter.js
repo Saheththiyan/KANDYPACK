@@ -13,4 +13,6 @@ router.post("/", truck.addNewTruck);
 
 router.delete("/:truck_id", truck.deleteTruck);
 
+router.patch("/:truck_id", truck.patchTruckDetails);
+
 export default router;

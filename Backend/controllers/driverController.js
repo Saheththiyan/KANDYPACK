@@ -73,3 +73,27 @@ export async function deleteDriver(req, res) {
       .json({ message: "Something went wrong", error: error.message });
   }
 }
+
+export async function patchDriverDetails(req, res) {
+  try {
+    const driverData = req.body;
+    const driver_id = req.params.driver_id;
+
+    const result = await driver.patchDriver(driver_id, driverData);
+
+    if (!result || result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "Driver not found or no fields to update" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Driver updated successfully!", data: driverData });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong!", error: error.message });
+  }
+}
