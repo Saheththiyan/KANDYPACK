@@ -17,7 +17,7 @@ services:
       - db
 
   frontend:
-    build: 
+    build:
       context: ./Frontend
       dockerfile: Dockerfile.dev
     volumes:

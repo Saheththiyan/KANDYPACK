@@ -10,22 +10,22 @@ jobs:
   lint-backend:
     name: Lint Backend (Node.js)
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: Backend/package-lock.json
-      
+
       - name: Install backend dependencies
         working-directory: Backend
         run: npm ci
-      
+
       - name: Run ESLint on backend
         working-directory: Backend
         run: npx eslint . --ext .js --max-warnings 0
@@ -34,27 +34,27 @@ jobs:
   lint-frontend:
     name: Lint Frontend (React/TypeScript)
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: Frontend/package-lock.json
-      
+
       - name: Install frontend dependencies
         working-directory: Frontend
         run: npm ci
-      
+
       - name: Run ESLint on frontend
         working-directory: Frontend
         run: npx eslint . --ext .ts,.tsx --max-warnings 0
         continue-on-error: false
-      
+
       - name: Run TypeScript check
         working-directory: Frontend
         run: npx tsc --noEmit
@@ -63,23 +63,23 @@ jobs:
   lint-docker:
     name: Lint Dockerfiles
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Run Hadolint (Dockerfile linter)
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Backend/Dockerfile
           failure-threshold: error
-      
+
       - name: Run Hadolint on Frontend Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Frontend/Dockerfile
           failure-threshold: error
-      
+
       - name: Run Hadolint on DB Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
@@ -89,11 +89,11 @@ jobs:
   lint-yaml:
     name: Lint YAML files
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Run yamllint
         uses: ibiqlik/action-yamllint@v3
         with:
