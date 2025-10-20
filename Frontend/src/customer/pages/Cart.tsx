@@ -33,7 +33,7 @@ const CartItemRow = ({ item, onUpdate, onRemove }: {
 
   return (
     <div className="flex items-center space-x-4 py-4 border-b last:border-b-0">
-      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+      {/* <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
         <img
           src={item.product.image}
           alt={item.product.name}
@@ -42,7 +42,7 @@ const CartItemRow = ({ item, onUpdate, onRemove }: {
             e.currentTarget.src = '/placeholder.svg';
           }}
         />
-      </div>
+      </div> */}
 
       <div className="flex-1 min-w-0">
         <h3 className="font-medium truncate">{item.product.name}</h3>

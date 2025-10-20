@@ -233,7 +233,9 @@ INSERT INTO Product (product_id, name, description, unit_price, space_unit, stoc
 ('8b9c0d1e-2f3a-4a3b-5c6e-7f8a9b0c1d2e', 'Licorice Twists', 'Black licorice twists with a sweet bite', 2.79, 1, 98),
 ('9c0d1e2f-3a4b-4b4c-6d7f-8a9b0c1d2e3f', 'Marshmallow Pops', 'Fluffy marshmallows dipped in chocolate', 4.99, 3, 10),
 ('0d1e2f3a-4b5c-4c5d-7e8a-9b0c1d2e3f4a', 'Sour Worms', 'Tangy sour gummy worms', 3.49, 2, 55),
-('1e2f3a4b-5c6d-4d6e-8f9b-0c1d2e3f4a5b', 'Candy Canes', 'Traditional peppermint candy canes', 1.49, 1, 56);
+('1e2f3a4b-5c6d-4d6e-8f9b-0c1d2e3f4a5b', 'Candy Canes', 'Traditional peppermint candy canes', 1.49, 1, 56),
+('7b8c9d0e-1f2a-4b3c-4d5e-6f7a8b9c0d1e', 'Milk Chocolate Almonds', 'Whole almonds coated in smooth milk chocolate', 6.99, 2, 0),
+('8c9d0e1f-2a3b-4c4d-5e6f-7a8b9c0d1e2f', 'Sour Patch Kids', 'Sweet and sour chewy candies in assorted flavors', 3.79, 2, 0);
 
 INSERT INTO Store (store_id, name, city, address, capacity) VALUES
 ('e28cf701-474a-440f-bca9-2f90605aa65b', 'Kandy Central Store', 'New York', '100 Candy Blvd', 1000),
