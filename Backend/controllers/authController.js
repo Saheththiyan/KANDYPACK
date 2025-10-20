@@ -5,6 +5,7 @@ import {
 import {
   createCustomer,
   getCustomerByEmail,
+  validateCustomerPassword
 } from "../models/customerModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
