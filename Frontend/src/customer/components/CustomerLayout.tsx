@@ -10,7 +10,7 @@ export const CustomerLayout = () => {
   const auth = getAuthToken();
 
   const handleLogout = () => {
-    localStorage.removeItem('kandypack_user');
+    localStorage.removeItem('auth');
     navigate('/login');
   };
 
