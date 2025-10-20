@@ -21,13 +21,15 @@ const CustomerHistory = () => {
     const loadOrderHistory = async () => {
       setLoading(true);
       try {
-        const data = await fetch(`${API_URL}/reports/customer-history?customerId=${auth.userId}`, {
+        const response = await fetch(`${API_URL}/reports/customer-history/${auth.id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
           },
         });
+
+        const data: CustomerOrderHistoryItem[] = await response.json();
         setOrderHistory(data);
         setFilteredOrders(data);
       } catch (error) {

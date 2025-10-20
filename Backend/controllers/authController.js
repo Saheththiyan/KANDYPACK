@@ -23,6 +23,7 @@ export async function login(req, res) {
     
     // Determine user and role
     const user = admin || customer;
+    user.id = admin ? admin.admin_id : customer.customer_id;
     const role = admin ? "Admin" : "Customer";
     
     if (!user) {
@@ -51,7 +52,7 @@ export async function login(req, res) {
     res.json({
       success: true,
       token,
-      user: { email: user.email, role, username: user.username },
+      user: { email: user.email, role, username: user.username, id: user.id },
     });
   } catch (err) {
     console.error(err);

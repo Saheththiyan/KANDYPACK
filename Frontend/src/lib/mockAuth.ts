@@ -17,8 +17,8 @@ export interface AuthResponse {
 }
 
 // Auth token management
-export const setAuthToken = (token: string, role: string, email: string, name: string) => {
-  const authData = { token, role, email, name };
+export const setAuthToken = (token: string, role: string, email: string, name: string, id: string) => {
+  const authData = { token, role, email, name, id };
   localStorage.setItem('auth', JSON.stringify(authData));
 };
 

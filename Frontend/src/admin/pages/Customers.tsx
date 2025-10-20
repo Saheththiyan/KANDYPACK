@@ -95,7 +95,12 @@ const Customers = () => {
   const { toast } = useToast();
 
   async function fetchCustomers(): Promise<Customer[]> {
-    const response = await fetch(`${API_URL}/admin/customers`);
+    const response = await fetch(`${API_URL}/admin/customers`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${auth.token}`
+      }
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch customers");
     }
@@ -468,8 +473,8 @@ const Customers = () => {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            // variant="ghost"
+                            // size="sm"
                             onClick={() => handleViewCustomer(customer)}
                           >
                             <Eye className="h-4 w-4" />
@@ -482,8 +487,8 @@ const Customers = () => {
                             <Pencil className="h-4 w-4" />
                           </Button> */}
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            // variant="ghost"
+                            // size="sm"
                             onClick={() => handleDeleteCustomer(customer)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -506,16 +511,16 @@ const Customers = () => {
               </p>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
+                  // variant="outline"
+                  // size="sm"
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
                   Previous
                 </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  // variant="outline"
+                  // size="sm"
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
