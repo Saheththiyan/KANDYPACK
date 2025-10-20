@@ -212,7 +212,12 @@ const DriverHours = () => {
   const confirmDeleteDriver = async () => {
     if (!selectedDriver) return;
     try {
-      const res = await fetch(`${API_URL}/drivers/${selectedDriver.driver_id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/drivers/${selectedDriver.driver_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${auth.token}`
+        }
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to delete driver');
       toast({ title: 'Success', description: 'Driver deleted' });
@@ -232,13 +237,19 @@ const DriverHours = () => {
       if (isEditingDriver && selectedDriver) {
         res = await fetch(`${API_URL}/drivers/${selectedDriver.driver_id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(payload),
         });
       } else {
         res = await fetch(`${API_URL}/drivers`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(payload),
         });
       }
@@ -280,7 +291,12 @@ const DriverHours = () => {
   const confirmDeleteAssistant = async () => {
     if (!selectedAssistant) return;
     try {
-      const res = await fetch(`${API_URL}/assistants/${selectedAssistant.assistant_id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/assistants/${selectedAssistant.assistant_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${auth.token}`
+        }
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to delete assistant');
       toast({ title: 'Success', description: 'Assistant deleted' });
@@ -300,13 +316,20 @@ const DriverHours = () => {
       if (isEditingAssistant && selectedAssistant) {
         res = await fetch(`${API_URL}/assistants/${selectedAssistant.assistant_id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+
           body: JSON.stringify(payload),
         });
       } else {
         res = await fetch(`${API_URL}/assistants`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(payload),
         });
       }

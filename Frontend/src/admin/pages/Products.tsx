@@ -291,6 +291,9 @@ const AdminProducts = () => {
       try {
         const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
           method: "DELETE",
+          headers: {
+            'Authorization': `Bearer ${auth.token}`
+          }
         });
         const data = await response.json();
         if (!response.ok) {
@@ -320,7 +323,10 @@ const AdminProducts = () => {
       if (isEditing && selectedProduct) {
         const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(productData),
         });
         if (!response.ok) throw new Error('Failed to update product');
@@ -328,7 +334,10 @@ const AdminProducts = () => {
       } else {
         const response = await fetch(`${API_URL}/admin/products`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(productData),
         });
         if (!response.ok) throw new Error('Failed to add product');
