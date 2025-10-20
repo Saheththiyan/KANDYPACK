@@ -80,7 +80,13 @@ const DriverHours = () => {
 
 
   async function fetchAssistants(): Promise<Assitant[]> {
-    const response = await fetch(`${API_URL}/admin/staffHours/assistant`);
+    const response = await fetch(`${API_URL}/admin/staffHours/assistant`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      }
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch Assistants");
     }
@@ -605,8 +611,8 @@ const DriverHours = () => {
                     key={pageNum}
                     onClick={() => setDriverPage(pageNum)}
                     className={`h-8 w-8 rounded border ${driverPage === pageNum
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-input hover:bg-accent'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-input hover:bg-accent'
                       }`}
                   >
                     {pageNum}
@@ -711,8 +717,8 @@ const DriverHours = () => {
                     key={pageNum}
                     onClick={() => setAssistantPage(pageNum)}
                     className={`h-8 w-8 rounded border ${assistantPage === pageNum
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-input hover:bg-accent'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-input hover:bg-accent'
                       }`}
                   >
                     {pageNum}
