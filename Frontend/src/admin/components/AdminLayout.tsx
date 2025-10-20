@@ -16,6 +16,7 @@ import {
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { getAuthToken } from '@/lib/mockAuth';
 import { useState } from 'react';
+import path from 'path';
 
 export const AdminLayout = () => {
   const location = useLocation();
@@ -24,13 +25,14 @@ export const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('kandypack_user');
+    localStorage.removeItem('auth');
     navigate('/login');
   };
 
   const navItems = [
     { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/admin/customers', label: 'Customers', icon: Users },
+    { path: '/admin/products', label: 'Products', icon: Package },
     { 
       label: 'Reports', 
       icon: FileText, 

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { validateEmail, calculatePasswordStrength, setAuthToken, type LoginCredentials } from '@/lib/mockAuth';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-
+import { API_URL } from '@/lib/config';
 
 export const AuthCard = () => {
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ export const AuthCard = () => {
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -66,7 +66,7 @@ export const AuthCard = () => {
 
       if (response.success && response.user && response.token) {
         // Store auth token and user data
-        setAuthToken(response.token, response.user.role, response.user.email, response.user.name);
+        setAuthToken(response.token, response.user.role, response.user.email, response.user.name, response.user.id);
 
         // Route based on role
         if (response.user.role === 'Customer') {

@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -22,6 +22,9 @@ import DriverHours from "./admin/pages/reports/DriverHours";
 import TruckUsage from "./admin/pages/reports/TruckUsage";
 import CustomerHistory from "./admin/pages/reports/CustomerHistory";
 import Customers from "./admin/pages/Customers";
+import Product from "./admin/pages/Products";
+import PublicLandingDashboard from "./pages/PublicLandingDashboard";
+import PublicProducts from "./pages/PublicProducts";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +44,8 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Login />} />
+            <Route path="/" element={<PublicLandingDashboard />} />
+            <Route path="/products" element={<PublicProducts />} />
             <Route path="/login" element={<Login />} />
             
             {/* Admin Routes */}
@@ -52,6 +56,7 @@ const App = () => {
             }>
               <Route index element={<AdminDashboard />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="products" element={<Product />} />
               <Route path="reports/quarterly-sales" element={<QuarterlySales />} />
               <Route path="reports/most-ordered" element={<MostOrdered />} />
               <Route path="reports/city-route-breakdown" element={<CityRoute />} />
@@ -62,9 +67,9 @@ const App = () => {
             
             {/* Customer Routes */}
             <Route path="/customer" element={
-              <ProtectedRoute requiredRole="Customer">
+              //<ProtectedRoute requiredRole="Customer">
                 <CustomerLayout />
-              </ProtectedRoute>
+              //</ProtectedRoute>
             }>
               <Route index element={<CustomerHome />} />
               <Route path="products" element={<CustomerProducts />} />

@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.5",
+    "lucide-react": "^0.546.0",
+    "react-router-dom": "^7.9.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/sql.js": "^1.4.9"
+  }
+}

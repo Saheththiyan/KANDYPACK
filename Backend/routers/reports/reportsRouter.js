@@ -5,8 +5,12 @@ import cityRouteRouter from "./cityRouteSalesRouter.js";
 import staffHoursRouter from "./staffHoursRouter.js";
 import truckUsageRouter from "./truckUsageRouter.js";
 import customerHistoryRouter from "./customerHistoryRouter.js";
+import { authenticateToken } from "../../middleware/auth.js";
 
 const router = express.Router();
+
+// Apply authentication to all reports routes
+router.use(authenticateToken);
 
 router.use("/quarterly", quarterlyRouter);
 router.use("/most-ordered", mostOrderedRouter);

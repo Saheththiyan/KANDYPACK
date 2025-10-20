@@ -3,7 +3,7 @@ CREATE TABLE Admin (
     admin_id CHAR(36) NOT NULL,
     username VARCHAR(100),
     email VARCHAR(100),
-    password VARCHAR(50),
+    password VARCHAR(255),
     PRIMARY KEY (admin_id)
 );
 
@@ -11,8 +11,8 @@ CREATE TABLE Admin (
 CREATE TABLE Assistant (
     assistant_id CHAR(36) NOT NULL,
     name VARCHAR(100),
-    weekly_hours INT,
-    status VARCHAR(20),
+    weekly_hours INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'Active',
     PRIMARY KEY (assistant_id)
 );
 
@@ -33,8 +33,8 @@ CREATE TABLE Driver (
     driver_id CHAR(36) NOT NULL,
     name VARCHAR(100),
     license_no VARCHAR(20),
-    weekly_hours INT,
-    status VARCHAR(20),
+    weekly_hours INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'Active',
     PRIMARY KEY (driver_id)
 );
 
@@ -45,6 +45,7 @@ CREATE TABLE Product (
     description TEXT,
     unit_price DECIMAL(10,2),
     space_unit INT,
+    stock INT DEFAULT 0,
     PRIMARY KEY (product_id)
 );
 
@@ -152,9 +153,10 @@ CREATE TABLE Delivers (
 );
 
 INSERT INTO Admin (admin_id, username, email, password) VALUES
-('7e23eb1c-aa68-4297-a8ec-02f5681f2e5c', 'admin1', 'admin1@kandypack.com', 'hashedpass1'),
-('f550ff2e-1080-4b29-af61-f46b009bf1ac', 'admin2', 'admin2@kandypack.com', 'hashedpass2'),
-('0e0862ca-9a7f-4850-bed3-040eba35b0f8', 'admin3', 'admin3@kandypack.com', 'hashedpass3');
+('e0878f40-acea-11f0-876f-aac2fc27919f', 'admin1', 'admin1@kandypack.com', '$2b$10$bJEfbQRwVDjQeCZl0ywVROQPyR1AIncyIN3MVeX/Iq3SbRZZYRYhC'),
+('eb27d4e1-acea-11f0-876f-aac2fc27919f', 'admin2', 'admin2@kandypack.com', '$2b$10$z7VKArhNWxFBFFZ3LeuG.evcZmPBy2xBHvjAWfbEDvmxGV2bXdePG'),
+('f336dbf4-acea-11f0-876f-aac2fc27919f', 'admin3', 'admin3@kandypack.com', '$2b$10$vTh4nJUjmBslcs0vgAKKlOZ5OGWYeHZAOi4C7xtxYgeF5vkvAqJHy'),
+('f85b453f-acea-11f0-876f-aac2fc27919f', 'admin4', 'admin4@kandypack.com', '$2b$10$0UYd4sI4IvuCjHlcIyWXVO7zQI23pUQdyNTI1ZClE502Z9fLZyDoy');
 
 INSERT INTO Assistant (assistant_id, name, weekly_hours, status) VALUES
 ('fd160307-a56a-4f04-b88d-6422d29496a3', 'Alice Johnson', 35, 'Active'),
@@ -217,20 +219,20 @@ INSERT INTO Driver (driver_id, name, license_no, weekly_hours, status) VALUES
 ('0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 'Nayana Kumari', 'DL901567', 37, 'Active'),
 ('1d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a', 'Kamal Wijeratne', 'DL678234', 38, 'Active');
 
-INSERT INTO Product (product_id, name, description, unit_price, space_unit) VALUES
-('7f159ff9-2998-4b89-a994-1fb732683475', 'Chocolate Bar', 'Delicious milk chocolate treat', 2.99, 1),
-('4a3b6d7c-e0da-4004-90b5-baabe2fec960', 'Candy Pack', 'Assorted gummy candies', 5.49, 2),
-('1cb2763a-51d3-4c2c-9452-533505bf3ef5', 'Lollipop', 'Fruit-flavored lollipop on a stick', 0.99, 1),
-('2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', 'Gummy Bears', 'Colorful chewy gummy candies', 3.99, 2),
-('3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e7f', 'Caramel Chews', 'Soft caramel candies wrapped individually', 4.49, 1),
-('4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f8a', 'Dark Chocolate Truffles', 'Rich dark chocolate with creamy filling', 7.99, 3),
-('5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b', 'Peppermint Sticks', 'Classic peppermint-flavored hard candy', 1.99, 1),
-('6f7a8b9c-0d1e-4f2a-3b4c-5d6e7f8a9b0c', 'Jelly Beans', 'Assorted fruit-flavored jelly beans', 3.29, 2),
-('7a8b9c0d-1e2f-4f2a-4c5d-6e7f8a9b0c1d', 'Toffee Crunch', 'Crunchy toffee coated in milk chocolate', 5.99, 2),
-('8b9c0d1e-2f3a-4a3b-5c6e-7f8a9b0c1d2e', 'Licorice Twists', 'Black licorice twists with a sweet bite', 2.79, 1),
-('9c0d1e2f-3a4b-4b4c-6d7f-8a9b0c1d2e3f', 'Marshmallow Pops', 'Fluffy marshmallows dipped in chocolate', 4.99, 3),
-('0d1e2f3a-4b5c-4c5d-7e8a-9b0c1d2e3f4a', 'Sour Worms', 'Tangy sour gummy worms', 3.49, 2),
-('1e2f3a4b-5c6d-4d6e-8f9b-0c1d2e3f4a5b', 'Candy Canes', 'Traditional peppermint candy canes', 1.49, 1);
+INSERT INTO Product (product_id, name, description, unit_price, space_unit, stock) VALUES
+('7f159ff9-2998-4b89-a994-1fb732683475', 'Chocolate Bar', 'Delicious milk chocolate treat', 2.99, 1, 10),
+('4a3b6d7c-e0da-4004-90b5-baabe2fec960', 'Candy Pack', 'Assorted gummy candies', 5.49, 2, 23),
+('1cb2763a-51d3-4c2c-9452-533505bf3ef5', 'Lollipop', 'Fruit-flavored lollipop on a stick', 0.99, 1, 45),
+('2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', 'Gummy Bears', 'Colorful chewy gummy candies', 3.99, 2, 27),
+('3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e7f', 'Caramel Chews', 'Soft caramel candies wrapped individually', 4.49, 1, 90),
+('4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f8a', 'Dark Chocolate Truffles', 'Rich dark chocolate with creamy filling', 7.99, 3, 45),
+('5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b', 'Peppermint Sticks', 'Classic peppermint-flavored hard candy', 1.99, 1, 87),
+('6f7a8b9c-0d1e-4f2a-3b4c-5d6e7f8a9b0c', 'Jelly Beans', 'Assorted fruit-flavored jelly beans', 3.29, 2, 23),
+('7a8b9c0d-1e2f-4f2a-4c5d-6e7f8a9b0c1d', 'Toffee Crunch', 'Crunchy toffee coated in milk chocolate', 5.99, 2, 39),
+('8b9c0d1e-2f3a-4a3b-5c6e-7f8a9b0c1d2e', 'Licorice Twists', 'Black licorice twists with a sweet bite', 2.79, 1, 98),
+('9c0d1e2f-3a4b-4b4c-6d7f-8a9b0c1d2e3f', 'Marshmallow Pops', 'Fluffy marshmallows dipped in chocolate', 4.99, 3, 10),
+('0d1e2f3a-4b5c-4c5d-7e8a-9b0c1d2e3f4a', 'Sour Worms', 'Tangy sour gummy worms', 3.49, 2, 55),
+('1e2f3a4b-5c6d-4d6e-8f9b-0c1d2e3f4a5b', 'Candy Canes', 'Traditional peppermint candy canes', 1.49, 1, 56);
 
 INSERT INTO Store (store_id, name, city, address, capacity) VALUES
 ('e28cf701-474a-440f-bca9-2f90605aa65b', 'Kandy Central Store', 'New York', '100 Candy Blvd', 1000),
@@ -362,3 +364,95 @@ JOIN Store s ON r.store_id = s.store_id
 JOIN Delivery_Schedule ds ON r.route_id = ds.route_id
 JOIN Delivers d ON ds.delivery_id = d.delivery_id
 JOIN `Order` o ON d.order_id = o.order_id;
+
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_driver
+BEFORE INSERT ON Driver
+FOR EACH ROW
+BEGIN
+IF NEW.driver_id IS NULL THEN
+SET NEW.driver_id = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_assistant
+BEFORE INSERT ON Assistant
+FOR EACH ROW
+BEGIN
+IF NEW.assistant_id IS NULL THEN
+SET NEW.assistant_id = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_product
+BEFORE INSERT ON Product
+FOR EACH ROW
+BEGIN
+IF NEW.product_id IS NULL THEN
+SET NEW.product_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_store
+BEFORE INSERT ON Store
+FOR EACH ROW
+BEGIN
+IF NEW.store_id IS NULL THEN
+SET NEW.store_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_route
+BEFORE INSERT ON Route
+FOR EACH ROW
+BEGIN
+IF NEW.route_id IS NULL THEN
+SET NEW.route_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_truck
+BEFORE INSERT ON Truck
+FOR EACH ROW
+BEGIN
+IF NEW.truck_id IS NULL THEN
+SET NEW.truck_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_admin
+BEFORE INSERT ON Admin
+FOR EACH ROW
+BEGIN
+IF NEW.admin_id IS NULL THEN
+SET NEW.admin_id  = UUID();
+END IF;
+END $$
+
+DELIMITER ;

@@ -23,14 +23,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { Clock, AlertTriangle, Users, CheckCircle, ChevronRight, ChevronLeft, Plus, Eye, Trash2, Pencil} from 'lucide-react';
+import { Clock, AlertTriangle, Users, CheckCircle, ChevronRight, ChevronLeft, Plus, Eye, Trash2, Pencil } from 'lucide-react';
 // import { fetchDriverHours, DriverHoursData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from "../../../lib/config";
 import { Button } from '@/components/ui/button';
+import { getAuthToken } from '@/lib/mockAuth';
 
 interface Driver {
   driver_id: string;
@@ -58,28 +59,41 @@ const DriverHours = () => {
   const [assistantPage, setAssistantPage] = useState(1);
   const { toast } = useToast();
   const itemsPerPage = 10;
+  const auth = getAuthToken();
 
   // const weeks = ['2024-W10', '2024-W09', '2024-W08', '2024-W07'];
 
   async function fetchDrivers(): Promise<Driver[]> {
-    const response = await fetch(`${API_URL}/admin/staffHours/driver`);
+    const response = await fetch(`${API_URL}/admin/staffHours/driver`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      }
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch Drivers");
     }
     return response.json();
   }
 
-  
+
 
   async function fetchAssistants(): Promise<Assitant[]> {
-    const response = await fetch(`${API_URL}/admin/staffHours/assistant`);
+    const response = await fetch(`${API_URL}/admin/staffHours/assistant`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      }
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch Assistants");
     }
     return response.json();
   }
 
-  
+
 
   // Process data for chart
   const chartData1 = driverHoursData.reduce((acc, curr) => {
@@ -110,7 +124,7 @@ const DriverHours = () => {
     return acc;
   }, [] as any[]);
 
-  
+
 
   // --- Driver modal & form state ---
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
@@ -431,7 +445,7 @@ const DriverHours = () => {
           </CardContent>
         </Card> */}
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2">
         {/* Chart - Driver*/}
         <Card>
@@ -443,20 +457,20 @@ const DriverHours = () => {
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={driverHoursData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-90} textAnchor='end' interval={0} height={100}/>
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-90} textAnchor='end' interval={0} height={100} />
                 <YAxis />
-                <Tooltip 
+                <Tooltip
                   formatter={(value, name) => [`${value} hours`, name === 'hours' ? 'Hours Worked' : name]}
                   labelFormatter={(label) => `Staff: ${label}`}
                 />
-                <Bar 
-                  dataKey="weekly_hours" 
+                <Bar
+                  dataKey="weekly_hours"
                   fill="hsl(var(--primary))"
                   name="Hours Worked"
                 />
               </BarChart>
             </ResponsiveContainer>
-            
+
             {/* Legend */}
             {/* <div className="flex items-center justify-center space-x-4 mt-4 text-sm">
               <div className="flex items-center space-x-2">
@@ -481,20 +495,20 @@ const DriverHours = () => {
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={assistantHoursData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-90} textAnchor='end' interval={0} height={100}/>
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-90} textAnchor='end' interval={0} height={100} />
                 <YAxis />
-                <Tooltip 
+                <Tooltip
                   formatter={(value, name) => [`${value} hours`, name === 'hours' ? 'Hours Worked' : name]}
                   labelFormatter={(label) => `Staff: ${label}`}
                 />
-                <Bar 
-                  dataKey="weekly_hours" 
+                <Bar
+                  dataKey="weekly_hours"
                   fill="orange"
                   name="Hours Worked"
                 />
               </BarChart>
             </ResponsiveContainer>
-            
+
             {/* Legend */}
             {/* <div className="flex items-center justify-center space-x-4 mt-4 text-sm">
               <div className="flex items-center space-x-2">
@@ -549,28 +563,28 @@ const DriverHours = () => {
                         {item.status}
                       </Badge>
                     </td>
-                    <td className='px-4 py-3 text-right'> 
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDriver(item)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditDriver(item)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteDriver(item)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                    <td className='px-4 py-3 text-right'>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewDriver(item)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditDriver(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteDriver(item)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -596,11 +610,10 @@ const DriverHours = () => {
                   <button
                     key={pageNum}
                     onClick={() => setDriverPage(pageNum)}
-                    className={`h-8 w-8 rounded border ${
-                      driverPage === pageNum
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-input hover:bg-accent'
-                    }`}
+                    className={`h-8 w-8 rounded border ${driverPage === pageNum
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-input hover:bg-accent'
+                      }`}
                   >
                     {pageNum}
                   </button>
@@ -656,29 +669,29 @@ const DriverHours = () => {
                         {item.status}
                       </Badge>
                     </td>
-                    <td className='px-4 py-3 text-right'> 
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewAssistant(item)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditAssistant(item)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteAssistant(item)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                    </td>                    
+                    <td className='px-4 py-3 text-right'>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewAssistant(item)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditAssistant(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteAssistant(item)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -703,11 +716,10 @@ const DriverHours = () => {
                   <button
                     key={pageNum}
                     onClick={() => setAssistantPage(pageNum)}
-                    className={`h-8 w-8 rounded border ${
-                      assistantPage === pageNum
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-input hover:bg-accent'
-                    }`}
+                    className={`h-8 w-8 rounded border ${assistantPage === pageNum
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-input hover:bg-accent'
+                      }`}
                   >
                     {pageNum}
                   </button>
