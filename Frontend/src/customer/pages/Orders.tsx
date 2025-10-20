@@ -63,7 +63,7 @@ const OrderCard = ({ order }: { order: Order }) => {
 
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm" className="flex-1">
-            <Link to={`/customer/orders/${order.id}`}>
+            <Link to={`/customer/orders/${order.order_id}`}>
               <Package className="w-4 h-4 mr-2" />
               View Details
             </Link>
