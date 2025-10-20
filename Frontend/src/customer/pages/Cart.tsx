@@ -10,11 +10,12 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getCart, updateCartItem, removeFromCart, createOrder, cities, CartItem } from '@/lib/api';
+import { getCart, updateCartItem, removeFromCart, cities, CartItem } from '@/lib/api';
 import { getAuthToken } from '@/lib/mockAuth';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
+import { API_URL } from '@/lib/config';
 
 // NEW: robust number coercion for prices
 const toNumber = (val: unknown): number => {
@@ -169,24 +170,50 @@ const CustomerCart = () => {
 
     setIsLoading(true);
     try {
-      const order = await createOrder({
-        customer: {
-          name: formData.name,
-          email: formData.email,
+      const order = await fetch(`${API_URL}/orders/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth.token}`
+        },
+        body: JSON.stringify({
+          name: auth.name,
+          email: auth.email,
+          customer_id: auth.id,
           phone: formData.phone,
           address: {
             street: formData.address,
             city: formData.city
-          }
-        },
-        deliveryDate: format(deliveryDate, 'yyyy-MM-dd'),
-        paymentMethod: formData.paymentMethod
-      });
+          },
 
-      toast({
-        title: 'Order placed successfully!',
-        description: `Your order ${order.id} has been placed.`,
-      });
+          required_date: format(deliveryDate, 'yyyy-MM-dd'),
+          paymentMethod: formData.paymentMethod,
+          items: cart.map(item => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            price: toNumber(item.product.price)
+          })),
+          totalAmount: total
+        })
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to place order');
+        }
+
+
+        toast({
+          title: 'Order placed successfully!',
+          description: `Your order ${order.id
+            } has been placed.`,
+        });
+        return res.json();
+      }).then(res => res.order);
+
+      // Clear cart after successful order
+      cart.forEach(item => removeFromCart(item.product.id));
+      setCart([]);
+
+
 
       navigate(`/customer/orders/${order.id}`);
     } catch (error) {
@@ -384,7 +411,7 @@ const CustomerCart = () => {
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   <CreditCard className="w-4 h-4 mr-2" />
-                  {isLoading ? 'Placing Order...' : `Place Order - Rs. ${total.toFixed(2)}`}
+                  {isLoading ? 'Placing Order...' : `Place Order - Rs.${total.toFixed(2)}`}
                 </Button>
               </form>
             </CardContent>

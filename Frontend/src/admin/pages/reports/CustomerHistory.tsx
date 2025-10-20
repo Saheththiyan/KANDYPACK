@@ -4,14 +4,29 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, Download, Package, TrendingUp } from 'lucide-react';
-import { fetchCustomerHistory, CustomerOrderHistoryItem } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/lib/config';
 import { getAuthToken } from '@/lib/mockAuth';
 
+interface orderHistoryItem {
+  order_id: string;
+  date?: string;
+  customer_id?: string;
+  items?: number;
+  total_value: number;
+  status: string;
+  deliveryCity?: string;
+  route?: string;
+  railTrip?: string;
+  store?: string;
+  truck?: string;
+  driver?: string;
+  assistant?: string;
+}
+
 const CustomerHistory = () => {
-  const [orderHistory, setOrderHistory] = useState<CustomerOrderHistoryItem[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<CustomerOrderHistoryItem[]>([]);
+  const [orderHistory, setOrderHistory] = useState<orderHistoryItem[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<orderHistoryItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -21,7 +36,7 @@ const CustomerHistory = () => {
     const loadOrderHistory = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_URL}/reports/customer-history/${auth.id}`, {
+        const response = await fetch(`${API_URL}/orders`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -29,9 +44,13 @@ const CustomerHistory = () => {
           },
         });
 
-        const data: CustomerOrderHistoryItem[] = await response.json();
-        setOrderHistory(data);
-        setFilteredOrders(data);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data: orderHistoryItem[] = await response.json();
+        setOrderHistory(data || []);
+        setFilteredOrders(data || []);
       } catch (error) {
         toast({
           title: 'Error loading order history',
@@ -48,13 +67,13 @@ const CustomerHistory = () => {
 
   const handleSearch = () => {
     if (searchTerm.trim() === '') {
-      setFilteredOrders(orderHistory);
+      setFilteredOrders(orderHistory || []);
     } else {
       const filtered = orderHistory.filter(order => 
-        order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
+        order.customer_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.order_id.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredOrders(filtered);
+      setFilteredOrders(filtered || []);
     }
   };
 
@@ -66,7 +85,7 @@ const CustomerHistory = () => {
   };
 
   const totalOrders = filteredOrders.length;
-  const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
+  const totalRevenue = filteredOrders.reduce((sum, order) => sum + Number(order.total_value), 0);
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
   const formatCurrency = (value: number) => `Rs ${value.toLocaleString()}`;
@@ -226,12 +245,12 @@ const CustomerHistory = () => {
                   </tr>
                 ) : (
                   filteredOrders.map((order) => (
-                    <tr key={order.orderId} className="border-b hover:bg-muted/50">
-                      <td className="px-4 py-3 font-medium">{order.orderId}</td>
+                    <tr key={order.order_id} className="border-b hover:bg-muted/50">
+                      <td className="px-4 py-3 font-medium">{order.order_id}</td>
                       <td className="px-4 py-3">{order.date}</td>
-                      <td className="px-4 py-3">{order.customer}</td>
+                      <td className="px-4 py-3">{order.customer_id}</td>
                       <td className="px-4 py-3 text-right">{order.items}</td>
-                      <td className="px-4 py-3 text-right">{formatCurrency(order.total)}</td>
+                      <td className="px-4 py-3 text-right">{formatCurrency(order.total_value)}</td>
                       <td className="px-4 py-3">{getStatusBadge(order.status)}</td>
                       <td className="px-4 py-3">{order.deliveryCity}</td>
                       <td className="px-4 py-3">{order.route}</td>
@@ -254,9 +273,9 @@ const CustomerHistory = () => {
           <CardContent>
             <div className="space-y-4">
               {filteredOrders.map((order) => (
-                <div key={order.orderId} className="border rounded-lg p-4 space-y-2">
+                <div key={order.order_id} className="border rounded-lg p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-semibold">{order.orderId}</h4>
+                    <h4 className="font-semibold">{order.order_id}</h4>
                     {getStatusBadge(order.status)}
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
