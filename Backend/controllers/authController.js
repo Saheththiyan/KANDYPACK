@@ -5,7 +5,7 @@ import {
 import {
   createCustomer,
   getCustomerByEmail,
-  validateCustomerPassword
+  validateCustomerPassword,
 } from "../models/customerModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -25,20 +25,20 @@ export async function login(req, res) {
     // Try to find user in both admin and customer tables
     const admin = await getAdminByEmail(email);
     const customer = !admin ? await getCustomerByEmail(email) : null;
-    
+
     // Determine user and role
     const user = admin || customer;
     user.id = admin ? admin.admin_id : customer.customer_id;
     const role = admin ? "Admin" : "Customer";
-    
+
     if (!user) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password" });
     }
-    
+
     // Validate password based on role
-    const isValid = admin 
+    const isValid = admin
       ? await validateAdminPassword(user, password)
       : await validateCustomerPassword(user, password);
 
