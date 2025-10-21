@@ -236,7 +236,7 @@ const DriverHours = () => {
       let res;
       if (isEditingDriver && selectedDriver) {
         res = await fetch(`${API_URL}/drivers/${selectedDriver.driver_id}`, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
@@ -315,7 +315,7 @@ const DriverHours = () => {
       let res;
       if (isEditingAssistant && selectedAssistant) {
         res = await fetch(`${API_URL}/assistants/${selectedAssistant.assistant_id}`, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
