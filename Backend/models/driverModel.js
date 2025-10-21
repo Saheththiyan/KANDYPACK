@@ -16,8 +16,7 @@ export async function getDriversByID(id) {
 
 export async function sortDriversByHour() {
   const [drivers] = await db.query(
-    `SELECT * FROM Driver
-     ORDER BY weekly_hours DESC`
+    `SELECT * FROM Driver`
   );
   return drivers;
 }

@@ -305,7 +305,17 @@ INSERT INTO `Order` (order_id, customer_id, order_date, required_date, status, t
 ('8d9e0f1a-2b3c-4d7e-5f6a-7b8c9d0e1f2a', 'e7f8a9b0-1c2d-4e7f-4a8b-9c0d1e2f3a4b', '2025-10-17', '2025-10-24', 'Shipped', 115.25),
 ('9e0f1a2b-3c4d-4e8f-6a7b-8c9d0e1f2a3b', 'f8a9b0c1-2d3e-4f8a-5b9c-0d1e2f3a4b5c', '2025-10-18', '2025-10-25', 'Delivered', 95.00),
 ('0f1a2b3c-4d5e-4f9a-7b8c-9d0e1f2a3b4c', 'a9b0c1d2-3e4f-4a9b-6c0d-1e2f3a4b5c6d', '2025-10-19', '2025-10-26', 'Pending', 60.00),
-('1a2b3c4d-5e6f-4a0b-8c9d-0e1f2a3b4c5d', 'b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', '2025-10-20', '2025-10-27', 'Shipped', 105.50);
+('1a2b3c4d-5e6f-4a0b-8c9d-0e1f2a3b4c5d', 'b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', '2025-10-20', '2025-10-27', 'Shipped', 105.50),
+('9b0c1d2e-3f4a-4b5c-6d7e-8f9a0b1c2d3e', 'e1f2a3b4-5c6d-4e1f-8a2b-3c4d5e6f7a8b', '2025-10-22', '2025-10-29', 'Pending', 108.84),   -- Mala Rathnayake
+('0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 'f2a3b4c5-6d7e-4f2a-9b3c-4d5e6f7a8b9c', '2025-10-23', '2025-10-30', 'Processing', 145.82), -- Candy Corner Ltd.
+('1d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a', 'a3b4c5d6-7e8f-4a3b-0c4d-5e6f7a8b9c0d', '2025-10-24', '2025-10-31', 'Pending', 84.73),    -- Sanjaya Mendis
+('2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b', 'b4c5d6e7-8f9a-4b4c-1d5e-6f7a8b9c0d1e', '2025-10-25', '2025-11-01', 'Processing', 119.88), -- Nayana Kumari
+('3f4a5b6c-7d8e-4f9a-0b1c-2d3e4f5a6b7c', 'c5d6e7f8-9a0b-4c5d-2e6f-7a8b9c0d1e2f', '2025-10-26', '2025-11-02', 'Pending', 165.61),   -- Global Sweets Co.
+('4a5b6c7d-8e9f-4a0b-1c2d-3e4f5a6b7c8d', 'd6e7f8a9-0b1c-4d6e-3f7a-8b9c0d1e2f3a', '2025-10-27', '2025-11-03', 'Processing', 93.44), -- Kamal Wijeratne
+('5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 'e7f8a9b0-1c2d-4e7f-4a8b-9c0d1e2f3a4b', '2025-10-28', '2025-11-04', 'Pending', 110.77),  -- Dilani Fonseka
+('6c7d8e9f-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 'f8a9b0c1-2d3e-4f8a-5b9c-0d1e2f3a4b5c', '2025-10-29', '2025-11-05', 'Processing', 132.55), -- Sweet Haven Stores
+('7d8e9f0a-1b2c-4d3e-4f5a-6b7c8d9e0f1a', 'a9b0c1d2-3e4f-4a9b-6c0d-1e2f3a4b5c6d', '2025-10-30', '2025-11-06', 'Pending', 102.83),   -- Ranjith Bandara
+('8e9f0a1b-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 'b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', '2025-10-31', '2025-11-07', 'Processing', 121.40); -- Chathura Senanayake
 
 INSERT INTO Delivery_Schedule (delivery_id, route_id, truck_id, driver_id, assistant_id, delivery_date, status) VALUES
 ('e7f72fc9-ce18-44b4-97f2-50781eb754a7', '98b43b99-6e29-4f1f-8eac-d0384350db96', 'f550ff2e-1080-4b29-af61-f46b009bf1ac', '1d672079-260a-48e6-9e5c-2fef6092bdf0', 'fd160307-a56a-4f04-b88d-6422d29496a3', '2025-09-12', 'Scheduled'),
@@ -347,7 +357,43 @@ INSERT INTO Order_Item (product_id, order_id, quantity, sub_total) VALUES
 ('2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', '8d9e0f1a-2b3c-4d7e-5f6a-7b8c9d0e1f2a', 10, 39.90), -- Gummy Bears: 10 * 3.99
 ('3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e7f', '9e0f1a2b-3c4d-4e8f-6a7b-8c9d0e1f2a3b', 12, 53.88), -- Caramel Chews: 12 * 4.49
 ('4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f8a', '0f1a2b3c-4d5e-4f9a-7b8c-9d0e1f2a3b4c', 6, 47.94),  -- Dark Chocolate Truffles: 6 * 7.99
-('5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b', '1a2b3c4d-5e6f-4a0b-8c9d-0e1f2a3b4c5d', 25, 49.75); -- Peppermint Sticks: 25 * 1.99
+('5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b', '1a2b3c4d-5e6f-4a0b-8c9d-0e1f2a3b4c5d', 25, 49.75), -- Peppermint Sticks: 25 * 1.99
+-- Order 1: 3 products, total 108.84
+('7f159ff9-2998-4b89-a994-1fb732683475', '9b0c1d2e-3f4a-4b5c-6d7e-8f9a0b1c2d3e', 12, 35.88),  -- Chocolate Bar: 12 * 2.99
+('4a3b6d7c-e0da-4004-90b5-baabe2fec960', '9b0c1d2e-3f4a-4b5c-6d7e-8f9a0b1c2d3e', 7, 38.43),   -- Candy Pack: 7 * 5.49
+('1cb2763a-51d3-4c2c-9452-533505bf3ef5', '9b0c1d2e-3f4a-4b5c-6d7e-8f9a0b1c2d3e', 35, 34.65),  -- Lollipop: 35 * 0.99
+-- Order 2: 3 products, total 145.82
+('2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', '0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 15, 59.85),  -- Gummy Bears: 15 * 3.99
+('3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e7f', '0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 12, 53.88),  -- Caramel Chews: 12 * 4.49
+('4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f8a', '0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 4, 32.09),   -- Dark Chocolate Truffles: 4 * 7.99
+-- Order 3: 2 products, total 84.73
+('5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b', '1d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a', 20, 39.80),  -- Peppermint Sticks: 20 * 1.99
+('6f7a8b9c-0d1e-4f2a-3b4c-5d6e7f8a9b0c', '1d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a', 15, 44.93),  -- Jelly Beans: 15 * 3.29
+-- Order 4: 3 products, total 119.88
+('7a8b9c0d-1e2f-4f2a-4c5d-6e7f8a9b0c1d', '2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b', 10, 59.90),  -- Toffee Crunch: 10 * 5.99
+('8b9c0d1e-2f3a-4a3b-5c6e-7f8a9b0c1d2e', '2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b', 12, 33.48),  -- Licorice Twists: 12 * 2.79
+('9c0d1e2f-3a4b-4b4c-6d7f-8a9b0c1d2e3f', '2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b', 5, 26.50),   -- Marshmallow Pops: 5 * 4.99
+-- Order 5: 3 products, total 165.61
+('0d1e2f3a-4b5c-4c5d-7e8a-9b0c1d2e3f4a', '3f4a5b6c-7d8e-4f9a-0b1c-2d3e4f5a6b7c', 15, 52.35),  -- Sour Worms: 15 * 3.49
+('1e2f3a4b-5c6d-4d6e-8f9b-0c1d2e3f4a5b', '3f4a5b6c-7d8e-4f9a-0b1c-2d3e4f5a6b7c', 25, 37.25),  -- Candy Canes: 25 * 1.49
+('7b8c9d0e-1f2a-4b3c-4d5e-6f7a8b9c0d1e', '3f4a5b6c-7d8e-4f9a-0b1c-2d3e4f5a6b7c', 8, 76.01),   -- Milk Chocolate Almonds: 8 * 6.99
+-- Order 6: 2 products, total 93.44
+('8c9d0e1f-2a3b-4c4d-5e6f-7a8b9c0d1e2f', '4a5b6c7d-8e9f-4a0b-1c2d-3e4f5a6b7c8d', 10, 37.90),  -- Sour Patch Kids: 10 * 3.79
+('7f159ff9-2998-4b89-a994-1fb732683475', '4a5b6c7d-8e9f-4a0b-1c2d-3e4f5a6b7c8d', 19, 55.54),  -- Chocolate Bar: 19 * 2.99
+-- Order 7: 3 products, total 110.77
+('4a3b6d7c-e0da-4004-90b5-baabe2fec960', '5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 8, 43.92),   -- Candy Pack: 8 * 5.49
+('1cb2763a-51d3-4c2c-9452-533505bf3ef5', '5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 20, 19.80),  -- Lollipop: 20 * 0.99
+('2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', '5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 9, 47.05),   -- Gummy Bears: 9 * 3.99
+-- Order 8: 3 products, total 132.55
+('3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e7f', '6c7d8e9f-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 10, 44.90),  -- Caramel Chews: 10 * 4.49
+('4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f8a', '6c7d8e9f-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 5, 39.95),   -- Dark Chocolate Truffles: 5 * 7.99
+('5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b', '6c7d8e9f-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 24, 47.70),  -- Peppermint Sticks: 24 * 1.99
+-- Order 9: 2 products, total 102.83
+('6f7a8b9c-0d1e-4f2a-3b4c-5d6e7f8a9b0c', '7d8e9f0a-1b2c-4d3e-4f5a-6b7c8d9e0f1a', 12, 39.48),  -- Jelly Beans: 12 * 3.29
+('7a8b9c0d-1e2f-4f2a-4c5d-6e7f8a9b0c1d', '7d8e9f0a-1b2c-4d3e-4f5a-6b7c8d9e0f1a', 8, 63.35),   -- Toffee Crunch: 8 * 5.99
+-- Order 10: 2 products, total 121.40
+('8b9c0d1e-2f3a-4a3b-5c6e-7f8a9b0c1d2e', '8e9f0a1b-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 15, 41.85),  -- Licorice Twists: 15 * 2.79
+('9c0d1e2f-3a4b-4b4c-6d7f-8a9b0c1d2e3f', '8e9f0a1b-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 10, 79.55);  -- Marshmallow Pops: 10 * 4.99
 
 INSERT INTO Delivers (delivery_id, order_id, delivered_time) VALUES
 ('e7f72fc9-ce18-44b4-97f2-50781eb754a7', '29fc8097-6caf-4918-adec-0e700393ea6d', '14:30:00'),
@@ -382,6 +428,19 @@ JOIN Store s ON r.store_id = s.store_id
 JOIN Delivery_Schedule ds ON r.route_id = ds.route_id
 JOIN Delivers d ON ds.delivery_id = d.delivery_id
 JOIN `Order` o ON d.order_id = o.order_id;
+
+CREATE VIEW Customer_Order AS
+SELECT 
+    c.name, 
+    o.order_id, 
+    c.city, 
+    o.order_date, 
+    o.required_date, 
+    oi.product_id, 
+    o.total_value
+FROM Customer c
+INNER JOIN `Order` o ON o.customer_id = c.customer_id
+INNER JOIN Order_Item oi ON oi.order_id = o.order_id;
 
 
 DELIMITER $$
