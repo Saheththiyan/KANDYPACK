@@ -10,8 +10,8 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getCart, updateCartItem, removeFromCart, cities, CartItem } from '@/lib/api';
-import { getAuthToken } from '@/lib/mockAuth';
+import { getCart, updateCartItem, removeFromCart, clearCart, cities, CartItem } from '@/lib/api';
+import { getAuthToken, mergeAuthToken } from '@/lib/mockAuth';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
@@ -94,9 +94,9 @@ const CustomerCart = () => {
   const [formData, setFormData] = useState({
     name: auth?.name || '',
     email: auth?.email || '',
-    phone: '',
-    address: '',
-    city: '',
+    phone: auth?.phone || '',
+    address: auth?.address || '',
+    city: auth?.city || '',
     paymentMethod: 'cod'
   });
 
@@ -113,6 +113,50 @@ const CustomerCart = () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!auth?.token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to load profile');
+        }
+
+        const data = await response.json();
+        if (data.success && data.user) {
+          mergeAuthToken({
+            name: data.user.name,
+            email: data.user.email,
+            phone: data.user.phone ?? null,
+            address: data.user.address ?? null,
+            city: data.user.city ?? null,
+          });
+
+          setFormData(prev => ({
+            ...prev,
+            name: data.user.name ?? '',
+            email: data.user.email ?? '',
+            phone: data.user.phone ?? '',
+            address: data.user.address ?? '',
+            city: data.user.city ?? '',
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load customer profile', error);
+      }
+    };
+
+    fetchProfile();
+  }, [auth?.token]);
 
   const handleUpdateQuantity = (productId: string, quantity: number) => {
     updateCartItem(productId, quantity);
@@ -139,6 +183,15 @@ const CustomerCart = () => {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!auth?.token) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to place an order.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     if (cart.length === 0) {
       toast({
@@ -167,54 +220,82 @@ const CustomerCart = () => {
       return;
     }
 
+    const orderRequest = {
+      customer_id: auth.id,
+      required_date: format(deliveryDate, 'yyyy-MM-dd'),
+      paymentMethod: formData.paymentMethod,
+      items: cart.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        price: toNumber(item.product.price)
+      })),
+      totalAmount: total,
+      contact: {
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+      },
+    };
+
+    if (formData.paymentMethod === 'card') {
+      navigate('/customer/payment', {
+        state: {
+          order: orderRequest,
+          customer: {
+            name: formData.name,
+            email: formData.email,
+          },
+          cart,
+          summary: {
+            subtotal,
+            total,
+            deliveryDate: deliveryDate ? deliveryDate.toISOString() : null,
+          },
+        },
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const order = await fetch(`${API_URL}/orders/`, {
+      const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${auth.token}`
         },
-        body: JSON.stringify({
-          name: auth.name,
-          email: auth.email,
-          customer_id: auth.id,
-          phone: formData.phone,
-          address: {
-            street: formData.address,
-            city: formData.city
-          },
+        body: JSON.stringify(orderRequest)
+      });
 
-          required_date: format(deliveryDate, 'yyyy-MM-dd'),
-          paymentMethod: formData.paymentMethod,
-          items: cart.map(item => ({
-            productId: item.product.id,
-            quantity: item.quantity,
-            price: toNumber(item.product.price)
-          })),
-          totalAmount: total
-        })
-      }).then(res => {
-        if (!res.ok) {
-          throw new Error('Failed to place order');
-        }
+      const payload = await response.json();
 
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.message || 'Failed to place order');
+      }
 
-        toast({
-          title: 'Order placed successfully!',
-          description: `Your order ${order.id
-            } has been placed.`,
-        });
-        return res.json();
-      }).then(res => res.order);
+      const createdOrder = payload.order;
+      const orderId = createdOrder?.order_id || createdOrder?.id;
 
-      // Clear cart after successful order
-      cart.forEach(item => removeFromCart(item.product.id));
+      clearCart();
       setCart([]);
+      mergeAuthToken({
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+      });
 
+      toast({
+        title: 'Order placed successfully!',
+        description: orderId ? `Your order #${orderId} has been placed.` : 'Your order has been placed.',
+      });
 
-
-      navigate(`/customer/orders/${order.id}`);
+      if (orderId) {
+        navigate(`/customer/orders/${orderId}`);
+      } else {
+        navigate('/customer/orders');
+      }
     } catch (error) {
       toast({
         title: 'Order failed',
