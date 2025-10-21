@@ -8,5 +8,6 @@ const router = express.Router();
 router.use(authenticateToken);
 
 router.get("/", allocation.getAllAllocations);
+router.get("/unprocessed", allocation.getUnprocessedOrders);
 
 export default router;
