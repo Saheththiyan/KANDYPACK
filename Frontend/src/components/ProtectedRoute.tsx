@@ -4,7 +4,7 @@ import { getAuthToken } from '@/lib/mockAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: string | string[];
 }
 
 export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
@@ -14,7 +14,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && auth.role !== requiredRole) {
+  if (requiredRole && !Array.isArray(requiredRole) ? auth.role !== requiredRole : !requiredRole.includes(auth.role)) {
     return <Navigate to="/login" replace />;
   }
 

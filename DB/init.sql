@@ -7,15 +7,26 @@ CREATE TABLE Admin (
     PRIMARY KEY (admin_id)
 );
 
+-- Create the Store table
+CREATE TABLE Store (
+    store_id CHAR(36) NOT NULL,
+    name VARCHAR(100),
+    city VARCHAR(50),
+    address VARCHAR(255),
+    capacity INT,
+    PRIMARY KEY (store_id)
+);
+
 -- Create the Assistant table
 CREATE TABLE Assistant (
     assistant_id CHAR(36) NOT NULL,
     name VARCHAR(100),
-    weekly_hours INT DEFAULT 0,
-    status VARCHAR(20) DEFAULT 'Active',
-    PRIMARY KEY (assistant_id)
+    weekly_hours INT,
+    status VARCHAR(20),
+    store_id CHAR(36),
+    PRIMARY KEY (assistant_id),
+    FOREIGN KEY (store_id) REFERENCES Store(store_id)
 );
-
 -- Create the Customer table
 CREATE TABLE Customer (
     customer_id CHAR(36) NOT NULL,
@@ -34,9 +45,11 @@ CREATE TABLE Driver (
     driver_id CHAR(36) NOT NULL,
     name VARCHAR(100),
     license_no VARCHAR(20),
-    weekly_hours INT DEFAULT 0,
-    status VARCHAR(20) DEFAULT 'Active',
-    PRIMARY KEY (driver_id)
+    weekly_hours INT,
+    status VARCHAR(20),
+    store_id CHAR(36),
+    PRIMARY KEY (driver_id),
+    FOREIGN KEY (store_id) REFERENCES Store(store_id)
 );
 
 -- Create the Product table
@@ -48,16 +61,6 @@ CREATE TABLE Product (
     space_unit INT,
     stock INT DEFAULT 0,
     PRIMARY KEY (product_id)
-);
-
--- Create the Store table
-CREATE TABLE Store (
-    store_id CHAR(36) NOT NULL,
-    name VARCHAR(100),
-    city VARCHAR(50),
-    address VARCHAR(255),
-    capacity INT,
-    PRIMARY KEY (store_id)
 );
 
 -- Create the Train_Schedule table
@@ -77,7 +80,9 @@ CREATE TABLE Truck (
     license_plate VARCHAR(15),
     capacity DECIMAL(6,2),
     status VARCHAR(20),
-    PRIMARY KEY (truck_id)
+    store_id CHAR(36),
+    PRIMARY KEY (truck_id),
+    FOREIGN KEY (store_id) REFERENCES Store(store_id)
 );
 
 -- Create the Route table
@@ -159,25 +164,33 @@ INSERT INTO Admin (admin_id, username, email, password) VALUES
 ('f336dbf4-acea-11f0-876f-aac2fc27919f', 'admin3', 'admin3@kandypack.com', '$2b$10$vTh4nJUjmBslcs0vgAKKlOZ5OGWYeHZAOi4C7xtxYgeF5vkvAqJHy'),
 ('f85b453f-acea-11f0-876f-aac2fc27919f', 'admin4', 'admin4@kandypack.com', '$2b$10$0UYd4sI4IvuCjHlcIyWXVO7zQI23pUQdyNTI1ZClE502Z9fLZyDoy');
 
-INSERT INTO Assistant (assistant_id, name, weekly_hours, status) VALUES
-('fd160307-a56a-4f04-b88d-6422d29496a3', 'Alice Johnson', 35, 'Active'),
-('98b43b99-6e29-4f1f-8eac-d0384350db96', 'Bob Smith', 40, 'Active'),
-('90e7ff56-407a-4ba3-a6ed-277953862c73', 'Carol Davis', 30, 'Inactive'),
-('2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b', 'Dilani Fonseka', 35, 'Active'),
-('3f4a5b6c-7d8e-4f9a-0b1c-2d3e4f5a6b7c', 'Ranjith Bandara', 30, 'Active'),
-('4a5b6c7d-8e9f-4a0b-1c2d-3e4f5a6b7c8d', 'Chathura Senanayake', 32, 'Inactive'),
-('5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 'Thilini Perera', 38, 'Active'),
-('6c7d8e9f-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 'Asoka Wijewardena', 34, 'Active'),
-('7d8e9f0a-1b2c-4d3e-4f5a-6b7c8d9e0f1a', 'Chaminda Silva', 36, 'Active'),
-('8e9f0a1b-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 'Sithara Jayasuriya', 33, 'On Leave'),
-('9f0a1b2c-3d4e-4f5a-6b7c-8d9e0f1a2b3c', 'Lahiru Fernando', 35, 'Active'),
-('0a1b2c3d-4e5f-4a6b-7c8d-9e0f1a2b3c4d', 'Nirosha Dissanayake', 30, 'Active'),
-('1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e', 'Upul Rathnayake', 32, 'Active'),
-('2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f', 'Malika Wijesinghe', 34, 'Inactive'),
-('3d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a', 'Sandun Perera', 36, 'Active'),
-('4e5f6a7b-8c9d-4e0f-1a2b-3c4d5e6f7a8b', 'Anjali Gunawardena', 35, 'Active'),
-('5f6a7b8c-9d0e-4f1a-2b3c-4d5e6f7a8b9c', 'Ruwanthi Mendis', 33, 'Active'),
-('6a7b8c9d-0e1f-4a2b-3c4d-5e6f7a8b9c0d', 'Kasun Jayasinghe', 34, 'Active');
+INSERT INTO Store (store_id, name, city, address, capacity) VALUES
+('e28cf701-474a-440f-bca9-2f90605aa65b', 'Kandy Central Store', 'New York', '100 Candy Blvd', 1000),
+('8683216c-ce35-4024-83fa-bfa73005d431', 'Sweet Depot LA', 'Los Angeles', '200 Sugar St', 800),
+('a44f797f-45ff-40a7-99c0-d946e8c4ad42', 'Candy Warehouse CHI', 'Chicago', '300 Treat Ave', 1200),
+('b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 'Sweet Haven Boston', 'Boston', '400 Maple Way', 900),
+('c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 'Candy Hub Miami', 'Miami', '500 Palm Dr', 1100),
+('d7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a', 'Treat Station Seattle', 'Seattle', '600 Rainier Ave', 950);
+
+INSERT INTO Assistant (assistant_id, name, weekly_hours, status, store_id) VALUES
+('fd160307-a56a-4f04-b88d-6422d29496a3', 'Alice Johnson', 35, 'Active', 'e28cf701-474a-440f-bca9-2f90605aa65b'),  -- New York
+('98b43b99-6e29-4f1f-8eac-d0384350db96', 'Bob Smith', 40, 'Active', '8683216c-ce35-4024-83fa-bfa73005d431'),  -- Los Angeles
+('90e7ff56-407a-4ba3-a6ed-277953862c73', 'Carol Davis', 30, 'Inactive', 'a44f797f-45ff-40a7-99c0-d946e8c4ad42'), -- Chicago
+('2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b', 'Dilani Fonseka', 35, 'Active', 'b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e'),  -- Boston
+('3f4a5b6c-7d8e-4f9a-0b1c-2d3e4f5a6b7c', 'Ranjith Bandara', 30, 'Active', 'c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f'),  -- Miami
+('4a5b6c7d-8e9f-4a0b-1c2d-3e4f5a6b7c8d', 'Chathura Senanayake', 32, 'Inactive', 'd7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a'), -- Seattle
+('5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 'Thilini Perera', 38, 'Active', 'e28cf701-474a-440f-bca9-2f90605aa65b'),  -- New York
+('6c7d8e9f-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 'Asoka Wijewardena', 34, 'Active', '8683216c-ce35-4024-83fa-bfa73005d431'),  -- Los Angeles
+('7d8e9f0a-1b2c-4d3e-4f5a-6b7c8d9e0f1a', 'Chaminda Silva', 36, 'Active', 'a44f797f-45ff-40a7-99c0-d946e8c4ad42'), -- Chicago
+('8e9f0a1b-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 'Sithara Jayasuriya', 33, 'On Leave', 'b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e'),  -- Boston
+('9f0a1b2c-3d4e-4f5a-6b7c-8d9e0f1a2b3c', 'Lahiru Fernando', 35, 'Active', 'c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f'),  -- Miami
+('0a1b2c3d-4e5f-4a6b-7c8d-9e0f1a2b3c4d', 'Nirosha Dissanayake', 30, 'Active', 'd7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a'), -- Seattle
+('1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e', 'Upul Rathnayake', 32, 'Active', 'e28cf701-474a-440f-bca9-2f90605aa65b'),  -- New York
+('2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f', 'Malika Wijesinghe', 34, 'Inactive', '8683216c-ce35-4024-83fa-bfa73005d431'),  -- Los Angeles
+('3d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a', 'Sandun Perera', 36, 'Active', 'a44f797f-45ff-40a7-99c0-d946e8c4ad42'), -- Chicago
+('4e5f6a7b-8c9d-4e0f-1a2b-3c4d5e6f7a8b', 'Anjali Gunawardena', 35, 'Active', 'b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e'),  -- Boston
+('5f6a7b8c-9d0e-4f1a-2b3c-4d5e6f7a8b9c', 'Ruwanthi Mendis', 33, 'Active', 'c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f'),  -- Miami
+('6a7b8c9d-0e1f-4a2b-3c4d-5e6f7a8b9c0d', 'Kasun Jayasinghe', 34, 'Active', 'd7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a'); -- Seattle
 
 INSERT INTO Customer (customer_id, name, type, address, city, phone, email, password) VALUES
 ('3f0459e3-df95-4ad4-b94c-6b0c67290027', 'Tharaka', 'Retail', '123 Main St', 'New York', '555-0101', 'retailA@example.com', 'password1'),
@@ -205,20 +218,20 @@ INSERT INTO Customer (customer_id, name, type, address, city, phone, email, pass
 ('a9b0c1d2-3e4f-4a9b-6c0d-1e2f3a4b5c6d', 'Ranjith Bandara', 'Retail', '456 Birch Rd', 'St. Louis', '555-0123', 'ranjith.b@example.com', 'password23'),
 ('b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', 'Chathura Senanayake', 'Wholesale', '789 Elm Ave', 'Pittsburgh', '555-0124', 'chathura.s@example.com', 'password24');
 
-INSERT INTO Driver (driver_id, name, license_no, weekly_hours, status) VALUES
-('1d672079-260a-48e6-9e5c-2fef6092bdf0', 'David Wilson', 'DL123456', 40, 'Active'),
-('e7f72fc9-ce18-44b4-97f2-50781eb754a7', 'Eva Martinez', 'DL789012', 38, 'Active'),
-('a9288a54-4e4a-4a49-806e-b7170502539a', 'Frank Lee', 'DL345678', 35, 'On Leave'),
-('2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d', 'Ruwan Perera', 'DL901234', 40, 'Active'),
-('3b4c5d6e-7f8a-4b9c-0d1e-2f3a4b5c6d7e', 'Nimal Fernando', 'DL567890', 38, 'Active'),
-('4c5d6e7f-8a9b-4c0d-1e2f-3a4b5c6d7e8f', 'Kumari Silva', 'DL234567', 35, 'On Leave'),
-('5d6e7f8a-9b0c-4d1e-2f3a-4b5c6d7e8f9a', 'Saman Wijesinghe', 'DL890123', 40, 'Active'),
-('6e7f8a9b-0c1d-4e2f-3a4b-5c6d7e8f9a0b', 'Priya Gunawardena', 'DL456789', 36, 'Active'),
-('7f8a9b0c-1d2e-4f3a-4b5c-6d7e8f9a0b1c', 'Anura Jayasinghe', 'DL123890', 39, 'Active'),
-('8a9b0c1d-2e3f-4a4b-5c6d-7e8f9a0b1c2d', 'Mala Rathnayake', 'DL789456', 34, 'On Leave'),
-('9b0c1d2e-3f4a-4b5c-6d7e-8f9a0b1c2d3e', 'Sanjaya Mendis', 'DL345123', 40, 'Active'),
-('0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 'Nayana Kumari', 'DL901567', 37, 'Active'),
-('1d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a', 'Kamal Wijeratne', 'DL678234', 38, 'Active');
+INSERT INTO Driver (driver_id, name, license_no, weekly_hours, status, store_id) VALUES
+('1d672079-260a-48e6-9e5c-2fef6092bdf0', 'David Wilson', 'DL123456', 40, 'Active', 'e28cf701-474a-440f-bca9-2f90605aa65b'),  -- New York
+('e7f72fc9-ce18-44b4-97f2-50781eb754a7', 'Eva Martinez', 'DL789012', 38, 'Active', '8683216c-ce35-4024-83fa-bfa73005d431'),  -- Los Angeles
+('a9288a54-4e4a-4a49-806e-b7170502539a', 'Frank Lee', 'DL345678', 35, 'On Leave', 'a44f797f-45ff-40a7-99c0-d946e8c4ad42'), -- Chicago
+('2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d', 'Ruwan Perera', 'DL901234', 40, 'Active', 'b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e'),  -- Boston
+('3b4c5d6e-7f8a-4b9c-0d1e-2f3a4b5c6d7e', 'Nimal Fernando', 'DL567890', 38, 'Active', 'c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f'),  -- Miami
+('4c5d6e7f-8a9b-4c0d-1e2f-3a4b5c6d7e8f', 'Kumari Silva', 'DL234567', 35, 'On Leave', 'd7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a'), -- Seattle
+('5d6e7f8a-9b0c-4d1e-2f3a-4b5c6d7e8f9a', 'Saman Wijesinghe', 'DL890123', 40, 'Active', 'e28cf701-474a-440f-bca9-2f90605aa65b'),  -- New York
+('6e7f8a9b-0c1d-4e2f-3a4b-5c6d7e8f9a0b', 'Priya Gunawardena', 'DL456789', 36, 'Active', '8683216c-ce35-4024-83fa-bfa73005d431'),  -- Los Angeles
+('7f8a9b0c-1d2e-4f3a-4b5c-6d7e8f9a0b1c', 'Anura Jayasinghe', 'DL123890', 39, 'Active', 'a44f797f-45ff-40a7-99c0-d946e8c4ad42'), -- Chicago
+('8a9b0c1d-2e3f-4a4b-5c6d-7e8f9a0b1c2d', 'Mala Rathnayake', 'DL789456', 34, 'On Leave', 'b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e'),  -- Boston
+('9b0c1d2e-3f4a-4b5c-6d7e-8f9a0b1c2d3e', 'Sanjaya Mendis', 'DL345123', 40, 'Active', 'c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f'),  -- Miami
+('0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 'Nayana Kumari', 'DL901567', 37, 'Active', 'd7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a'), -- Seattle
+('1d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a', 'Kamal Wijeratne', 'DL678234', 38, 'Active', 'e28cf701-474a-440f-bca9-2f90605aa65b');  -- New York
 
 INSERT INTO Product (product_id, name, description, unit_price, space_unit, stock) VALUES
 ('7f159ff9-2998-4b89-a994-1fb732683475', 'Chocolate Bar', 'Delicious milk chocolate treat', 2.99, 1, 10),
@@ -233,25 +246,29 @@ INSERT INTO Product (product_id, name, description, unit_price, space_unit, stoc
 ('8b9c0d1e-2f3a-4a3b-5c6e-7f8a9b0c1d2e', 'Licorice Twists', 'Black licorice twists with a sweet bite', 2.79, 1, 98),
 ('9c0d1e2f-3a4b-4b4c-6d7f-8a9b0c1d2e3f', 'Marshmallow Pops', 'Fluffy marshmallows dipped in chocolate', 4.99, 3, 10),
 ('0d1e2f3a-4b5c-4c5d-7e8a-9b0c1d2e3f4a', 'Sour Worms', 'Tangy sour gummy worms', 3.49, 2, 55),
-('1e2f3a4b-5c6d-4d6e-8f9b-0c1d2e3f4a5b', 'Candy Canes', 'Traditional peppermint candy canes', 1.49, 1, 56);
-
-INSERT INTO Store (store_id, name, city, address, capacity) VALUES
-('e28cf701-474a-440f-bca9-2f90605aa65b', 'Kandy Central Store', 'New York', '100 Candy Blvd', 1000),
-('8683216c-ce35-4024-83fa-bfa73005d431', 'Sweet Depot LA', 'Los Angeles', '200 Sugar St', 800),
-('a44f797f-45ff-40a7-99c0-d946e8c4ad42', 'Candy Warehouse CHI', 'Chicago', '300 Treat Ave', 1200),
-('b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 'Sweet Haven Boston', 'Boston', '400 Maple Way', 900),
-('c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 'Candy Hub Miami', 'Miami', '500 Palm Dr', 1100),
-('d7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a', 'Treat Station Seattle', 'Seattle', '600 Rainier Ave', 950);
+('1e2f3a4b-5c6d-4d6e-8f9b-0c1d2e3f4a5b', 'Candy Canes', 'Traditional peppermint candy canes', 1.49, 1, 56),
+('7b8c9d0e-1f2a-4b3c-4d5e-6f7a8b9c0d1e', 'Milk Chocolate Almonds', 'Whole almonds coated in smooth milk chocolate', 6.99, 2, 0),
+('8c9d0e1f-2a3b-4c4d-5e6f-7a8b9c0d1e2f', 'Sour Patch Kids', 'Sweet and sour chewy candies in assorted flavors', 3.79, 2, 0);
 
 INSERT INTO Train_Schedule (train_schedule_id, departure_city, arrival_city, departure_time, arrival_time, capacity) VALUES
 ('3730fc56-cd09-4bc1-8dc2-26f8eb549f5f', 'New York', 'Los Angeles', '08:00:00', '20:00:00', 500),
 ('141fb849-05cd-4581-bf0e-2969ec839a6f', 'Los Angeles', 'Chicago', '09:30:00', '18:45:00', 400),
 ('7e23eb1c-aa68-4297-a8ec-02f5681f2e5c', 'Kandy', 'New York', '07:15:00', '19:30:00', 600);
 
-INSERT INTO Truck (truck_id, license_plate, capacity, status) VALUES
-('f550ff2e-1080-4b29-af61-f46b009bf1ac', 'ABC-123', 1000.50, 'Available'),
-('0e0862ca-9a7f-4850-bed3-040eba35b0f8', 'XYZ-456', 1500.00, 'In Use'),
-('fd160307-a56a-4f04-b88d-6422d29496a3', 'DEF-789', 1200.75, 'Maintenance');
+INSERT INTO Truck (truck_id, license_plate, capacity, status, store_id) VALUES
+('f550ff2e-1080-4b29-af61-f46b009bf1ac', 'ABC-123', 1000.50, 'Available', 'e28cf701-474a-440f-bca9-2f90605aa65b'),  -- New York
+('0e0862ca-9a7f-4850-bed3-040eba35b0f8', 'XYZ-456', 1500.00, 'In Use', '8683216c-ce35-4024-83fa-bfa73005d431'),  -- Los Angeles
+('fd160307-a56a-4f04-b88d-6422d29496a3', 'DEF-789', 1200.75, 'Maintenance', 'a44f797f-45ff-40a7-99c0-d946e8c4ad42'), -- Chicago
+('7c8d9e0f-1a2b-4c6d-4e5f-6a7b8c9d0e1f', 'GHI-012', 1100.25, 'Available', 'b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e'),  -- Boston
+('8d9e0f1a-2b3c-4d7e-5f6a-7b8c9d0e1f2a', 'JKL-345', 1300.50, 'In Use', 'c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f'),  -- Miami
+('9e0f1a2b-3c4d-4e8f-6a7b-8c9d0e1f2a3b', 'MNO-678', 1400.00, 'Available', 'd7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a'), -- Seattle
+('0f1a2b3c-4d5e-4f9a-7b8c-9d0e1f2a3b4c', 'PQR-901', 1200.25, 'Maintenance', 'e28cf701-474a-440f-bca9-2f90605aa65b'),  -- New York
+('1a2b3c4d-5e6f-4a0b-8c9d-0e1f2a3b4c5d', 'STU-234', 1150.75, 'Available', '8683216c-ce35-4024-83fa-bfa73005d431'),  -- Los Angeles
+('2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', 'VWX-567', 1250.50, 'In Use', 'a44f797f-45ff-40a7-99c0-d946e8c4ad42'), -- Chicago
+('3c4d5e6f-7a8b-4c9d-0e1f-2a3b4c5d6e7f', 'YZA-890', 1350.00, 'Available', 'b5c6d7e8-9f0a-4b1c-2d3e-4f5a6b7c8d9e'),  -- Boston
+('4d5e6f7a-8b9c-4d0e-1f2a-3b4c5d6e7f8a', 'BCD-123', 1450.25, 'In Use', 'c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f'),  -- Miami
+('5e6f7a8b-9c0d-4e1f-2a3b-4c5d6e7f8a9b', 'EFG-456', 1050.75, 'Maintenance', 'd7e8f9a0-1b2c-4d3e-4f5a-6b7c8d9e0f1a'), -- Seattle
+('6f7a8b9c-0d1e-4f2a-3b4c-5d6e7f8a9b0c', 'HIJ-789', 1550.00, 'Available', 'e28cf701-474a-440f-bca9-2f90605aa65b');  -- New York
 
 INSERT INTO Route (route_id, store_id, stops, max_delivery_time) VALUES
 ('98b43b99-6e29-4f1f-8eac-d0384350db96', 'e28cf701-474a-440f-bca9-2f90605aa65b', 'Downtown NY, Midtown NY, Brooklyn', 120),

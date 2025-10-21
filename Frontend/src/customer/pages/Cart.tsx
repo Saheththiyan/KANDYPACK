@@ -33,7 +33,7 @@ const CartItemRow = ({ item, onUpdate, onRemove }: {
 
   return (
     <div className="flex items-center space-x-4 py-4 border-b last:border-b-0">
-      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+      {/* <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
         <img
           src={item.product.image}
           alt={item.product.name}
@@ -42,7 +42,7 @@ const CartItemRow = ({ item, onUpdate, onRemove }: {
             e.currentTarget.src = '/placeholder.svg';
           }}
         />
-      </div>
+      </div> */}
 
       <div className="flex-1 min-w-0">
         <h3 className="font-medium truncate">{item.product.name}</h3>
@@ -130,8 +130,7 @@ const CustomerCart = () => {
 
   // UPDATED: use toNumber for robust subtotal calc
   const subtotal = cart.reduce((sum, item) => sum + (toNumber(item.product.price) * item.quantity), 0);
-  const deliveryFee = 200;
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
 
   const validateDeliveryDate = (date: Date) => {
     const minDate = addDays(new Date(), 7);
@@ -288,10 +287,6 @@ const CustomerCart = () => {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>Rs. {subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>Rs. {deliveryFee.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
