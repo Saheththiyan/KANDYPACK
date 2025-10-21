@@ -29,7 +29,12 @@ export async function login(req, res) {
     const admin = await getAdminByEmail(email);
     const customer = admin ? null : await getCustomerByEmail(email);
 
-    if (!admin && !customer) {
+    // Determine user and role
+    const user = admin || customer;
+    user.id = admin ? admin.admin_id : customer.customer_id;
+    const role = admin ? "Admin" : "Customer";
+
+    if (!user) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password" });
