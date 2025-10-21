@@ -7,6 +7,6 @@ const router = express.Router();
 // Apply authentication to all train schedule routes
 router.use(authenticateToken);
 
-router.get("/", schedule.getAllSchedules);
+router.get("/", schedule.getSchedulesByCity); // Now handles both all schedules and filtered by city
 
 export default router;

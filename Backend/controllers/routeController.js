@@ -44,3 +44,20 @@ export async function deleteRoute(req, res) {
       .json({ message: "Something went wrong", error: error.message });
   }
 }
+
+export async function getRoutesByStore(req, res) {
+  try {
+    const { store_id } = req.query;
+    let routes;
+    
+    if (store_id) {
+      routes = await route.getRoutesByStore(store_id);
+    } else {
+      routes = await route.getRoutes();
+    }
+    
+    res.json(routes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

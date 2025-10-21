@@ -69,3 +69,11 @@ export async function patchAssistant(assitant_id, assistantData) {
   const [result] = await db.query(query, values);
   return result;
 }
+
+export async function getAssistantsByStore(store_id) {
+  const [assistants] = await db.query(
+    "SELECT * FROM Assistant WHERE store_id = ?",
+    [store_id]
+  );
+  return assistants;
+}

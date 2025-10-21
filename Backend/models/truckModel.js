@@ -68,3 +68,11 @@ export async function patchTruck(truck_id, truckData) {
   const [result] = await db.query(query, values);
   return result;
 }
+
+export async function getTrucksByStore(store_id) {
+  const [trucks] = await db.query(
+    "SELECT * FROM Truck WHERE store_id = ?",
+    [store_id]
+  );
+  return trucks;
+}

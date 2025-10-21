@@ -107,3 +107,20 @@ export async function patchDriverDetails(req, res) {
       .json({ message: "Something went wrong!", error: error.message });
   }
 }
+
+export async function getDriversByStore(req, res) {
+  try {
+    const { store_id } = req.query;
+    let drivers;
+    
+    if (store_id) {
+      drivers = await driver.getDriversByStore(store_id);
+    } else {
+      drivers = await driver.getDrivers();
+    }
+    
+    res.json(drivers);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

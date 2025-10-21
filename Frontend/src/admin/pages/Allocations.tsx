@@ -31,6 +31,7 @@ interface Order {
   required_date: string;
   count_product_id: string;
   total_value: number;
+  status: string;
 }
 
 interface ProcessedOrder extends Order {
@@ -84,6 +85,13 @@ interface Truck {
   store_id: string;
 }
 
+interface Route {
+  route_id: string;
+  stops: string;
+  max_delivery_time: number;
+  store_id: string;
+}
+
 const OrderAllocations = () => {
   const { toast } = useToast();
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
@@ -93,9 +101,15 @@ const OrderAllocations = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [assistants, setAssistants] = useState<Assistant[]>([]);
   const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllocationDialog, setShowAllocationDialog] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  
+  // Pagination state
+  const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
+  const [processedCurrentPage, setProcessedCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   const [allocationForm, setAllocationForm] = useState({
     train_schedule_id: '',
@@ -103,6 +117,7 @@ const OrderAllocations = () => {
     driver_id: '',
     assistant_id: '',
     truck_id: '',
+    route_id: '',
   });
 
   const auth = getAuthToken();
@@ -115,9 +130,92 @@ const OrderAllocations = () => {
         'Authorization': `Bearer ${auth.token}`
       },
     });
-    console.log('Fetch unprocessed orders response status:', response);
     if (!response.ok) {
       throw new Error("Failed to fetch unprocessed orders");
+    }
+    return response.json();
+  }
+
+  async function fetchTrainSchedulesByCity(city: string): Promise<TrainSchedule[]> {
+    const response = await fetch(`${API_URL}/trainSchedule?city=${city}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch train schedules");
+    }
+    return response.json();
+  }
+
+  async function fetchStoresByCity(city: string): Promise<Store[]> {
+    const response = await fetch(`${API_URL}/stores?city=${city}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch stores");
+    }
+    return response.json();
+  }
+
+  async function fetchDriversByStore(storeId: string): Promise<Driver[]> {
+    const response = await fetch(`${API_URL}/drivers?store_id=${storeId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch drivers");
+    }
+    return response.json();
+  }
+
+  async function fetchAssistantsByStore(storeId: string): Promise<Assistant[]> {
+    const response = await fetch(`${API_URL}/assistants?store_id=${storeId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch assistants");
+    }
+    return response.json();
+  }
+
+  async function fetchTrucksByStore(storeId: string): Promise<Truck[]> {
+    const response = await fetch(`${API_URL}/trucks?store_id=${storeId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch trucks");
+    }
+    return response.json();
+  }
+
+  async function fetchRoutesByStore(storeId: string): Promise<Route[]> {
+    const response = await fetch(`${API_URL}/routes?store_id=${storeId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch routes");
     }
     return response.json();
   }
@@ -132,14 +230,8 @@ const OrderAllocations = () => {
       const orders = await fetchUnprocessedOrders();
       setPendingOrders(orders);
       
-      // For now, keep other data as empty arrays
-      // User said: "just fetch for that table now. we'll figure out the second table later"
+      // Processed orders will be fetched separately when implemented
       setProcessedOrders([]);
-      setTrainSchedules([]);
-      setStores([]);
-      setDrivers([]);
-      setAssistants([]);
-      setTrucks([]);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast({
@@ -152,7 +244,7 @@ const OrderAllocations = () => {
     }
   };
 
-  const handleAllocateClick = (order: Order) => {
+  const handleAllocateClick = async (order: Order) => {
     setSelectedOrder(order);
     setAllocationForm({
       train_schedule_id: '',
@@ -160,23 +252,71 @@ const OrderAllocations = () => {
       driver_id: '',
       assistant_id: '',
       truck_id: '',
+      route_id: '',
     });
+    
+    // Clear existing data
+    setDrivers([]);
+    setAssistants([]);
+    setTrucks([]);
+    setRoutes([]);
+    
+    try {
+      // Fetch train schedules and stores for the order's city
+      const [schedules, storesData] = await Promise.all([
+        fetchTrainSchedulesByCity(order.city),
+        fetchStoresByCity(order.city)
+      ]);
+      setTrainSchedules(schedules);
+      setStores(storesData);
+    } catch (error) {
+      console.error('Failed to load allocation data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load train schedules and stores",
+        variant: "destructive",
+      });
+    }
+    
     setShowAllocationDialog(true);
   };
 
-  const handleStoreChange = (storeId: string) => {
+  const handleStoreChange = async (storeId: string) => {
     setAllocationForm({
       ...allocationForm,
       store_id: storeId,
       driver_id: '',
       assistant_id: '',
       truck_id: '',
+      route_id: '',
     });
+
+    try {
+      // Fetch drivers, assistants, trucks, and routes for the selected store
+      const [driversData, assistantsData, trucksData, routesData] = await Promise.all([
+        fetchDriversByStore(storeId),
+        fetchAssistantsByStore(storeId),
+        fetchTrucksByStore(storeId),
+        fetchRoutesByStore(storeId)
+      ]);
+      setDrivers(driversData);
+      setAssistants(assistantsData);
+      setTrucks(trucksData);
+      setRoutes(routesData);
+    } catch (error) {
+      console.error('Failed to load store resources:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load drivers, assistants, trucks, and routes",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleProcessAllocation = async () => {
     if (!allocationForm.train_schedule_id || !allocationForm.store_id || 
-        !allocationForm.driver_id || !allocationForm.assistant_id || !allocationForm.truck_id) {
+        !allocationForm.driver_id || !allocationForm.assistant_id || 
+        !allocationForm.truck_id || !allocationForm.route_id) {
       toast({
         title: "Validation Error",
         description: "Please fill in all fields",
@@ -228,6 +368,24 @@ const OrderAllocations = () => {
   const availableTrucks = allocationForm.store_id
     ? trucks.filter(t => t.store_id === allocationForm.store_id && t.status === 'Available')
     : [];
+
+  const availableRoutes = allocationForm.store_id
+    ? routes.filter(r => r.store_id === allocationForm.store_id)
+    : [];
+
+  // Pagination calculations
+  const pendingTotalPages = Math.ceil(pendingOrders.length / ITEMS_PER_PAGE);
+  const processedTotalPages = Math.ceil(processedOrders.length / ITEMS_PER_PAGE);
+  
+  const paginatedPendingOrders = pendingOrders.slice(
+    (pendingCurrentPage - 1) * ITEMS_PER_PAGE,
+    pendingCurrentPage * ITEMS_PER_PAGE
+  );
+  
+  const paginatedProcessedOrders = processedOrders.slice(
+    (processedCurrentPage - 1) * ITEMS_PER_PAGE,
+    processedCurrentPage * ITEMS_PER_PAGE
+  );
 
   const getStatusBadge = (status: string) => {
     const colors: Record<string, string> = {
@@ -326,6 +484,7 @@ const OrderAllocations = () => {
                   <th className="text-left p-4 font-medium">Required Date</th>
                   <th className="text-left p-4 font-medium">No. Products</th>
                   <th className="text-left p-4 font-medium">Total Value</th>
+                  <th className="text-left p-4 font-medium">Status</th>
                   <th className="text-right p-4 font-medium">Action</th>
                 </tr>
               </thead>
@@ -337,7 +496,7 @@ const OrderAllocations = () => {
                     </td>
                   </tr>
                 ) : (
-                  pendingOrders.map((order) => (
+                  paginatedPendingOrders.map((order) => (
                     <tr key={order.order_id} className="border-b hover:bg-muted/50">
                       <td className="p-4">{order.name}</td>
                       <td className="p-4">{order.city}</td>
@@ -345,6 +504,7 @@ const OrderAllocations = () => {
                       <td className="p-4">{order.required_date ? new Date(order.required_date).toLocaleDateString() : 'N/A'}</td>
                       <td className="p-4">{order.count_product_id}</td>
                       <td className="p-4">Rs {order.total_value.toLocaleString()}</td>
+                      <td className="p-4">{order.status}</td>
                       <td className="p-4 text-right">
                         <Button
                           size="sm"
@@ -359,6 +519,46 @@ const OrderAllocations = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pending Orders Pagination */}
+          {pendingOrders.length > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {((pendingCurrentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(pendingCurrentPage * ITEMS_PER_PAGE, pendingOrders.length)} of {pendingOrders.length} orders
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPendingCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={pendingCurrentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: pendingTotalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={page === pendingCurrentPage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setPendingCurrentPage(page)}
+                      className="w-10"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPendingCurrentPage(prev => Math.min(pendingTotalPages, prev + 1))}
+                  disabled={pendingCurrentPage === pendingTotalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -390,7 +590,7 @@ const OrderAllocations = () => {
                     </td>
                   </tr>
                 ) : (
-                  processedOrders.map((order) => (
+                  paginatedProcessedOrders.map((order) => (
                     <tr key={order.order_id} className="border-b hover:bg-muted/50">
                       <td className="p-4 font-medium">{order.order_id}</td>
                       <td className="p-4">{order.name}</td>
@@ -405,6 +605,46 @@ const OrderAllocations = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Processed Orders Pagination */}
+          {processedOrders.length > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {((processedCurrentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(processedCurrentPage * ITEMS_PER_PAGE, processedOrders.length)} of {processedOrders.length} orders
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setProcessedCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={processedCurrentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: processedTotalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={page === processedCurrentPage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setProcessedCurrentPage(page)}
+                      className="w-10"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setProcessedCurrentPage(prev => Math.min(processedTotalPages, prev + 1))}
+                  disabled={processedCurrentPage === processedTotalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -510,7 +750,7 @@ const OrderAllocations = () => {
                   <SelectContent>
                     {availableDrivers.map((driver) => (
                       <SelectItem key={driver.driver_id} value={driver.driver_id}>
-                        {driver.name} ({driver.weekly_hours}h / 60h this week)
+                        {driver.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -536,7 +776,7 @@ const OrderAllocations = () => {
                   <SelectContent>
                     {availableAssistants.map((assistant) => (
                       <SelectItem key={assistant.assistant_id} value={assistant.assistant_id}>
-                        {assistant.name} ({assistant.weekly_hours}h / 60h this week)
+                        {assistant.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -563,6 +803,32 @@ const OrderAllocations = () => {
                     {availableTrucks.map((truck) => (
                       <SelectItem key={truck.truck_id} value={truck.truck_id}>
                         {truck.license_plate} ({truck.status})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Route Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="route">
+                  <Package className="inline h-4 w-4 mr-2" />
+                  Route
+                </Label>
+                <Select
+                  value={allocationForm.route_id}
+                  onValueChange={(value) =>
+                    setAllocationForm({ ...allocationForm, route_id: value })
+                  }
+                  disabled={!allocationForm.store_id}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={!allocationForm.store_id ? "Select store first" : "Select route"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRoutes.map((route) => (
+                      <SelectItem key={route.route_id} value={route.route_id}>
+                        {route.stops}
                       </SelectItem>
                     ))}
                   </SelectContent>

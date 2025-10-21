@@ -34,3 +34,11 @@ export async function removeRoute(route_id) {
   const [result] = await db.query(query, [route_id]);
   return result;
 }
+
+export async function getRoutesByStore(store_id) {
+  const [routes] = await db.query(
+    "SELECT * FROM Route WHERE store_id = ?",
+    [store_id]
+  );
+  return routes;
+}

@@ -71,3 +71,20 @@ export async function patchAssistantDetails(req, res) {
       .json({ message: "Something went wrong!", error: error.message });
   }
 }
+
+export async function getAssistantsByStore(req, res) {
+  try {
+    const { store_id } = req.query;
+    let assistants;
+    
+    if (store_id) {
+      assistants = await assistant.getAssistantsByStore(store_id);
+    } else {
+      assistants = await assistant.getAssistants();
+    }
+    
+    res.json(assistants);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

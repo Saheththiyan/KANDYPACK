@@ -7,7 +7,7 @@ const router = express.Router();
 // Apply authentication to all route routes
 router.use(authenticateToken);
 
-router.get("/", route.getAllRoutes);
+router.get("/", route.getRoutesByStore); // Now handles both all routes and filtered by store
 
 router.post("/", route.addNewRoute);
 
