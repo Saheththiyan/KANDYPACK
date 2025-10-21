@@ -14,10 +14,11 @@ export async function getUnprocessedOrders() {
       order_date,
       required_date,
       count(product_id) as count_product_id,
-      sum(total_value) as total_value
+      sum(total_value) as total_value,
+      status
     FROM Customer_Order
-    WHERE order_id NOT IN (SELECT order_id FROM Delivers)
-    GROUP BY order_id, name, city, order_date, required_date
+    WHERE status = 'Pending'
+    GROUP BY order_id, name, city, order_date, required_date, status
   `;
   
   const [orders] = await db.query(query);

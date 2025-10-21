@@ -68,3 +68,20 @@ export async function patchStoreDetails(req, res) {
       .json({ message: "Something went wrong!", error: error.message });
   }
 }
+
+export async function getStoresByCity(req, res) {
+  try {
+    const { city } = req.query;
+    let stores;
+    
+    if (city) {
+      stores = await store.getStoresByCity(city);
+    } else {
+      stores = await store.getStores();
+    }
+    
+    res.json(stores);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

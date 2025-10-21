@@ -67,3 +67,20 @@ export async function patchTruckDetails(req, res) {
       .json({ message: "Something went wrong!", error: error.message });
   }
 }
+
+export async function getTrucksByStore(req, res) {
+  try {
+    const { store_id } = req.query;
+    let trucks;
+    
+    if (store_id) {
+      trucks = await truck.getTrucksByStore(store_id);
+    } else {
+      trucks = await truck.getTrucks();
+    }
+    
+    res.json(trucks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

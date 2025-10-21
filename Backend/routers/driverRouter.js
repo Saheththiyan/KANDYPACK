@@ -7,7 +7,7 @@ const router = express.Router();
 // Apply authentication to all driver routes
 router.use(authenticateToken);
 
-router.get("/", driver.getAllDrivers);
+router.get("/", driver.getDriversByStore); // Now handles both all drivers and filtered by store
 router.get("/hours", driver.sortByHours);
 router.get("/active", driver.activeDrivers);
 router.get("/:id", driver.getDriverByID);

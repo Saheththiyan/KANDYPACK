@@ -79,3 +79,11 @@ export async function patchDriver(driver_id, driverData) {
   const [result] = await db.query(query, values);
   return result;
 }
+
+export async function getDriversByStore(store_id) {
+  const [drivers] = await db.query(
+    "SELECT * FROM Driver WHERE store_id = ?",
+    [store_id]
+  );
+  return drivers;
+}

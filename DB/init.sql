@@ -209,7 +209,7 @@ INSERT INTO Customer (customer_id, name, type, address, city, phone, email, pass
 ('c9d0e1f2-3a4b-4c9d-6e0f-1a2b3c4d5e6f', 'Sweet Deals Inc.', 'Corporate', '567 Poplar St', 'San Francisco', '555-0113', 'sweet.deals@example.com', '$2a$10$niGK06HHpnLOf3i6369ki.GOYBSpcy0YEHGl.UKv6.dYSdX7XnHQW'),
 ('d0e1f2a3-4b5c-4d0e-7f1a-2b3c4d5e6f7a', 'Anura Jayasinghe', 'Retail', '890 Cedar Ln', 'Portland', '555-0114', 'anura.j@example.com', '$2a$10$MzWp6dasHpcsWI/ySw4VbuKRbz.vtOJGpG76E4TI94QqwncngE2qO'),
 ('e1f2a3b4-5c6d-4e1f-8a2b-3c4d5e6f7a8b', 'Mala Rathnayake', 'Wholesale', '123 Birch Ave', 'Austin', '555-0115', 'mala.r@example.com', '$2a$10$MEayb4NI8eVuGh.XWIjn0.T0TNhRAERfVBT2sCEu2HmvmmzZyKpxq'),
-('f2a3b4c5-6d7e-4f2a-9b3c-4d5e6f7a8b9c', 'Candy Corner Ltd.', 'Corporate', '456 Elm Dr', 'Philadelphia', '555-0116', 'candy.corner@example.com', '$2a$10$MEayb4NI8eVuGh.XWIjn0.T0TNhRAERfVBT2sCEu2HmvmmzZyKpxq'),
+('f2a3b4c5-6d7e-4f2a-9b3c-4d5e6f7a8b9c', 'Candy Corner Ltd.', 'Corporate', '456 Elm Dr', 'New York', '555-0116', 'candy.corner@example.com', '$2a$10$MEayb4NI8eVuGh.XWIjn0.T0TNhRAERfVBT2sCEu2HmvmmzZyKpxq'),
 ('a3b4c5d6-7e8f-4a3b-0c4d-5e6f7a8b9c0d', 'Sanjaya Mendis', 'Retail', '789 Spruce St', 'San Diego', '555-0117', 'sanjaya.m@example.com', '$2a$10$VkcGzG.Dn3i6chfS0so2Ce9ZeWigvkVMuSXaFH/uM4Oeq/PTjvwYu'),
 ('b4c5d6e7-8f9a-4b4c-1d5e-6f7a8b9c0d1e', 'Nayana Kumari', 'Wholesale', '101 Oak Rd', 'Charlotte', '555-0118', 'nayana.k@example.com', '$2a$10$So0z0zT45RsQ3v7z53LG3uPz9SmPVU7qUExdkrTcWgjfmGRikAqi.'),
 ('c5d6e7f8-9a0b-4c5d-2e6f-7a8b9c0d1e2f', 'Global Sweets Co.', 'Corporate', '234 Pine Ave', 'Minneapolis', '555-0119', 'global.sweets@example.com', '$2a$10$kfTi4.S0ny5uQHlPafbLAe81izBYCqbirJGhWdYlmTZL9F/PDLQPi'),
@@ -284,39 +284,39 @@ INSERT INTO Route (route_id, store_id, stops, max_delivery_time) VALUES
 ('e4f5a6b7-8c9d-4e0f-1a2b-3c4d5e6f7a8b', 'c6d7e8f9-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 'South Beach, Downtown Miami, Coral Gables', 105);  -- Miami store route 1 (only 1 for Miami, to vary)
 
 INSERT INTO `Order` (order_id, customer_id, order_date, required_date, status, total_value) VALUES
-('29fc8097-6caf-4918-adec-0e700393ea6d', '3f0459e3-df95-4ad4-b94c-6b0c67290027', '2025-09-01', '2025-09-10', 'Pending', 50.00),
-('c7538e0f-7ad2-4f9b-85aa-31a7b0487d42', '29fc8097-6caf-4918-adec-0e700393ea6d', '2025-09-05', '2025-09-15', 'Shipped', 100.00),
+('29fc8097-6caf-4918-adec-0e700393ea6d', '3f0459e3-df95-4ad4-b94c-6b0c67290027', '2025-09-01', '2025-09-10', 'Processing', 50.00),
+('c7538e0f-7ad2-4f9b-85aa-31a7b0487d42', '29fc8097-6caf-4918-adec-0e700393ea6d', '2025-09-05', '2025-09-15', 'Processing', 100.00),
 ('1d672079-260a-48e6-9e5c-2fef6092bdf0', 'c7538e0f-7ad2-4f9b-85aa-31a7b0487d42', '2025-09-10', '2025-09-20', 'Delivered', 75.50),
-('2f3a4b5c-6d7e-4f8a-9b0c-1d2e3f4a5b6c', 'a1b2c3d4-5e6f-4a1b-8c2d-3e4f5a6b7c8d', '2025-10-01', '2025-10-08', 'Pending', 45.00),
-('3a4b5c6d-7e8f-4a2b-0c1d-2e3f4a5b6c7d', 'b2c3d4e5-6f7a-4b2c-9d3e-4f5a6b7c8d9e', '2025-10-02', '2025-10-09', 'Shipped', 120.50),
+('2f3a4b5c-6d7e-4f8a-9b0c-1d2e3f4a5b6c', 'a1b2c3d4-5e6f-4a1b-8c2d-3e4f5a6b7c8d', '2025-10-01', '2025-10-08', 'Processing', 45.00),
+('3a4b5c6d-7e8f-4a2b-0c1d-2e3f4a5b6c7d', 'b2c3d4e5-6f7a-4b2c-9d3e-4f5a6b7c8d9e', '2025-10-02', '2025-10-09', 'Delivered', 120.50),
 ('4b5c6d7e-8f9a-4b3c-1d2e-3f4a5b6c7d8e', 'c3d4e5f6-7a8b-4c3d-0e4f-5a6b7c8d9e0f', '2025-10-03', '2025-10-10', 'Delivered', 80.25),
-('5c6d7e8f-9a0b-4c4d-2e3f-4a5b6c7d8e9f', 'd4e5f6a7-8b9c-4d4e-1f5a-6b7c8d9e0f1a', '2025-10-04', '2025-10-11', 'Pending', 60.75),
-('6d7e8f9a-0b1c-4d5e-3f4a-5b6c7d8e9f0a', 'e5f6a7b8-9c0d-4e5f-2a6b-7c8d9e0f1a2b', '2025-10-05', '2025-10-12', 'Shipped', 95.00),
+('5c6d7e8f-9a0b-4c4d-2e3f-4a5b6c7d8e9f', 'd4e5f6a7-8b9c-4d4e-1f5a-6b7c8d9e0f1a', '2025-10-04', '2025-10-11', 'Processing', 60.75),
+('6d7e8f9a-0b1c-4d5e-3f4a-5b6c7d8e9f0a', 'e5f6a7b8-9c0d-4e5f-2a6b-7c8d9e0f1a2b', '2025-10-05', '2025-10-12', 'Delivered', 95.00),
 ('7e8f9a0b-1c2d-4e6f-4a5b-6c7d8e9f0a1b', 'f6a7b8c9-0d1e-4f6a-3b7c-8d9e0f1a2b3c', '2025-10-06', '2025-10-13', 'Delivered', 150.00),
-('8f9a0b1c-2d3e-4f7a-5b6c-7d8e9f0a1b2c', 'a7b8c9d0-1e2f-4a7b-4c8d-9e0f1a2b3c4d', '2025-10-07', '2025-10-14', 'Pending', 70.50),
-('9a0b1c2d-3e4f-4a8b-6c7d-8e9f0a1b2c3d', 'b8c9d0e1-2f3a-4b8c-5d9e-0f1a2b3c4d5e', '2025-10-08', '2025-10-15', 'Shipped', 110.25),
+('8f9a0b1c-2d3e-4f7a-5b6c-7d8e9f0a1b2c', 'a7b8c9d0-1e2f-4a7b-4c8d-9e0f1a2b3c4d', '2025-10-07', '2025-10-14', 'Processing', 70.50),
+('9a0b1c2d-3e4f-4a8b-6c7d-8e9f0a1b2c3d', 'b8c9d0e1-2f3a-4b8c-5d9e-0f1a2b3c4d5e', '2025-10-08', '2025-10-15', 'Delivered', 110.25),
 ('0b1c2d3e-4f5a-4b9c-7d8e-9f0a1b2c3d4e', 'c9d0e1f2-3a4b-4c9d-6e0f-1a2b3c4d5e6f', '2025-10-09', '2025-10-16', 'Delivered', 85.00),
-('1c2d3e4f-5a6b-4c0d-8e9f-0a1b2c3d4e5f', 'd0e1f2a3-4b5c-4d0e-7f1a-2b3c4d5e6f7a', '2025-10-10', '2025-10-17', 'Pending', 55.75),
-('2d3e4f5a-6b7c-4d1e-9f0a-1b2c3d4e5f6a', 'e1f2a3b4-5c6d-4e1f-8a2b-3c4d5e6f7a8b', '2025-10-11', '2025-10-18', 'Shipped', 130.00),
+('1c2d3e4f-5a6b-4c0d-8e9f-0a1b2c3d4e5f', 'd0e1f2a3-4b5c-4d0e-7f1a-2b3c4d5e6f7a', '2025-10-10', '2025-10-17', 'Processing', 55.75),
+('2d3e4f5a-6b7c-4d1e-9f0a-1b2c3d4e5f6a', 'e1f2a3b4-5c6d-4e1f-8a2b-3c4d5e6f7a8b', '2025-10-11', '2025-10-18', 'Delivered', 130.00),
 ('3e4f5a6b-7c8d-4e2f-0a1b-2c3d4e5f6a7b', 'f2a3b4c5-6d7e-4f2a-9b3c-4d5e6f7a8b9c', '2025-10-12', '2025-10-19', 'Delivered', 90.50),
-('4f5a6b7c-8d9e-4f3a-1b2c-3d4e5f6a7b8c', 'a3b4c5d6-7e8f-4a3b-0c4d-5e6f7a8b9c0d', '2025-10-13', '2025-10-20', 'Pending', 65.25),
-('5a6b7c8d-9e0f-4a4b-2c3d-4e5f6a7b8c9d', 'b4c5d6e7-8f9a-4b4c-1d5e-6f7a8b9c0d1e', '2025-10-14', '2025-10-21', 'Shipped', 100.00),
+('4f5a6b7c-8d9e-4f3a-1b2c-3d4e5f6a7b8c', 'a3b4c5d6-7e8f-4a3b-0c4d-5e6f7a8b9c0d', '2025-10-13', '2025-10-20', 'Processing', 65.25),
+('5a6b7c8d-9e0f-4a4b-2c3d-4e5f6a7b8c9d', 'b4c5d6e7-8f9a-4b4c-1d5e-6f7a8b9c0d1e', '2025-10-14', '2025-10-21', 'Delivered', 100.00),
 ('6b7c8d9e-0f1a-4b5c-3d4e-5f6a7b8c9d0e', 'c5d6e7f8-9a0b-4c5d-2e6f-7a8b9c0d1e2f', '2025-10-15', '2025-10-22', 'Delivered', 75.75),
-('7c8d9e0f-1a2b-4c6d-4e5f-6a7b8c9d0e1f', 'd6e7f8a9-0b1c-4d6e-3f7a-8b9c0d1e2f3a', '2025-10-16', '2025-10-23', 'Pending', 50.50),
-('8d9e0f1a-2b3c-4d7e-5f6a-7b8c9d0e1f2a', 'e7f8a9b0-1c2d-4e7f-4a8b-9c0d1e2f3a4b', '2025-10-17', '2025-10-24', 'Shipped', 115.25),
+('7c8d9e0f-1a2b-4c6d-4e5f-6a7b8c9d0e1f', 'd6e7f8a9-0b1c-4d6e-3f7a-8b9c0d1e2f3a', '2025-10-16', '2025-10-23', 'Processing', 50.50),
+('8d9e0f1a-2b3c-4d7e-5f6a-7b8c9d0e1f2a', 'e7f8a9b0-1c2d-4e7f-4a8b-9c0d1e2f3a4b', '2025-10-17', '2025-10-24', 'Delivered', 115.25),
 ('9e0f1a2b-3c4d-4e8f-6a7b-8c9d0e1f2a3b', 'f8a9b0c1-2d3e-4f8a-5b9c-0d1e2f3a4b5c', '2025-10-18', '2025-10-25', 'Delivered', 95.00),
-('0f1a2b3c-4d5e-4f9a-7b8c-9d0e1f2a3b4c', 'a9b0c1d2-3e4f-4a9b-6c0d-1e2f3a4b5c6d', '2025-10-19', '2025-10-26', 'Pending', 60.00),
-('1a2b3c4d-5e6f-4a0b-8c9d-0e1f2a3b4c5d', 'b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', '2025-10-20', '2025-10-27', 'Shipped', 105.50),
+('0f1a2b3c-4d5e-4f9a-7b8c-9d0e1f2a3b4c', 'a9b0c1d2-3e4f-4a9b-6c0d-1e2f3a4b5c6d', '2025-10-19', '2025-10-26', 'Processing', 60.00),
+('1a2b3c4d-5e6f-4a0b-8c9d-0e1f2a3b4c5d', 'b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', '2025-10-20', '2025-10-27', 'Delivered', 105.50),
 ('9b0c1d2e-3f4a-4b5c-6d7e-8f9a0b1c2d3e', 'e1f2a3b4-5c6d-4e1f-8a2b-3c4d5e6f7a8b', '2025-10-22', '2025-10-29', 'Pending', 108.84),   -- Mala Rathnayake
-('0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 'f2a3b4c5-6d7e-4f2a-9b3c-4d5e6f7a8b9c', '2025-10-23', '2025-10-30', 'Processing', 145.82), -- Candy Corner Ltd.
+('0c1d2e3f-4a5b-4c6d-7e8f-9a0b1c2d3e4f', 'f2a3b4c5-6d7e-4f2a-9b3c-4d5e6f7a8b9c', '2025-10-23', '2025-10-30', 'Pending', 145.82), -- Candy Corner Ltd.
 ('1d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a', 'a3b4c5d6-7e8f-4a3b-0c4d-5e6f7a8b9c0d', '2025-10-24', '2025-10-31', 'Pending', 84.73),    -- Sanjaya Mendis
-('2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b', 'b4c5d6e7-8f9a-4b4c-1d5e-6f7a8b9c0d1e', '2025-10-25', '2025-11-01', 'Processing', 119.88), -- Nayana Kumari
+('2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b', 'b4c5d6e7-8f9a-4b4c-1d5e-6f7a8b9c0d1e', '2025-10-25', '2025-11-01', 'Pending', 119.88), -- Nayana Kumari
 ('3f4a5b6c-7d8e-4f9a-0b1c-2d3e4f5a6b7c', 'c5d6e7f8-9a0b-4c5d-2e6f-7a8b9c0d1e2f', '2025-10-26', '2025-11-02', 'Pending', 165.61),   -- Global Sweets Co.
-('4a5b6c7d-8e9f-4a0b-1c2d-3e4f5a6b7c8d', 'd6e7f8a9-0b1c-4d6e-3f7a-8b9c0d1e2f3a', '2025-10-27', '2025-11-03', 'Processing', 93.44), -- Kamal Wijeratne
+('4a5b6c7d-8e9f-4a0b-1c2d-3e4f5a6b7c8d', 'd6e7f8a9-0b1c-4d6e-3f7a-8b9c0d1e2f3a', '2025-10-27', '2025-11-03', 'Pending', 93.44), -- Kamal Wijeratne
 ('5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e', 'e7f8a9b0-1c2d-4e7f-4a8b-9c0d1e2f3a4b', '2025-10-28', '2025-11-04', 'Pending', 110.77),  -- Dilani Fonseka
-('6c7d8e9f-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 'f8a9b0c1-2d3e-4f8a-5b9c-0d1e2f3a4b5c', '2025-10-29', '2025-11-05', 'Processing', 132.55), -- Sweet Haven Stores
+('6c7d8e9f-0a1b-4c2d-3e4f-5a6b7c8d9e0f', 'f8a9b0c1-2d3e-4f8a-5b9c-0d1e2f3a4b5c', '2025-10-29', '2025-11-05', 'Pending', 132.55), -- Sweet Haven Stores
 ('7d8e9f0a-1b2c-4d3e-4f5a-6b7c8d9e0f1a', 'a9b0c1d2-3e4f-4a9b-6c0d-1e2f3a4b5c6d', '2025-10-30', '2025-11-06', 'Pending', 102.83),   -- Ranjith Bandara
-('8e9f0a1b-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 'b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', '2025-10-31', '2025-11-07', 'Processing', 121.40); -- Chathura Senanayake
+('8e9f0a1b-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 'b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', '2025-10-31', '2025-11-07', 'Pending', 121.40); -- Chathura Senanayake
 
 INSERT INTO Delivery_Schedule (delivery_id, route_id, truck_id, driver_id, assistant_id, delivery_date, status) VALUES
 ('e7f72fc9-ce18-44b4-97f2-50781eb754a7', '98b43b99-6e29-4f1f-8eac-d0384350db96', 'f550ff2e-1080-4b29-af61-f46b009bf1ac', '1d672079-260a-48e6-9e5c-2fef6092bdf0', 'fd160307-a56a-4f04-b88d-6422d29496a3', '2025-09-12', 'Scheduled'),
@@ -438,7 +438,8 @@ SELECT
     o.order_date, 
     o.required_date, 
     oi.product_id, 
-    o.total_value
+    o.total_value,
+    o.status
 FROM Customer c
 INNER JOIN `Order` o ON o.customer_id = c.customer_id
 INNER JOIN Order_Item oi ON oi.order_id = o.order_id;

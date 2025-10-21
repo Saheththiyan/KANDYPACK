@@ -7,7 +7,7 @@ const router = express.Router();
 // Apply authentication to all truck routes
 router.use(authenticateToken);
 
-router.get("/", truck.getAllTrucks);
+router.get("/", truck.getTrucksByStore); // Now handles both all trucks and filtered by store
 
 router.post("/", truck.addNewTruck);
 

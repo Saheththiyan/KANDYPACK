@@ -40,7 +40,7 @@ export async function login(req, res) {
         .json({ success: false, message: "Invalid email or password" });
     }
 
-    const role = admin ? "Admin" : "Customer";
+    // const role = admin ? "Admin" : "Customer";
     const record = admin || customer;
     const isValid = admin
       ? await validateAdminPassword(record, password)

@@ -45,8 +45,8 @@ export async function getCustomerByEmail(email) {
 }
 
 export async function validateCustomerPassword(customer, password) {
-  // return bcrypt.compare(password, customer.password);
-  return customer.password === password;
+  return bcrypt.compare(password, customer.password);
+  // return customer.password === password;
 }
 
 export async function getCustomerById(id) {
