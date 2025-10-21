@@ -65,8 +65,19 @@ export const AuthCard = () => {
       }).then(res => res.json());
 
       if (response.success && response.user && response.token) {
-        // Store auth token and user data
-        setAuthToken(response.token, response.user.role, response.user.email, response.user.name, response.user.id);
+        const session = {
+          token: response.token as string,
+          id: response.user.id,
+          role: response.user.role,
+          email: response.user.email,
+          name: response.user.name,
+          phone: response.user.phone ?? null,
+          address: response.user.address ?? null,
+          city: response.user.city ?? null,
+          type: response.user.type ?? null,
+        } as const;
+
+        setAuthToken(session);
 
         // Route based on role
         if (response.user.role === 'Customer') {
@@ -79,7 +90,7 @@ export const AuthCard = () => {
 
         toast({
           title: "Sign in successful",
-          description: `Welcome back, ${response.user.name}!`,
+          description: `Welcome back, ${response.user.name || response.user.email}!`,
         });
       } else {
         setErrorMessage(response.message);

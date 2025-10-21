@@ -14,8 +14,48 @@ export async function getAdminByEmail(email) {
   return admins[0];
 }
 
+export async function getAdminById(id) {
+  const [admins] = await db.query(
+    `SELECT admin_id, username, email FROM Admin WHERE admin_id = ?`,
+    [id]
+  );
+  return admins[0] || null;
+}
+
 export async function validateAdminPassword(admin, password) {
   return bcrypt.compare(password, admin.password);
+}
+
+export async function updateAdminProfile(adminId, updates = {}) {
+  const columns = [];
+  const values = [];
+
+  const mapping = {
+    username: "username",
+    email: "email",
+  };
+
+  for (const [key, column] of Object.entries(mapping)) {
+    if (Object.prototype.hasOwnProperty.call(updates, key)) {
+      columns.push(`${column} = ?`);
+      values.push(updates[key] ?? null);
+    }
+  }
+
+  if (!columns.length) {
+    return null;
+  }
+
+  await db.query(
+    `
+      UPDATE Admin
+      SET ${columns.join(", ")}
+      WHERE admin_id = ?
+    `,
+    [...values, adminId]
+  );
+
+  return getAdminById(adminId);
 }
 
 export async function addAdmin(adminData) {

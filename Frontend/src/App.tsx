@@ -15,6 +15,8 @@ import CustomerProducts from "./customer/pages/Products";
 import CustomerCart from "./customer/pages/Cart";
 import CustomerOrders from "./customer/pages/Orders";
 import CustomerOrderDetails from "./customer/pages/OrderDetails";
+import CustomerCardPayment from "./customer/pages/CardPayment";
+import CustomerProfile from "./customer/pages/Profile";
 import AdminDashboard from "./admin/pages/Dashboard";
 import QuarterlySales from "./admin/pages/reports/QuarterlySales";
 import MostOrdered from "./admin/pages/reports/MostOrdered";
@@ -78,8 +80,10 @@ const App = () => {
               <Route index element={<CustomerHome />} />
               <Route path="products" element={<CustomerProducts />} />
               <Route path="cart" element={<CustomerCart />} />
+              <Route path="payment" element={<CustomerCardPayment />} />
               <Route path="orders" element={<CustomerOrders />} />
               <Route path="orders/:id" element={<CustomerOrderDetails />} />
+              <Route path="profile" element={<CustomerProfile />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

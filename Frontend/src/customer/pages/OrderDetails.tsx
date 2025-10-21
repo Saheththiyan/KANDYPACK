@@ -1,29 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Package, RefreshCw, ArrowLeft, CheckCircle, Clock, Truck, Train } from 'lucide-react';
+import { Package, RefreshCw, ArrowLeft, CheckCircle, Clock, Truck, Train, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { fetchOrder, advanceOrderStatus, Order } from '@/lib/mockApi';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { getAuthToken } from '@/lib/mockAuth';
 import { API_URL } from '@/lib/config';
+import type { CustomerOrder, OrderTimelineEntry } from '@/types/order';
+import { generateInvoicePdf } from '@/customer/utils/invoice';
 
-const TimelineItem = ({ status, timestamp, completed }: {
+const TimelineItem = ({
+  status,
+  timestamp,
+  completed,
+}: {
   status: string;
   timestamp?: string;
   completed: boolean;
 }) => (
   <div className="flex items-start space-x-3">
-    <div className={`mt-1 w-4 h-4 rounded-full border-2 ${completed ? 'bg-primary border-primary' : 'border-muted-foreground'
-      }`}>
+    <div
+      className={`mt-1 w-4 h-4 rounded-full border-2 ${
+        completed ? 'bg-primary border-primary' : 'border-muted-foreground'
+      }`}
+    >
       {completed && <CheckCircle className="w-3 h-3 text-primary-foreground" />}
     </div>
     <div className="flex-1">
-      <p className={`text-sm font-medium ${completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+      <p
+        className={`text-sm font-medium ${
+          completed ? 'text-foreground' : 'text-muted-foreground'
+        }`}
+      >
         {status}
       </p>
       {timestamp && (
@@ -37,63 +49,85 @@ const TimelineItem = ({ status, timestamp, completed }: {
 
 const CustomerOrderDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<CustomerOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
 
   const auth = getAuthToken();
 
-  useEffect(() => {
-    const loadOrder = async () => {
-      if (!id) return;
+  const fetchOrderDetails = useCallback(
+    async (orderId: string, withSpinner: boolean = true) => {
+      if (!auth?.token) return;
 
-      setIsLoading(true);
+      if (withSpinner) setIsLoading(true);
+
       try {
-        const orderData = await fetch(`${API_URL}/orders/${id}`, {
+        const response = await fetch(`${API_URL}/orders/${orderId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
+            Authorization: `Bearer ${auth.token}`,
           },
-        }).then(res => res.json());
+        });
 
-        setOrder(orderData);
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.message || 'Failed to load order');
+        }
+
+        setOrder(payload.order ?? null);
       } catch (error) {
         console.error('Failed to load order:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load order details.',
+          description: error instanceof Error ? error.message : 'Failed to load order details.',
           variant: 'destructive',
         });
       } finally {
-        setIsLoading(false);
+        if (withSpinner) setIsLoading(false);
       }
-    };
+    },
+    [auth?.token]
+  );
 
-    loadOrder();
-  }, [id]);
+  useEffect(() => {
+    if (id) {
+      fetchOrderDetails(id);
+    }
+  }, [id, fetchOrderDetails]);
 
   const handleRefreshStatus = async () => {
+    if (!id) return;
+    setIsRefreshing(true);
+    await fetchOrderDetails(id, false);
+    setIsRefreshing(false);
+    toast({
+      title: 'Status refreshed',
+      description: 'Latest status pulled from the server.',
+    });
+  };
+
+  const handleDownloadInvoice = () => {
     if (!order) return;
 
-    setIsRefreshing(true);
     try {
-      const updatedOrder = await advanceOrderStatus(order.id);
-      if (updatedOrder) {
-        setOrder(updatedOrder);
-        toast({
-          title: 'Status updated',
-          description: 'Order status has been refreshed.',
-        });
-      }
-    } catch (error) {
+      setIsGeneratingInvoice(true);
+      generateInvoicePdf(order);
       toast({
-        title: 'Error',
-        description: 'Failed to refresh order status.',
+        title: 'Invoice ready',
+        description: 'The invoice has been downloaded as a PDF.',
+      });
+    } catch (error) {
+      console.error('Invoice generation failed:', error);
+      toast({
+        title: 'Download failed',
+        description: error instanceof Error ? error.message : 'Unable to generate invoice.',
         variant: 'destructive',
       });
     } finally {
-      setIsRefreshing(false);
+      setIsGeneratingInvoice(false);
     }
   };
 
@@ -132,35 +166,48 @@ const CustomerOrderDetails = () => {
   if (!order) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/customer/orders">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Orders
-            </Link>
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/customer/orders">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Orders
+          </Link>
+        </Button>
         <Card>
-          <CardContent className="py-12 text-center">
-            <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Order not found</h3>
-            <p className="text-muted-foreground">
-              The order you're looking for doesn't exist or has been removed.
-            </p>
+          <CardHeader>
+            <CardTitle>Order not found</CardTitle>
+            <CardDescription>
+              We couldn&apos;t find the order you were looking for.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link to="/customer/orders">View all orders</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // Calculate progress
-  const completedSteps = order.timeline.filter(step => step.completed).length;
-  const totalSteps = order.timeline.length;
-  const progressPercentage = (completedSteps / totalSteps) * 100;
+  const total =
+    typeof order.total === 'number'
+      ? order.total
+      : Number(order.total_value ?? 0);
+  const deliveryDateLabel =
+    order.deliveryDate && !Number.isNaN(new Date(order.deliveryDate).getTime())
+      ? format(new Date(order.deliveryDate), 'MMMM dd, yyyy')
+      : 'Not scheduled';
+  const orderDateLabel =
+    order.orderDate && !Number.isNaN(new Date(order.orderDate).getTime())
+      ? format(new Date(order.orderDate), 'PPP')
+      : 'Unknown date';
+
+  const timeline: OrderTimelineEntry[] = order.timeline ?? [];
+  const logistics = order.logistics;
+  const customer = order.customer;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="sm" asChild>
@@ -170,57 +217,52 @@ const CustomerOrderDetails = () => {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Order {order.id}</h1>
-            <p className="text-muted-foreground">
-              Placed on {format(new Date(order.date), 'MMMM dd, yyyy')}
+            <h1 className="text-2xl font-bold">Order {order.order_id || order.id}</h1>
+            <p className="text-sm text-muted-foreground">
+              Placed on {orderDateLabel}
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Badge variant="secondary" className="text-sm">
-            {order.status}
-          </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">{order.status}</Badge>
           <Button
-            onClick={handleRefreshStatus}
-            disabled={isRefreshing}
             variant="outline"
             size="sm"
+            onClick={handleDownloadInvoice}
+            disabled={isGeneratingInvoice}
+            className="flex items-center gap-2"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh Status
+            <Download className="w-4 h-4" />
+            {isGeneratingInvoice ? 'Preparing...' : 'Download Invoice'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshStatus}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span>Order Progress</span>
-              <span>{Math.round(progressPercentage)}% Complete</span>
-            </div>
-            <Progress value={progressPercentage} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Order Summary */}
+      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Package className="w-5 h-5" />
-                <span>Order Summary</span>
-              </CardTitle>
+              <CardTitle>Order Summary</CardTitle>
+              <CardDescription>Overview of your order items and total.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">Rs {order.total.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">
+                    Rs {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    Deliver to: {order.customer.address.city}
+                    Deliver to: {customer?.address?.city || '—'}
                   </p>
                 </div>
               </div>
@@ -233,7 +275,7 @@ const CustomerOrderDetails = () => {
                     <div className="flex-1">
                       <p className="font-medium">{item.product.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {item.quantity}x @ Rs {item.price.toLocaleString()}
+                        {item.quantity} × Rs {item.price.toLocaleString()}
                       </p>
                     </div>
                     <p className="font-medium">
@@ -245,77 +287,87 @@ const CustomerOrderDetails = () => {
             </CardContent>
           </Card>
 
-          {/* Logistics Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Train className="w-5 h-5" />
-                <span>Logistics Details</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Rail Transport */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Train className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold">Train Journey: Kandy → {order.customer.address.city}</h4>
-                </div>
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-                  <p><strong>Trip ID:</strong> {order.logistics.rail.trainId}</p>
-                  <p><strong>Departure:</strong> {order.logistics.rail.departure}</p>
-                  <p><strong>Arrival:</strong> {order.logistics.rail.arrival}</p>
-                  <p><strong>Wagon:</strong> {order.logistics.rail.wagonCode}</p>
-                  <p><strong>Space Used:</strong> {order.logistics.rail.spaceUsed} units</p>
-                  <p><strong>Remaining Capacity:</strong> {order.logistics.rail.remainingCapacity} units</p>
-                  <div className="mt-2">
-                    <Progress
-                      value={(order.logistics.rail.allocatedCapacity / (order.logistics.rail.allocatedCapacity + order.logistics.rail.remainingCapacity)) * 100}
-                      className="w-full"
-                    />
+          {logistics && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Train className="w-5 h-5" />
+                  <span>Logistics Details</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Train className="w-4 h-4 text-primary" />
+                    <h4 className="font-semibold">
+                      Train Journey: Kandy → {customer?.address?.city || 'Destination'}
+                    </h4>
+                  </div>
+                  <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
+                    <p><strong>Trip ID:</strong> {logistics.rail.trainId}</p>
+                    <p><strong>Departure:</strong> {logistics.rail.departure}</p>
+                    <p><strong>Arrival:</strong> {logistics.rail.arrival}</p>
+                    <p><strong>Wagon:</strong> {logistics.rail.wagonCode}</p>
+                    <p><strong>Space Used:</strong> {logistics.rail.spaceUsed} units</p>
+                    <p><strong>Remaining Capacity:</strong> {logistics.rail.remainingCapacity} units</p>
+                    <div className="mt-2">
+                      <Progress
+                        value={
+                          logistics.rail.allocatedCapacity > 0
+                            ? (logistics.rail.allocatedCapacity /
+                                (logistics.rail.allocatedCapacity + logistics.rail.remainingCapacity)) *
+                              100
+                            : 0
+                        }
+                        className="w-full"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <Separator />
+                <Separator />
 
-              {/* Store Handover */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Package className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold">Distribution Center</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Package className="w-4 h-4 text-primary" />
+                    <h4 className="font-semibold">Distribution Center</h4>
+                  </div>
+                  <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
+                    <p><strong>Location:</strong> {logistics.store.name}</p>
+                    <p><strong>Address:</strong> {logistics.store.address}</p>
+                    {logistics.store.handoverTime && (
+                      <p><strong>Handover Time:</strong> {logistics.store.handoverTime}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-                  <p><strong>Location:</strong> {order.logistics.store.name}</p>
-                  <p><strong>Address:</strong> {order.logistics.store.address}</p>
-                  {order.logistics.store.handoverTime && (
-                    <p><strong>Handover Time:</strong> {order.logistics.store.handoverTime}</p>
-                  )}
-                </div>
-              </div>
 
-              <Separator />
+                <Separator />
 
-              {/* Truck Delivery */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Truck className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold">Last-Mile Delivery</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Truck className="w-4 h-4 text-primary" />
+                    <h4 className="font-semibold">Last-Mile Delivery</h4>
+                  </div>
+                  <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
+                    <p><strong>Route:</strong> {logistics.truck.routeName}</p>
+                    <p>
+                      <strong>Areas Covered:</strong>{' '}
+                      {logistics.truck.areasCovered.join(', ')}
+                    </p>
+                    <p><strong>ETA Window:</strong> {logistics.truck.etaWindow}</p>
+                    <p><strong>Truck:</strong> {logistics.truck.truckPlate}</p>
+                    <p>
+                      <strong>Driver & Assistant:</strong> {logistics.truck.driver},{' '}
+                      {logistics.truck.assistant}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-                  <p><strong>Route:</strong> {order.logistics.truck.routeName}</p>
-                  <p><strong>Areas Covered:</strong> {order.logistics.truck.areasCovered.join(', ')}</p>
-                  <p><strong>ETA Window:</strong> {order.logistics.truck.etaWindow}</p>
-                  <p><strong>Truck:</strong> {order.logistics.truck.truckPlate}</p>
-                  <p><strong>Driver & Assistant:</strong> {order.logistics.truck.driver}, {order.logistics.truck.assistant}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        {/* Customer Information & Timeline */}
         <div className="space-y-6">
-          {/* Customer Information */}
           <Card>
             <CardHeader>
               <CardTitle>Customer Information</CardTitle>
@@ -324,34 +376,33 @@ const CustomerOrderDetails = () => {
               <dl className="space-y-3">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Name</dt>
-                  <dd className="text-sm">{order.customer.name}</dd>
+                  <dd className="text-sm">{customer?.name || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-                  <dd className="text-sm">{order.customer.email}</dd>
+                  <dd className="text-sm">{customer?.email || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
-                  <dd className="text-sm">{order.customer.phone}</dd>
+                  <dd className="text-sm">{customer?.phone || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Address</dt>
-                  <dd className="text-sm">{order.customer.address.street}</dd>
-                  <dd className="text-sm">{order.customer.address.city}</dd>
+                  <dd className="text-sm">{customer?.address?.street || '—'}</dd>
+                  <dd className="text-sm">{customer?.address?.city || '—'}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Delivery Date</dt>
-                  <dd className="text-sm">{format(new Date(order.deliveryDate), 'MMMM dd, yyyy')}</dd>
+                  <dd className="text-sm">{deliveryDateLabel}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Payment Method</dt>
-                  <dd className="text-sm">{order.paymentMethod}</dd>
+                  <dd className="text-sm">{order.paymentMethod || '—'}</dd>
                 </div>
               </dl>
             </CardContent>
           </Card>
 
-          {/* Status Timeline */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -361,14 +412,18 @@ const CustomerOrderDetails = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {order.timeline.map((item, index) => (
-                  <TimelineItem
-                    key={index}
-                    status={item.status}
-                    timestamp={item.timestamp}
-                    completed={item.completed}
-                  />
-                ))}
+                {timeline.length > 0 ? (
+                  timeline.map((item, index) => (
+                    <TimelineItem
+                      key={index}
+                      status={item.status}
+                      timestamp={item.timestamp}
+                      completed={item.completed}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Timeline data unavailable.</p>
+                )}
               </div>
             </CardContent>
           </Card>

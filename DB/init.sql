@@ -103,6 +103,7 @@ CREATE TABLE `Order` (
     required_date DATE,
     status VARCHAR(20),
     total_value DECIMAL(10,2),
+    payment_method VARCHAR(50) DEFAULT 'cod',
     PRIMARY KEY (order_id),
     FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
 );
