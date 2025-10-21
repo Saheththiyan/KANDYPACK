@@ -1,23 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -26,545 +10,673 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Plus, Trash2, AlertCircle, Truck as TruckIcon, Users, Clock } from 'lucide-react';
-import { toast } from 'sonner';
+import { Package, Truck, Users, Clock, CheckCircle, XCircle, Calendar } from 'lucide-react';
+
+const API_URL = "http://localhost:5000";
+
+interface Order {
+  order_id: string;
+  customer_name: string;
+  customer_city: string;
+  order_date: string;
+  total_items: number;
+  total_value: number;
+}
+
+interface ProcessedOrder extends Order {
+  store_name: string;
+  driver_name: string;
+  assistant_name: string;
+  truck_license: string;
+  train_schedule: string;
+  delivery_status: string;
+}
+
+interface TrainSchedule {
+  schedule_id: string;
+  train_name: string;
+  departure_time: string;
+  arrival_time: string;
+  city: string;
+}
+
+interface Store {
+  store_id: string;
+  name: string;
+  city: string;
+  address: string;
+}
 
 interface Driver {
   driver_id: string;
   name: string;
+  store_id: string;
   hours_this_week: number;
 }
 
 interface Assistant {
   assistant_id: string;
   name: string;
+  store_id: string;
   hours_this_week: number;
 }
 
 interface Truck {
   truck_id: string;
   license_plate: string;
-  status: 'Available' | 'In Use' | 'Maintenance';
-}
-
-interface Route {
-  route_id: string;
-  name: string;
-  city: string;
-  estimated_hours: number;
-}
-
-interface Allocation {
-  allocation_id: string;
-  route_name: string;
-  city: string;
-  truck_license: string;
-  driver_name: string;
-  assistant_name: string;
-  delivery_date: string;
-  delivery_hours: number;
+  store_id: string;
   status: string;
 }
 
-interface ValidationError {
-  field: string;
-  message: string;
-}
+const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
+  <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${
+    type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+  }`}>
+    {type === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+    <span className="font-medium">{message}</span>
+    <button onClick={onClose} className="ml-2 text-gray-500 hover:text-gray-700">×</button>
+  </div>
+);
 
-const Allocations = () => {
+const OrderAllocations = () => {
+  const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
+  const [processedOrders, setProcessedOrders] = useState<ProcessedOrder[]>([]);
+  const [trainSchedules, setTrainSchedules] = useState<TrainSchedule[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [assistants, setAssistants] = useState<Assistant[]>([]);
   const [trucks, setTrucks] = useState<Truck[]>([]);
-  const [routes, setRoutes] = useState<Route[]>([]);
-  const [allocations, setAllocations] = useState<Allocation[]>([]);
-  const [showDialog, setShowDialog] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAllocationDialog, setShowAllocationDialog] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const [formData, setFormData] = useState({
-    route_id: '',
-    truck_id: '',
+  const [allocationForm, setAllocationForm] = useState({
+    train_schedule_id: '',
+    store_id: '',
     driver_id: '',
     assistant_id: '',
-    delivery_date: '',
-    delivery_hours: '',
+    truck_id: '',
   });
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Mock data - replace with actual API calls
+  const mockPendingOrders: Order[] = [
+    {
+      order_id: 'ORD001',
+      customer_name: 'John Doe',
+      customer_city: 'Colombo',
+      order_date: '2024-01-15',
+      total_items: 5,
+      total_value: 15000,
+    },
+    {
+      order_id: 'ORD002',
+      customer_name: 'Jane Smith',
+      customer_city: 'Galle',
+      order_date: '2024-01-16',
+      total_items: 3,
+      total_value: 8500,
+    },
+    {
+      order_id: 'ORD003',
+      customer_name: 'Mike Johnson',
+      customer_city: 'Kandy',
+      order_date: '2024-01-16',
+      total_items: 7,
+      total_value: 22000,
+    },
+  ];
+
+  const mockProcessedOrders: ProcessedOrder[] = [
+    {
+      order_id: 'ORD004',
+      customer_name: 'Sarah Williams',
+      customer_city: 'Colombo',
+      order_date: '2024-01-14',
+      total_items: 4,
+      total_value: 12000,
+      store_name: 'Main Store - Colombo',
+      driver_name: 'Kamal Silva',
+      assistant_name: 'Nimal Perera',
+      truck_license: 'ABC-1234',
+      train_schedule: 'Express 10:00 AM',
+      delivery_status: 'In Transit',
+    },
+    {
+      order_id: 'ORD005',
+      customer_name: 'David Brown',
+      customer_city: 'Galle',
+      order_date: '2024-01-13',
+      total_items: 6,
+      total_value: 18500,
+      store_name: 'Branch Store - Galle',
+      driver_name: 'Saman Fernando',
+      assistant_name: 'Ruwan Jayawardena',
+      truck_license: 'XYZ-5678',
+      train_schedule: 'Morning 08:30 AM',
+      delivery_status: 'Out for Delivery',
+    },
+  ];
+
+  const mockTrainSchedules: TrainSchedule[] = [
+    {
+      schedule_id: 'TS001',
+      train_name: 'Express Train',
+      departure_time: '10:00 AM',
+      arrival_time: '02:00 PM',
+      city: 'Colombo',
+    },
+    {
+      schedule_id: 'TS002',
+      train_name: 'Morning Train',
+      departure_time: '08:30 AM',
+      arrival_time: '12:30 PM',
+      city: 'Colombo',
+    },
+    {
+      schedule_id: 'TS003',
+      train_name: 'Southern Express',
+      departure_time: '09:00 AM',
+      arrival_time: '01:30 PM',
+      city: 'Galle',
+    },
+    {
+      schedule_id: 'TS004',
+      train_name: 'Hill Country Express',
+      departure_time: '07:00 AM',
+      arrival_time: '11:00 AM',
+      city: 'Kandy',
+    },
+  ];
+
+  const mockStores: Store[] = [
+    { store_id: 'ST001', name: 'Main Store - Colombo', city: 'Colombo', address: '123 Main St' },
+    { store_id: 'ST002', name: 'Branch Store - Galle', city: 'Galle', address: '456 Beach Rd' },
+    { store_id: 'ST003', name: 'Branch Store - Kandy', city: 'Kandy', address: '789 Hill St' },
+  ];
+
+  const mockDrivers: Driver[] = [
+    { driver_id: 'D001', name: 'Kamal Silva', store_id: 'ST001', hours_this_week: 32 },
+    { driver_id: 'D002', name: 'Saman Fernando', store_id: 'ST002', hours_this_week: 28 },
+    { driver_id: 'D003', name: 'Pradeep Kumara', store_id: 'ST003', hours_this_week: 35 },
+    { driver_id: 'D004', name: 'Ajith Bandara', store_id: 'ST001', hours_this_week: 30 },
+  ];
+
+  const mockAssistants: Assistant[] = [
+    { assistant_id: 'A001', name: 'Nimal Perera', store_id: 'ST001', hours_this_week: 45 },
+    { assistant_id: 'A002', name: 'Ruwan Jayawardena', store_id: 'ST002', hours_this_week: 42 },
+    { assistant_id: 'A003', name: 'Lasith Malinga', store_id: 'ST003', hours_this_week: 50 },
+    { assistant_id: 'A004', name: 'Chaminda Vaas', store_id: 'ST001', hours_this_week: 38 },
+  ];
+
+  const mockTrucks: Truck[] = [
+    { truck_id: 'T001', license_plate: 'ABC-1234', store_id: 'ST001', status: 'Available' },
+    { truck_id: 'T002', license_plate: 'XYZ-5678', store_id: 'ST002', status: 'Available' },
+    { truck_id: 'T003', license_plate: 'DEF-9012', store_id: 'ST003', status: 'Available' },
+    { truck_id: 'T004', license_plate: 'GHI-3456', store_id: 'ST001', status: 'In Use' },
+  ];
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const getAllDrivers = () => {
-    // Mock data - replace with API call
-    return [
-      { driver_id: 'd1', name: 'John Doe', hours_this_week: 32 },
-      { driver_id: 'd2', name: 'Jane Smith', hours_this_week: 28 },
-    ];
-  };
-
-  const getAllAssistants = () => {
-    // Mock data - replace with API call
-    return [
-      { assistant_id: 'a1', name: 'Mike Brown', hours_this_week: 45 },
-      { assistant_id: 'a2', name: 'Sara White', hours_this_week: 50 },
-    ];
-  };
-
-  const getAllTrucks = () => {
-    // Mock data - replace with API call
-    return [
-      { truck_id: 't1', license_plate: 'ABC-123', status: 'Available' },
-      { truck_id: 't2', license_plate: 'XYZ-789', status: 'In Use' },
-    ] as Truck[];
-  };
-
-  const getAllRoutes = () => {
-    // Mock data - replace with API call
-    return [
-      { route_id: 'r1', name: 'Route 1', city: 'City A', estimated_hours: 8 },
-      { route_id: 'r2', name: 'Route 2', city: 'City B', estimated_hours: 6 },
-    ];
-  };
-
-  const getAllAllocations = () => {
-    // Mock data - replace with API call
-    return [
-      {
-        allocation_id: 'alloc1',
-        route_name: 'Route 1',
-        city: 'City A',
-        truck_license: 'ABC-123',
-        driver_name: 'John Doe',
-        assistant_name: 'Mike Brown',
-        delivery_date: '2024-06-15',
-        delivery_hours: 8,
-        status: 'Scheduled',
-      },
-    ];
-  };
-
-  const addAllocation = (allocation: {
-    route_id: string;
-    truck_id: string;
-    driver_id: string;
-    assistant_id: string;
-    delivery_date: string;
-    delivery_hours: number;
-    status: string;
-  }) => {
-    // Map the incoming IDs to the Allocation shape expected by the UI
-    const route = routes.find(r => r.route_id === allocation.route_id);
-    const truck = trucks.find(t => t.truck_id === allocation.truck_id);
-    const driver = drivers.find(d => d.driver_id === allocation.driver_id);
-    const assistant = assistants.find(a => a.assistant_id === allocation.assistant_id);
-
-    const newAllocation: Allocation = {
-      allocation_id: `alloc_${Date.now()}`,
-      route_name: route?.name || '',
-      city: route?.city || '',
-      truck_license: truck?.license_plate || '',
-      driver_name: driver?.name || '',
-      assistant_name: assistant?.name || '',
-      delivery_date: allocation.delivery_date,
-      delivery_hours: allocation.delivery_hours,
-      status: allocation.status,
-    };
-
-    // Mock function - replace with API call
-    console.log('Adding allocation:', newAllocation);
-    setAllocations(prev => [...prev, newAllocation]);
-  };
-
-  const deleteAllocation = (allocationId: string) => {
-    // Mock function - replace with API call
-    console.log('Deleting allocation:', allocationId);
-  };
-
-  const validateAllocation = (
-    driver_id: string,
-    assistant_id: string,
-    delivery_date: string,
-    delivery_hours: number
-  ): ValidationError[] => {
-    const errors: ValidationError[] = [];
-
-    return errors;
-  }
-
-  const loadData = () => {
+  const loadData = async () => {
     try {
-      setDrivers(getAllDrivers());
-      setAssistants(getAllAssistants());
-      setTrucks(getAllTrucks());
-      setRoutes(getAllRoutes());
-      setAllocations(getAllAllocations());
+      setLoading(true);
+      // Replace with actual API calls
+      setPendingOrders(mockPendingOrders);
+      setProcessedOrders(mockProcessedOrders);
+      setTrainSchedules(mockTrainSchedules);
+      setStores(mockStores);
+      setDrivers(mockDrivers);
+      setAssistants(mockAssistants);
+      setTrucks(mockTrucks);
     } catch (error) {
       console.error('Failed to load data:', error);
-      toast.error('Failed to load allocation data');
+      showToast('Failed to load data', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setValidationErrors([]);
+  const handleAllocateClick = (order: Order) => {
+    setSelectedOrder(order);
+    setAllocationForm({
+      train_schedule_id: '',
+      store_id: '',
+      driver_id: '',
+      assistant_id: '',
+      truck_id: '',
+    });
+    setShowAllocationDialog(true);
+  };
 
-    // Validate form
-    const errors = validateAllocation(
-      formData.driver_id,
-      formData.assistant_id,
-      formData.delivery_date,
-      parseFloat(formData.delivery_hours)
-    );
+  const handleStoreChange = (storeId: string) => {
+    setAllocationForm({
+      ...allocationForm,
+      store_id: storeId,
+      driver_id: '',
+      assistant_id: '',
+      truck_id: '',
+    });
+  };
 
-    if (errors.length > 0) {
-      setValidationErrors(errors);
+  const handleProcessAllocation = async () => {
+    if (!allocationForm.train_schedule_id || !allocationForm.store_id || 
+        !allocationForm.driver_id || !allocationForm.assistant_id || !allocationForm.truck_id) {
+      showToast('Please fill in all fields', 'error');
       return;
     }
 
     try {
-      addAllocation({
-        route_id: formData.route_id,
-        truck_id: formData.truck_id,
-        driver_id: formData.driver_id,
-        assistant_id: formData.assistant_id,
-        delivery_date: formData.delivery_date,
-        delivery_hours: parseFloat(formData.delivery_hours),
-        status: 'Scheduled',
+      // Replace with actual API call
+      console.log('Processing allocation:', {
+        order_id: selectedOrder?.order_id,
+        ...allocationForm,
       });
 
-      toast.success('Allocation successfully added!');
-      setShowDialog(false);
-      setFormData({
-        route_id: '',
-        truck_id: '',
-        driver_id: '',
-        assistant_id: '',
-        delivery_date: '',
-        delivery_hours: '',
-      });
-      loadData();
+      showToast('Order allocated successfully!', 'success');
+      setShowAllocationDialog(false);
+      await loadData();
     } catch (error) {
-      console.error('Failed to add allocation:', error);
-      toast.error('Failed to add allocation');
+      console.error('Failed to process allocation:', error);
+      showToast('Failed to process allocation', 'error');
     }
   };
 
-  const handleDelete = (allocationId: string) => {
-    try {
-      deleteAllocation(allocationId);
-      toast.success('Allocation deleted successfully');
-      loadData();
-    } catch (error) {
-      console.error('Failed to delete allocation:', error);
-      toast.error('Failed to delete allocation');
-    }
-  };
+  // Filter data based on selections
+  const availableTrainSchedules = selectedOrder 
+    ? trainSchedules.filter(ts => ts.city === selectedOrder.customer_city)
+    : [];
+
+  const availableStores = selectedOrder
+    ? stores.filter(s => s.city === selectedOrder.customer_city)
+    : [];
+
+  const availableDrivers = allocationForm.store_id
+    ? drivers.filter(d => d.store_id === allocationForm.store_id)
+    : [];
+
+  const availableAssistants = allocationForm.store_id
+    ? assistants.filter(a => a.store_id === allocationForm.store_id)
+    : [];
+
+  const availableTrucks = allocationForm.store_id
+    ? trucks.filter(t => t.store_id === allocationForm.store_id && t.status === 'Available')
+    : [];
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      Scheduled: 'default',
-      'In Progress': 'secondary',
-      Completed: 'outline',
-      Cancelled: 'destructive',
+    const colors: Record<string, string> = {
+      'In Transit': 'bg-blue-100 text-blue-800',
+      'Out for Delivery': 'bg-yellow-100 text-yellow-800',
+      'Delivered': 'bg-green-100 text-green-800',
     };
-    return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
+    return <Badge className={colors[status] || 'bg-gray-100 text-gray-800'}>{status}</Badge>;
   };
 
-  const getProgressColor = (hours: number, limit: number) => {
-    const percentage = (hours / limit) * 100;
-    if (percentage >= 95) return 'bg-destructive';
-    if (percentage >= 80) return 'bg-yellow-500';
-    return 'bg-primary';
-  };
-
-  const availableTrucks = trucks.filter(t => t.status === 'Available').length;
-  const totalTrucks = trucks.length;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Driver & Truck Allocation</h1>
-          <p className="text-muted-foreground">Manage delivery allocations and monitor resource availability</p>
-        </div>
-        <Button onClick={() => setShowDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Allocation
-        </Button>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Header */}
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Order Allocations</h2>
+        <p className="text-muted-foreground">
+          Manage delivery allocations for customer orders
+        </p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Trucks</CardTitle>
-            <TruckIcon className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{availableTrucks} / {totalTrucks}</div>
-            <p className="text-xs text-muted-foreground">
-              {totalTrucks - availableTrucks} in use or maintenance
-            </p>
+            <div className="text-2xl font-bold">{pendingOrders.length}</div>
+            <p className="text-xs text-muted-foreground">Awaiting allocation</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
+            <CardTitle className="text-sm font-medium">In Transit</CardTitle>
+            <Truck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {processedOrders.filter(o => o.delivery_status === 'In Transit').length}
+            </div>
+            <p className="text-xs text-muted-foreground">On the way</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Out for Delivery</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{drivers.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {drivers.filter(d => d.hours_this_week < 40).length} available this week
-            </p>
+            <div className="text-2xl font-bold">
+              {processedOrders.filter(o => o.delivery_status === 'Out for Delivery').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Being delivered</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Assistants</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assistants.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {assistants.filter(a => a.hours_this_week < 60).length} available this week
-            </p>
+            <div className="text-2xl font-bold">
+              Rs {pendingOrders.reduce((sum, o) => sum + o.total_value, 0).toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Pending orders</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Working Hours Overview */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Driver Working Hours</CardTitle>
-            <CardDescription>Weekly limit: 40 hours</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {drivers.map(driver => (
-              <div key={driver.driver_id} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{driver.name}</span>
-                  <span className="text-muted-foreground">
-                    {driver.hours_this_week.toFixed(1)} / 40 hrs
-                  </span>
-                </div>
-                <Progress
-                  value={(driver.hours_this_week / 40) * 100}
-                  className={`h-2 ${getProgressColor(driver.hours_this_week, 40)}`}
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Assistant Working Hours</CardTitle>
-            <CardDescription>Weekly limit: 60 hours</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {assistants.map(assistant => (
-              <div key={assistant.assistant_id} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{assistant.name}</span>
-                  <span className="text-muted-foreground">
-                    {assistant.hours_this_week.toFixed(1)} / 60 hrs
-                  </span>
-                </div>
-                <Progress
-                  value={(assistant.hours_this_week / 60) * 100}
-                  className={`h-2 ${getProgressColor(assistant.hours_this_week, 60)}`}
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Allocations Table */}
+      {/* Pending Orders Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Current Allocations</CardTitle>
-          <CardDescription>All scheduled and active deliveries</CardDescription>
+          <CardTitle>Pending Orders</CardTitle>
+          <CardDescription>Orders awaiting delivery allocation</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Route</TableHead>
-                <TableHead>City</TableHead>
-                <TableHead>Truck</TableHead>
-                <TableHead>Driver</TableHead>
-                <TableHead>Assistant</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Hours</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {allocations.map(allocation => (
-                <TableRow key={allocation.allocation_id}>
-                  <TableCell className="font-medium">{allocation.route_name}</TableCell>
-                  <TableCell>{allocation.city}</TableCell>
-                  <TableCell>{allocation.truck_license}</TableCell>
-                  <TableCell>{allocation.driver_name}</TableCell>
-                  <TableCell>{allocation.assistant_name}</TableCell>
-                  <TableCell>{new Date(allocation.delivery_date).toLocaleDateString()}</TableCell>
-                  <TableCell>{allocation.delivery_hours}h</TableCell>
-                  <TableCell>{getStatusBadge(allocation.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(allocation.allocation_id)}
-                      disabled={allocation.status === 'Completed'}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="rounded-md border">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr className="border-b">
+                  <th className="text-left p-4 font-medium">Order ID</th>
+                  <th className="text-left p-4 font-medium">Customer</th>
+                  <th className="text-left p-4 font-medium">City</th>
+                  <th className="text-left p-4 font-medium">Order Date</th>
+                  <th className="text-left p-4 font-medium">Items</th>
+                  <th className="text-left p-4 font-medium">Total Value</th>
+                  <th className="text-right p-4 font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No pending orders
+                    </td>
+                  </tr>
+                ) : (
+                  pendingOrders.map((order) => (
+                    <tr key={order.order_id} className="border-b hover:bg-muted/50">
+                      <td className="p-4 font-medium">{order.order_id}</td>
+                      <td className="p-4">{order.customer_name}</td>
+                      <td className="p-4">{order.customer_city}</td>
+                      <td className="p-4">{new Date(order.order_date).toLocaleDateString()}</td>
+                      <td className="p-4">{order.total_items}</td>
+                      <td className="p-4">Rs {order.total_value.toLocaleString()}</td>
+                      <td className="p-4 text-right">
+                        <Button
+                          size="sm"
+                          onClick={() => handleAllocateClick(order)}
+                        >
+                          Allocate
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 
-      {/* New Allocation Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-md">
+      {/* Processed Orders Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Processed Orders</CardTitle>
+          <CardDescription>Orders that have been allocated but not yet delivered</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr className="border-b">
+                  <th className="text-left p-4 font-medium">Order ID</th>
+                  <th className="text-left p-4 font-medium">Customer</th>
+                  <th className="text-left p-4 font-medium">Store</th>
+                  <th className="text-left p-4 font-medium">Driver</th>
+                  <th className="text-left p-4 font-medium">Truck</th>
+                  <th className="text-left p-4 font-medium">Train Schedule</th>
+                  <th className="text-left p-4 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {processedOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No processed orders
+                    </td>
+                  </tr>
+                ) : (
+                  processedOrders.map((order) => (
+                    <tr key={order.order_id} className="border-b hover:bg-muted/50">
+                      <td className="p-4 font-medium">{order.order_id}</td>
+                      <td className="p-4">{order.customer_name}</td>
+                      <td className="p-4">{order.store_name}</td>
+                      <td className="p-4">{order.driver_name}</td>
+                      <td className="p-4">{order.truck_license}</td>
+                      <td className="p-4">{order.train_schedule}</td>
+                      <td className="p-4">{getStatusBadge(order.delivery_status)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Allocation Dialog */}
+      <Dialog open={showAllocationDialog} onOpenChange={setShowAllocationDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>New Allocation</DialogTitle>
+            <DialogTitle>Allocate Delivery</DialogTitle>
             <DialogDescription>
-              Assign a driver, assistant, and truck to a delivery route
+              Assign train schedule, store, driver, assistant, and truck for order {selectedOrder?.order_id}
             </DialogDescription>
           </DialogHeader>
 
-          {validationErrors.length > 0 && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Validation Errors</AlertTitle>
-              <AlertDescription>
-                <ul className="list-disc list-inside space-y-1">
-                  {validationErrors.map((error, idx) => (
-                    <li key={idx}>{error.message}</li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
+          {selectedOrder && (
+            <div className="space-y-4">
+              {/* Order Details */}
+              <div className="rounded-lg border p-4 bg-muted/50">
+                <h4 className="font-semibold mb-2">Order Details</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Customer:</span>{' '}
+                    <span className="font-medium">{selectedOrder.customer_name}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">City:</span>{' '}
+                    <span className="font-medium">{selectedOrder.customer_city}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Items:</span>{' '}
+                    <span className="font-medium">{selectedOrder.total_items}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Value:</span>{' '}
+                    <span className="font-medium">Rs {selectedOrder.total_value.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Train Schedule Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="train_schedule">
+                  <Calendar className="inline h-4 w-4 mr-2" />
+                  Train Schedule
+                </Label>
+                <Select
+                  value={allocationForm.train_schedule_id}
+                  onValueChange={(value) =>
+                    setAllocationForm({ ...allocationForm, train_schedule_id: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select train schedule" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTrainSchedules.map((schedule) => (
+                      <SelectItem key={schedule.schedule_id} value={schedule.schedule_id}>
+                        {schedule.train_name} - Departs: {schedule.departure_time}, Arrives: {schedule.arrival_time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Store Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="store">
+                  <Package className="inline h-4 w-4 mr-2" />
+                  Delivery Store
+                </Label>
+                <Select
+                  value={allocationForm.store_id}
+                  onValueChange={handleStoreChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select store" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStores.map((store) => (
+                      <SelectItem key={store.store_id} value={store.store_id}>
+                        {store.name} - {store.address}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Driver Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="driver">
+                  <Users className="inline h-4 w-4 mr-2" />
+                  Driver
+                </Label>
+                <Select
+                  value={allocationForm.driver_id}
+                  onValueChange={(value) =>
+                    setAllocationForm({ ...allocationForm, driver_id: value })
+                  }
+                  disabled={!allocationForm.store_id}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={!allocationForm.store_id ? "Select store first" : "Select driver"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableDrivers.map((driver) => (
+                      <SelectItem key={driver.driver_id} value={driver.driver_id}>
+                        {driver.name} ({driver.hours_this_week}h / 40h this week)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Assistant Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="assistant">
+                  <Users className="inline h-4 w-4 mr-2" />
+                  Assistant
+                </Label>
+                <Select
+                  value={allocationForm.assistant_id}
+                  onValueChange={(value) =>
+                    setAllocationForm({ ...allocationForm, assistant_id: value })
+                  }
+                  disabled={!allocationForm.store_id}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={!allocationForm.store_id ? "Select store first" : "Select assistant"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableAssistants.map((assistant) => (
+                      <SelectItem key={assistant.assistant_id} value={assistant.assistant_id}>
+                        {assistant.name} ({assistant.hours_this_week}h / 60h this week)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Truck Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="truck">
+                  <Truck className="inline h-4 w-4 mr-2" />
+                  Truck
+                </Label>
+                <Select
+                  value={allocationForm.truck_id}
+                  onValueChange={(value) =>
+                    setAllocationForm({ ...allocationForm, truck_id: value })
+                  }
+                  disabled={!allocationForm.store_id}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={!allocationForm.store_id ? "Select store first" : "Select truck"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTrucks.map((truck) => (
+                      <SelectItem key={truck.truck_id} value={truck.truck_id}>
+                        {truck.license_plate} ({truck.status})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="route">Route</Label>
-              <Select value={formData.route_id} onValueChange={(value) => {
-                setFormData({ ...formData, route_id: value });
-                const route = routes.find(r => r.route_id === value);
-                if (route) {
-                  setFormData(prev => ({ ...prev, delivery_hours: route.estimated_hours.toString() }));
-                }
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select route" />
-                </SelectTrigger>
-                <SelectContent>
-                  {routes.map(route => (
-                    <SelectItem key={route.route_id} value={route.route_id}>
-                      {route.name} ({route.estimated_hours}h)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="truck">Truck</Label>
-              <Select value={formData.truck_id} onValueChange={(value) => setFormData({ ...formData, truck_id: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select truck" />
-                </SelectTrigger>
-                <SelectContent>
-                  {trucks.filter(t => t.status === 'Available').map(truck => (
-                    <SelectItem key={truck.truck_id} value={truck.truck_id}>
-                      {truck.license_plate}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="driver">Driver</Label>
-              <Select value={formData.driver_id} onValueChange={(value) => setFormData({ ...formData, driver_id: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select driver" />
-                </SelectTrigger>
-                <SelectContent>
-                  {drivers.map(driver => (
-                    <SelectItem key={driver.driver_id} value={driver.driver_id}>
-                      {driver.name} ({driver.hours_this_week}h / 40h)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assistant">Assistant</Label>
-              <Select value={formData.assistant_id} onValueChange={(value) => setFormData({ ...formData, assistant_id: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select assistant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {assistants.map(assistant => (
-                    <SelectItem key={assistant.assistant_id} value={assistant.assistant_id}>
-                      {assistant.name} ({assistant.hours_this_week}h / 60h)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="date">Delivery Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={formData.delivery_date}
-                onChange={(e) => setFormData({ ...formData, delivery_date: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="hours">Estimated Hours</Label>
-              <Input
-                id="hours"
-                type="number"
-                step="0.5"
-                min="0"
-                value={formData.delivery_hours}
-                onChange={(e) => setFormData({ ...formData, delivery_hours: e.target.value })}
-                required
-              />
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Create Allocation</Button>
-            </DialogFooter>
-          </form>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowAllocationDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleProcessAllocation}>
+              Process Allocation
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 };
 
-export default Allocations;
+export default OrderAllocations;
