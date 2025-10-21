@@ -6,9 +6,7 @@ export async function getAssistants() {
 }
 
 export async function sortAssistantsByHour() {
-  const [assistants] = await db.query(
-    `SELECT * FROM Assistant`
-  );
+  const [assistants] = await db.query(`SELECT * FROM Assistant`);
   return assistants;
 }
 
@@ -25,14 +23,14 @@ export async function getAssistantHour(from, to) {
 }
 
 export async function addAssistant(assistantData) {
-  const { name } = assistantData;
+  const { name, weekly_hours, status } = assistantData;
 
   const query = `
-    INSERT INTO Assistant(name)
-    VALUES (?)
+    INSERT INTO Assistant(name, weekly_hours, status)
+    VALUES (?,?,?)
   `;
 
-  const [result] = await db.query(query, [name]);
+  const [result] = await db.query(query, [name, weekly_hours, status]);
   return result;
 }
 
