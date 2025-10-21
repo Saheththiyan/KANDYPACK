@@ -68,6 +68,16 @@ export async function deleteDriver(req, res) {
     res.status(200).json({ message: "Driver deleted successfully!" });
   } catch (error) {
     console.log(error);
+
+    // Handle foreign key violation
+    if (error.code === "ER_ROW_IS_REFERENCED_2") {
+      console.log("Cannot Delete: Driver has existing orders!");
+      return res.status(400).json({
+        message: "Cannot Delete: Driver has existing orders!",
+        error: error.message,
+      });
+    }
+
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });
