@@ -7,7 +7,7 @@ import {
   LineChart, Line
 } from 'recharts';
 import { TrendingUp, DollarSign, Package } from 'lucide-react';
-import { fetchQuarterlySales, QuarterlySalesData } from '@/lib/mockAdminApi';
+import { QuarterlySalesData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/lib/config';
 import { getAuthToken } from '@/lib/mockAuth';
@@ -49,7 +49,7 @@ const QuarterlySales = () => {
 
   const totalSales = salesData.reduce((sum, item) => sum + Number(item.value), 0);
   const totalVolume = salesData.reduce((sum, item) => sum + Number(item.volume), 0);
-  const avgGrowth = salesData.reduce((sum, item) => sum + Number(item.growth), 0) / salesData.length;
+  const avgGrowth = salesData.reduce((sum, item) => sum + Number(item.growth), 0) / salesData.length || 0;
 
   const formatCurrency = (value: number) => `Rs ${value.toLocaleString()}`;
   const formatNumber = (value: number) => value.toLocaleString();
