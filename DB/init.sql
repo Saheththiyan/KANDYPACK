@@ -445,15 +445,27 @@ INNER JOIN `Order` o ON o.customer_id = c.customer_id
 INNER JOIN Order_Item oi ON oi.order_id = o.order_id;
 
 
+-- FUNCTION FOR SETTING UUID
+
+DELIMITER $$
+
+CREATE FUNCTION generate_uuid(val CHAR(36))
+RETURNS CHAR(36)
+DETERMINISTIC
+BEGIN
+  RETURN IF(val IS NULL, UUID(), val);
+END $$
+
+DELIMITER ;
+
+
 DELIMITER $$
 
 CREATE TRIGGER before_insert_driver
 BEFORE INSERT ON Driver
 FOR EACH ROW
 BEGIN
-IF NEW.driver_id IS NULL THEN
-SET NEW.driver_id = UUID();
-END IF;
+    SET NEW.driver_id = generate_uuid(NEW.driver_id);
 END $$
 
 DELIMITER ;
@@ -464,9 +476,7 @@ CREATE TRIGGER before_insert_assistant
 BEFORE INSERT ON Assistant
 FOR EACH ROW
 BEGIN
-IF NEW.assistant_id IS NULL THEN
-SET NEW.assistant_id = UUID();
-END IF;
+    SET NEW.assistant_id = generate_uuid(NEW.assistant_id);
 END $$
 
 DELIMITER ;
@@ -477,9 +487,7 @@ CREATE TRIGGER before_insert_product
 BEFORE INSERT ON Product
 FOR EACH ROW
 BEGIN
-IF NEW.product_id IS NULL THEN
-SET NEW.product_id  = UUID();
-END IF;
+    SET NEW.product_id = generate_uuid(NEW.product_id);
 END $$
 
 DELIMITER ;
@@ -490,9 +498,7 @@ CREATE TRIGGER before_insert_store
 BEFORE INSERT ON Store
 FOR EACH ROW
 BEGIN
-IF NEW.store_id IS NULL THEN
-SET NEW.store_id  = UUID();
-END IF;
+    SET NEW.store_id = generate_uuid(NEW.store_id);
 END $$
 
 DELIMITER ;
@@ -503,9 +509,7 @@ CREATE TRIGGER before_insert_route
 BEFORE INSERT ON Route
 FOR EACH ROW
 BEGIN
-IF NEW.route_id IS NULL THEN
-SET NEW.route_id  = UUID();
-END IF;
+    SET NEW.route_id = generate_uuid(NEW.route_id);
 END $$
 
 DELIMITER ;
@@ -516,9 +520,7 @@ CREATE TRIGGER before_insert_truck
 BEFORE INSERT ON Truck
 FOR EACH ROW
 BEGIN
-IF NEW.truck_id IS NULL THEN
-SET NEW.truck_id  = UUID();
-END IF;
+    SET NEW.truck_id = generate_uuid(NEW.truck_id);
 END $$
 
 DELIMITER ;
@@ -529,9 +531,7 @@ CREATE TRIGGER before_insert_admin
 BEFORE INSERT ON Admin
 FOR EACH ROW
 BEGIN
-IF NEW.admin_id IS NULL THEN
-SET NEW.admin_id  = UUID();
-END IF;
+    SET NEW.admin_id = generate_uuid(NEW.admin_id);
 END $$
 
 DELIMITER ;
