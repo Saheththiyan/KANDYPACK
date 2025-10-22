@@ -2,7 +2,7 @@ name: Lint Code
 
 on:
   push:
-    branches: [ main, dev, frontend-fix, authorization ]
+    branches: [ main, dev, frontend-fix, authorization, linting ]
   pull_request:
     branches: [ main, dev ]
 

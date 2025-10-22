@@ -31,7 +31,7 @@ export async function deleteAdmin(req, res) {
     const { admin_id } = req.params;
     const result = await admin.removeAdmin(admin_id);
 
-    if (result.affectedRows == 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Admin not found" });
     }
 
