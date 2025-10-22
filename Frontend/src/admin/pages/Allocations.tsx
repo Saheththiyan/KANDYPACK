@@ -222,7 +222,7 @@ const OrderAllocations = () => {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, []);
 
   const loadData = async () => {
     try {
