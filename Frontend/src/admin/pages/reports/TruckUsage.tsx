@@ -36,7 +36,7 @@ const TruckUsage = () => {
       },
     });
     const data = await response.json();
-    return data.usage;
+    return data.trucks;
   }
 
 
@@ -62,7 +62,7 @@ const TruckUsage = () => {
   }, [selectedMonth, toast]);
 
 
-  const formatNumber = (value: number) => value.toLocaleString();
+  const formatNumber = (value: number) => value ? value.toLocaleString() : '0';
 
   const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -146,7 +146,7 @@ const TruckUsage = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(usageData ?? []).reduce((sum, item) => sum + item.capacity, 0).toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{usageData.reduce((sum, item) => sum + Number(item.capacity), 0).toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground">
               Fleet average
             </p>
@@ -227,13 +227,13 @@ const TruckUsage = () => {
                     <td className="px-4 py-3 text-right">{formatNumber(item.trips)}</td>
                     <td className="px-4 py-3 text-right">{formatNumber(item.hours)}</td>
                     <td className="px-4 py-3 text-right">
-                      <Badge variant={item.utilization > 75 ? "default" : "secondary"}>
-                        {item.utilization.toFixed(1)}%
+                      <Badge variant={item.totalDeliveries > 75 ? "default" : "secondary"}>
+                        {item.totalDeliveries.toFixed(1)}%
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Badge variant={item.utilization > 75 ? "default" : item.utilization > 50 ? "secondary" : "outline"}>
-                        {item.utilization > 75 ? 'High' : item.utilization > 50 ? 'Medium' : 'Low'}
+                      <Badge variant={item.completedDeliveries > 75 ? "default" : item.completedDeliveries > 50 ? "secondary" : "outline"}>
+                        {item.completedDeliveries > 75 ? 'High' : item.completedDeliveries > 50 ? 'Medium' : 'Low'}
                       </Badge>
                     </td>
                   </tr>

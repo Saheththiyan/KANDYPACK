@@ -60,7 +60,7 @@ const MostOrdered = () => {
     };
 
     loadItemsData();
-  }, [selectedQuarter, toast,fetchMostOrdered]);
+  }, [selectedQuarter, toast]);
 
   const totalUnits = itemsData.reduce((sum, item) => sum + Number(item.unitsSold), 0);
   const totalRevenue = itemsData.reduce((sum, item) => sum + Number(item.revenue), 0);
