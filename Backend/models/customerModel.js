@@ -29,10 +29,12 @@ export async function createCustomer({
   email,
   password,
 }) {
+  const hashedPassword = await bcrypt.hash(password, 10); //10 salt rounds
+
   const [result] = await db.query(
     `INSERT INTO Customer (customer_id, name, \`type\`, address, city, phone, email, password)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [customer_id, name, type, address, city, phone, email, password]
+    [customer_id, name, type, address, city, phone, email, hashedPassword]
   );
   return result;
 }

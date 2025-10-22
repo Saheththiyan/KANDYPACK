@@ -20,7 +20,20 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
+      
+      // Ignore formatting/style issues
+      "indent": "off",                           // Ignore indentation errors
+      "@typescript-eslint/indent": "off",        // TypeScript indentation
+      "no-console": "off",                       // Allow console.log statements
+      "no-trailing-spaces": "off",               // Ignore trailing spaces
+      "no-multiple-empty-lines": "off",          // Allow multiple empty lines
+      "eol-last": "off",                         // Don't require newline at end of file
+      
+      // Keep unused vars checking enabled (good practice)
+      "@typescript-eslint/no-unused-vars": ["warn", { 
+        "argsIgnorePattern": "^_",               // Allow unused args starting with _
+        "varsIgnorePattern": "^_"                // Allow unused vars starting with _
+      }],
     },
   },
 );

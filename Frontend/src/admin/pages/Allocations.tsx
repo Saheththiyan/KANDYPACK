@@ -32,21 +32,31 @@ interface Order {
   count_product_id: string;
   total_value: number;
   status: string;
+  allocation_id?: string;
+  store_id?: string;
+  departure_city?: string;
+  arrival_city?: string;
+  schedule_date?: string;
+  product_count?: number;
 }
 
 interface ProcessedOrder extends Order {
   store: string;
+  store_id?: string;
   driver_name: string;
   assistant_name: string;
   license_plate: string;
   train_schedule: string;
   status: string;
+  delivery_id?: string;
+  route_id?: string;
 }
 
 interface TrainSchedule {
   train_schedule_id: string;
   departure_city: string;
   arrival_city: string;
+  schedule_date: string;
   departure_time: string;
   arrival_time: string;
   capacity: number;
@@ -98,6 +108,12 @@ const OrderAllocations = () => {
   const [processedOrders, setProcessedOrders] = useState<ProcessedOrder[]>([]);
   const [trainSchedules, setTrainSchedules] = useState<TrainSchedule[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
+  
+  // States for delivery schedule allocation
+  const [showDeliveryAllocationDialog, setShowDeliveryAllocationDialog] = useState(false);
+  const [selectedDeliverySchedule, setSelectedDeliverySchedule] = useState<ProcessedOrder | null>(null);
+  const [availableOrders, setAvailableOrders] = useState<Order[]>([]);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [assistants, setAssistants] = useState<Assistant[]>([]);
   const [trucks, setTrucks] = useState<Truck[]>([]);
@@ -109,6 +125,8 @@ const OrderAllocations = () => {
   // Pagination state
   const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
   const [processedCurrentPage, setProcessedCurrentPage] = useState(1);
+  const [trainCurrentPage, setTrainCurrentPage] = useState(1);
+  const [deliveryCurrentPage, setDeliveryCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
   const [allocationForm, setAllocationForm] = useState({
@@ -138,6 +156,20 @@ const OrderAllocations = () => {
 
   async function fetchTrainSchedulesByCity(city: string): Promise<TrainSchedule[]> {
     const response = await fetch(`${API_URL}/trainSchedule?city=${city}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch train schedules");
+    }
+    return response.json();
+  }
+
+  async function fetchAllTrainSchedules(): Promise<TrainSchedule[]> {
+    const response = await fetch(`${API_URL}/trainSchedule`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -220,6 +252,76 @@ const OrderAllocations = () => {
     return response.json();
   }
 
+  async function fetchDeliverySchedules(): Promise<any[]> {
+    const response = await fetch(`${API_URL}/deliverySchedule`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch delivery schedules");
+    }
+    return response.json();
+  }
+  
+  async function fetchOrdersByRouteStore(routeId: string): Promise<Order[]> {
+    const response = await fetch(`${API_URL}/deliverySchedule/route-orders/${routeId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch orders for this route's store");
+    }
+    return response.json();
+  }
+  
+  async function assignOrdersToDelivery(deliveryId: string, orderIds: string[]) {
+    const response = await fetch(`${API_URL}/delivers/assign-orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+      body: JSON.stringify({ deliveryId, orderIds }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to assign orders to delivery");
+    }
+    return response.json();
+  }
+
+  async function fetchOrdersByCity(city: string): Promise<Order[]> {
+    const response = await fetch(`${API_URL}/allocations/by-city?city=${encodeURIComponent(city)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch orders by city');
+    }
+    return response.json();
+  }
+
+  async function createAllocationApi(payload: { train_schedule_id: string; order_id: string; store_id: string; space_consumed?: number }) {
+    const response = await fetch(`${API_URL}/allocations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token}`
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to create allocation');
+    return response.json();
+  }
+
   useEffect(() => {
     loadData();
   }, []);
@@ -229,9 +331,35 @@ const OrderAllocations = () => {
       setLoading(true);
       const orders = await fetchUnprocessedOrders();
       setPendingOrders(orders);
-      
-      // Processed orders will be fetched separately when implemented
-      setProcessedOrders([]);
+      // load train schedules and delivery schedules
+      const [allSchedules, deliverySchedules] = await Promise.all([
+        fetchAllTrainSchedules(),
+        fetchDeliverySchedules()
+      ]);
+      setTrainSchedules(allSchedules);
+      // deliverySchedules contains joined fields: stops, license_plate, driver_name, assistant_name
+      setProcessedOrders([]); // keep processedOrders empty; replaced by delivery schedule table
+      // store delivery schedules in state by mapping to ProcessedOrder-like shape for display convenience
+      // note: we'll reuse processedOrders state to hold delivery schedule entries for table rendering
+      setProcessedOrders(deliverySchedules.map(ds => ({
+        order_id: ds.delivery_id,
+        delivery_id: ds.delivery_id, // Store the delivery_id separately too
+        route_id: ds.route_id,
+        store_id: ds.store_id,
+        name: ds.stops,
+        store: ds.route_id,
+        driver_name: ds.driver_name,
+        assistant_name: ds.assistant_name,
+        license_plate: ds.license_plate,
+        train_schedule: ds.delivery_date,
+        status: ds.status,
+        // keep other fields minimal
+        city: '',
+        order_date: '',
+        required_date: '',
+        count_product_id: '',
+        total_value: 0
+      })));
     } catch (error) {
       console.error('Failed to load data:', error);
       toast({
@@ -243,6 +371,44 @@ const OrderAllocations = () => {
       setLoading(false);
     }
   };
+  
+  const handleAssignOrders = async () => {
+    if (!selectedDeliverySchedule?.delivery_id || selectedOrderIds.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one order to assign",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      await assignOrdersToDelivery(selectedDeliverySchedule.delivery_id, selectedOrderIds);
+      
+      toast({
+        title: "Success",
+        description: "Orders assigned to delivery successfully"
+      });
+      
+      // Close dialog and reload data
+      setShowDeliveryAllocationDialog(false);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to assign orders to delivery:', error);
+      toast({
+        title: "Error",
+        description: "Failed to assign orders to delivery",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Allocate from train schedule modal
+  const [showTrainAllocateDialog, setShowTrainAllocateDialog] = useState(false);
+  const [selectedTrainSchedule, setSelectedTrainSchedule] = useState<TrainSchedule | null>(null);
+  const [ordersForCity, setOrdersForCity] = useState<Order[]>([]);
+  const [selectedOrderForTrain, setSelectedOrderForTrain] = useState<string>('');
+  const [selectedStoreForTrain, setSelectedStoreForTrain] = useState<string>('');
 
   const handleAllocateClick = async (order: Order) => {
     setSelectedOrder(order);
@@ -309,6 +475,38 @@ const OrderAllocations = () => {
         title: "Error",
         description: "Failed to load drivers, assistants, trucks, and routes",
         variant: "destructive",
+      });
+    }
+  };
+  
+  const handleDeliveryAllocationClick = async (delivery: ProcessedOrder) => {
+    try {
+      setSelectedDeliverySchedule(delivery);
+      
+      if (!delivery.route_id) {
+        toast({
+          title: "Error",
+          description: "This delivery schedule doesn't have a route assigned",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Fetch orders allocated to this route's store
+      const routeOrders = await fetchOrdersByRouteStore(delivery.route_id);
+      setAvailableOrders(routeOrders);
+      
+      // Reset selected orders
+      setSelectedOrderIds([]);
+      
+      // Show dialog
+      setShowDeliveryAllocationDialog(true);
+    } catch (error) {
+      console.error('Failed to load orders for delivery allocation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load orders for allocation",
+        variant: "destructive"
       });
     }
   };
@@ -385,6 +583,19 @@ const OrderAllocations = () => {
   const paginatedProcessedOrders = processedOrders.slice(
     (processedCurrentPage - 1) * ITEMS_PER_PAGE,
     processedCurrentPage * ITEMS_PER_PAGE
+  );
+
+  const trainTotalPages = Math.ceil(trainSchedules.length / ITEMS_PER_PAGE);
+  const deliveryTotalPages = Math.ceil(processedOrders.length / ITEMS_PER_PAGE);
+
+  const paginatedTrainSchedules = trainSchedules.slice(
+    (trainCurrentPage - 1) * ITEMS_PER_PAGE,
+    trainCurrentPage * ITEMS_PER_PAGE
+  );
+
+  const paginatedDeliverySchedules = processedOrders.slice(
+    (deliveryCurrentPage - 1) * ITEMS_PER_PAGE,
+    deliveryCurrentPage * ITEMS_PER_PAGE
   );
 
   const getStatusBadge = (status: string) => {
@@ -485,7 +696,7 @@ const OrderAllocations = () => {
                   <th className="text-left p-4 font-medium">No. Products</th>
                   <th className="text-left p-4 font-medium">Total Value</th>
                   <th className="text-left p-4 font-medium">Status</th>
-                  <th className="text-right p-4 font-medium">Action</th>
+                  {/* <th className="text-right p-4 font-medium">Action</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -505,14 +716,14 @@ const OrderAllocations = () => {
                       <td className="p-4">{order.count_product_id}</td>
                       <td className="p-4">Rs {order.total_value.toLocaleString()}</td>
                       <td className="p-4">{order.status}</td>
-                      <td className="p-4 text-right">
+                      {/* <td className="p-4 text-right">
                         <Button
                           size="sm"
                           onClick={() => handleAllocateClick(order)}
                         >
                           Allocate
                         </Button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))
                 )}
@@ -562,72 +773,95 @@ const OrderAllocations = () => {
         </CardContent>
       </Card>
 
-      {/* Processed Orders Table */}
+      {/* Train Schedule Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Processed Orders</CardTitle>
-          <CardDescription>Orders that have been allocated but not yet delivered</CardDescription>
+          <CardTitle>Train Schedules</CardTitle>
+          <CardDescription>Upcoming train schedules</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr className="border-b">
-                  <th className="text-left p-4 font-medium">Order ID</th>
-                  <th className="text-left p-4 font-medium">Customer</th>
-                  <th className="text-left p-4 font-medium">Store</th>
-                  <th className="text-left p-4 font-medium">Driver</th>
-                  <th className="text-left p-4 font-medium">Truck</th>
-                  <th className="text-left p-4 font-medium">Train Schedule</th>
-                  <th className="text-left p-4 font-medium">Status</th>
+                  <th className="text-left p-4 font-medium">Scheduled Date</th>
+                  <th className="text-left p-4 font-medium">Departure City</th>
+                  <th className="text-left p-4 font-medium">Arrival City</th>
+                  <th className="text-left p-4 font-medium">Departure Time</th>
+                  <th className="text-left p-4 font-medium">Arrival Time</th>
+                  <th className="text-left p-4 font-medium">Capacity</th>
+                  <th className="text-left p-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {processedOrders.length === 0 ? (
+                {trainSchedules.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-muted-foreground">
-                      No processed orders
+                    <td colSpan={6} className="text-center py-8 text-muted-foreground">
+                      No train schedules
                     </td>
                   </tr>
                 ) : (
-                  paginatedProcessedOrders.map((order) => (
-                    <tr key={order.order_id} className="border-b hover:bg-muted/50">
-                      <td className="p-4 font-medium">{order.order_id}</td>
-                      <td className="p-4">{order.name}</td>
-                      <td className="p-4">{order.store}</td>
-                      <td className="p-4">{order.driver_name}</td>
-                      <td className="p-4">{order.license_plate}</td>
-                      <td className="p-4">{order.train_schedule}</td>
-                      <td className="p-4">{getStatusBadge(order.status)}</td>
+                  paginatedTrainSchedules.map((ts) => (
+                    <tr key={ts.train_schedule_id} className="border-b hover:bg-muted/50">
+                      <td className="p-4">{new Date(ts.schedule_date).toLocaleDateString()}</td>
+                      <td className="p-4">{ts.departure_city}</td>
+                      <td className="p-4">{ts.arrival_city}</td>
+                      <td className="p-4">{ts.departure_time}</td>
+                      <td className="p-4">{ts.arrival_time}</td>
+                      <td className="p-4">{ts.capacity}</td>
+                      <td className="p-4 text-right">
+                        <Button size="sm" onClick={async () => {
+                          setSelectedTrainSchedule(ts);
+                          try {
+                            // fetch orders for the arrival city and ensure stores are loaded
+                            const [ordersRes, storesRes] = await Promise.all([
+                              fetchOrdersByCity(ts.arrival_city),
+                              fetchStoresByCity(ts.arrival_city)
+                            ]);
+                            setOrdersForCity(ordersRes);
+                            // merge stores into existing stores state (avoid duplicates)
+                            setStores(prev => {
+                              const merged = [...prev];
+                              storesRes.forEach(s => { if (!merged.find(m=>m.store_id===s.store_id)) merged.push(s); });
+                              return merged;
+                            });
+                            setShowTrainAllocateDialog(true);
+                          } catch (err) {
+                            console.error(err);
+                            toast({ title: 'Error', description: 'Failed to load orders or stores', variant: 'destructive' });
+                          }
+                        }}>
+                          Allocate
+                        </Button>
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          
-          {/* Processed Orders Pagination */}
-          {processedOrders.length > 0 && (
+          {/* Train schedule pagination */}
+          {trainSchedules.length > 0 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
-                Showing {((processedCurrentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(processedCurrentPage * ITEMS_PER_PAGE, processedOrders.length)} of {processedOrders.length} orders
+                Showing {((trainCurrentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(trainCurrentPage * ITEMS_PER_PAGE, trainSchedules.length)} of {trainSchedules.length} schedules
               </p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setProcessedCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={processedCurrentPage === 1}
+                  onClick={() => setTrainCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={trainCurrentPage === 1}
                 >
                   Previous
                 </Button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: processedTotalPages }, (_, i) => i + 1).map((page) => (
+                  {Array.from({ length: trainTotalPages }, (_, i) => i + 1).map((page) => (
                     <Button
                       key={page}
-                      variant={page === processedCurrentPage ? "default" : "outline"}
+                      variant={page === trainCurrentPage ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setProcessedCurrentPage(page)}
+                      onClick={() => setTrainCurrentPage(page)}
                       className="w-10"
                     >
                       {page}
@@ -637,8 +871,170 @@ const OrderAllocations = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setProcessedCurrentPage(prev => Math.min(processedTotalPages, prev + 1))}
-                  disabled={processedCurrentPage === processedTotalPages}
+                  onClick={() => setTrainCurrentPage(prev => Math.min(trainTotalPages, prev + 1))}
+                  disabled={trainCurrentPage === trainTotalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Train Allocate Dialog */}
+      <Dialog open={showTrainAllocateDialog} onOpenChange={setShowTrainAllocateDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Allocate Orders to Train</DialogTitle>
+            <DialogDescription>
+              Assign an order and delivery store for train {selectedTrainSchedule?.train_schedule_id}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Train</Label>
+              <div className="text-sm">{selectedTrainSchedule ? `${selectedTrainSchedule.departure_city} → ${selectedTrainSchedule.arrival_city} on ${new Date(selectedTrainSchedule.schedule_date).toLocaleDateString()}` : 'No train selected'}</div>
+            </div>
+
+            <div>
+              <Label>Order (from same arrival city)</Label>
+              <Select value={selectedOrderForTrain} onValueChange={(v) => setSelectedOrderForTrain(v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select order" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ordersForCity.map(o => (
+                    <SelectItem key={o.order_id} value={o.order_id}>{o.name} - Rs {o.total_value}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Store (from arrival city)</Label>
+              <Select value={selectedStoreForTrain} onValueChange={(v) => setSelectedStoreForTrain(v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select store" />
+                </SelectTrigger>
+                <SelectContent>
+                  {stores.filter(s => s.city === (selectedTrainSchedule?.arrival_city || '')).map(st => (
+                    <SelectItem key={st.store_id} value={st.store_id}>{st.name} - {st.address}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTrainAllocateDialog(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              try {
+                if (!selectedTrainSchedule || !selectedOrderForTrain || !selectedStoreForTrain) {
+                  toast({ title: 'Validation Error', description: 'Please select order and store', variant: 'destructive' });
+                  return;
+                }
+                await createAllocationApi({ train_schedule_id: selectedTrainSchedule.train_schedule_id, order_id: selectedOrderForTrain, store_id: selectedStoreForTrain });
+                toast({ title: 'Success', description: 'Allocation created' });
+                setShowTrainAllocateDialog(false);
+                // reload data
+                await loadData();
+              } catch (err) {
+                console.error(err);
+                toast({ title: 'Error', description: 'Failed to create allocation', variant: 'destructive' });
+              }
+            }}>
+              Allocate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delivery Schedule Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Delivery Schedules</CardTitle>
+          <CardDescription>Scheduled deliveries with route, truck and staff</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr className="border-b">
+                  <th className="text-left p-4 font-medium">Route (Stops)</th>
+                  <th className="text-left p-4 font-medium">Truck</th>
+                  <th className="text-left p-4 font-medium">Driver</th>
+                  <th className="text-left p-4 font-medium">Assistant</th>
+                  <th className="text-left p-4 font-medium">Delivery Date</th>
+                  <th className="text-left p-4 font-medium">Status</th>
+                  <th className="text-left p-4 font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {processedOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No delivery schedules
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedDeliverySchedules.map((ds) => (
+                    <tr key={ds.order_id} className="border-b hover:bg-muted/50">
+                      <td className="p-4">{ds.name}</td>
+                      <td className="p-4">{ds.license_plate}</td>
+                      <td className="p-4">{ds.driver_name}</td>
+                      <td className="p-4">{ds.assistant_name}</td>
+                      <td className="p-4">{new Date(ds.train_schedule).toLocaleDateString()}</td>
+                      <td className="p-4">{getStatusBadge(ds.status)}</td>
+                      <td className="p-4">
+                        <Button 
+                          variant="secondary" 
+                          onClick={() => handleDeliveryAllocationClick(ds)}
+                          disabled={ds.status !== 'Scheduled'}
+                        >
+                          Allocate Orders
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* Delivery schedule pagination */}
+          {processedOrders.length > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {((deliveryCurrentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(deliveryCurrentPage * ITEMS_PER_PAGE, processedOrders.length)} of {processedOrders.length} schedules
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDeliveryCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={deliveryCurrentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: deliveryTotalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={page === deliveryCurrentPage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDeliveryCurrentPage(page)}
+                      className="w-10"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDeliveryCurrentPage(prev => Math.min(deliveryTotalPages, prev + 1))}
+                  disabled={deliveryCurrentPage === deliveryTotalPages}
                 >
                   Next
                 </Button>
@@ -846,6 +1242,128 @@ const OrderAllocations = () => {
             </Button>
             <Button onClick={handleProcessAllocation}>
               Process Allocation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delivery Order Allocation Dialog */}
+      <Dialog open={showDeliveryAllocationDialog} onOpenChange={setShowDeliveryAllocationDialog}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Allocate Orders to Delivery</DialogTitle>
+            <DialogDescription>
+              Select orders to assign to this delivery route
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-md">
+              <h3 className="font-medium mb-1">Delivery Details</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Route:</p>
+                  <p>{selectedDeliverySchedule?.name}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Driver:</p>
+                  <p>{selectedDeliverySchedule?.driver_name}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Assistant:</p>
+                  <p>{selectedDeliverySchedule?.assistant_name}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Truck:</p>
+                  <p>{selectedDeliverySchedule?.license_plate}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Delivery Date:</p>
+                  <p>{selectedDeliverySchedule?.train_schedule ? new Date(selectedDeliverySchedule.train_schedule).toLocaleDateString() : ''}</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-medium mb-2">Available Orders</h3>
+              <div className="rounded-md border max-h-[400px] overflow-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50 sticky top-0">
+                    <tr className="border-b">
+                      <th className="text-left p-3 font-medium">Select</th>
+                      <th className="text-left p-3 font-medium">Order ID</th>
+                      <th className="text-left p-3 font-medium">Customer</th>
+                      <th className="text-left p-3 font-medium">City</th>
+                      <th className="text-left p-3 font-medium">Products</th>
+                      <th className="text-left p-3 font-medium">Value</th>
+                      <th className="text-left p-3 font-medium">Required Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {availableOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No orders available for this delivery route
+                        </td>
+                      </tr>
+                    ) : (
+                      availableOrders.map((order) => (
+                        <tr 
+                          key={order.order_id} 
+                          className="border-b hover:bg-muted/50 cursor-pointer"
+                          onClick={() => {
+                            if (selectedOrderIds.includes(order.order_id)) {
+                              setSelectedOrderIds(selectedOrderIds.filter(id => id !== order.order_id));
+                            } else {
+                              setSelectedOrderIds([...selectedOrderIds, order.order_id]);
+                            }
+                          }}
+                        >
+                          <td className="p-3">
+                            <input 
+                              type="checkbox" 
+                              checked={selectedOrderIds.includes(order.order_id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedOrderIds([...selectedOrderIds, order.order_id]);
+                                } else {
+                                  setSelectedOrderIds(selectedOrderIds.filter(id => id !== order.order_id));
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="rounded"
+                            />
+                          </td>
+                          <td className="p-3">{order.order_id}</td>
+                          <td className="p-3">{order.name}</td>
+                          <td className="p-3">{order.city}</td>
+                          <td className="p-3">{order.product_count}</td>
+                          <td className="p-3">Rs. {typeof order.total_value === 'number' ? order.total_value.toFixed(2) : Number(order.total_value).toFixed(2)}</td>
+                          <td className="p-3">{new Date(order.required_date).toLocaleDateString()}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                {selectedOrderIds.length} orders selected
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeliveryAllocationDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAssignOrders}
+              disabled={selectedOrderIds.length === 0}
+            >
+              Assign Orders
             </Button>
           </DialogFooter>
         </DialogContent>

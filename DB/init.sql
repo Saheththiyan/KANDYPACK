@@ -68,6 +68,7 @@ CREATE TABLE Train_Schedule (
     train_schedule_id CHAR(36) NOT NULL,
     departure_city VARCHAR(50),
     arrival_city VARCHAR(50),
+    schedule_date DATE,
     departure_time TIME,
     arrival_time TIME,
     capacity INT,
@@ -251,10 +252,17 @@ INSERT INTO Product (product_id, name, description, unit_price, space_unit, stoc
 ('7b8c9d0e-1f2a-4b3c-4d5e-6f7a8b9c0d1e', 'Milk Chocolate Almonds', 'Whole almonds coated in smooth milk chocolate', 6.99, 2, 0),
 ('8c9d0e1f-2a3b-4c4d-5e6f-7a8b9c0d1e2f', 'Sour Patch Kids', 'Sweet and sour chewy candies in assorted flavors', 3.79, 2, 0);
 
-INSERT INTO Train_Schedule (train_schedule_id, departure_city, arrival_city, departure_time, arrival_time, capacity) VALUES
-('3730fc56-cd09-4bc1-8dc2-26f8eb549f5f', 'New York', 'Los Angeles', '08:00:00', '20:00:00', 500),
-('141fb849-05cd-4581-bf0e-2969ec839a6f', 'Los Angeles', 'Chicago', '09:30:00', '18:45:00', 400),
-('7e23eb1c-aa68-4297-a8ec-02f5681f2e5c', 'Kandy', 'New York', '07:15:00', '19:30:00', 600);
+INSERT INTO Train_Schedule (train_schedule_id, departure_city, arrival_city, schedule_date, departure_time, arrival_time, capacity) VALUES
+('e5f6a7b8-9c0d-4e1f-2a3b-4c5d6e7f8a9b', 'New York', 'Philadelphia', '2025-10-22', '08:00:00', '11:30:00', 600),
+('f6a7b8c9-0d1e-4f2a-3b4c-5d6e7f8a9b0c', 'Philadelphia', 'Charlotte', '2025-10-22', '13:45:00', '18:15:00', 550),
+('a7b8c9d0-1e2f-4a3b-4c5d-6e7f8a9b0c1d', 'Los Angeles', 'San Diego', '2025-10-23', '09:15:00', '11:45:00', 450),
+('b8c9d0e1-2f3a-4b4c-5d6e-7f8a9b0c1d2e', 'Chicago', 'Minneapolis', '2025-10-23', '06:45:00', '10:30:00', 500),
+('c9d0e1f2-3a4b-4c5d-6e7f-8a9b0c1d2e3f', 'Boston', 'Cleveland', '2025-10-24', '10:00:00', '14:15:00', 400),
+('d0e1f2a3-4b5c-4d6e-7f8a-9b0c1d2e3f4a', 'Miami', 'Orlando', '2025-10-24', '07:00:00', '09:30:00', 600),
+('e1f2a3b4-5c6d-4e7f-8a9b-0c1d2e3f4a5b', 'Seattle', 'Tampa', '2025-10-25', '08:30:00', '20:45:00', 550),
+('f2a3b4c5-6d7e-4f8a-9b0c-1d2e3f4a5b6c', 'Austin', 'St. Louis', '2025-10-25', '06:15:00', '12:45:00', 500),
+('a3b4c5d6-7e8f-4a9b-0c1d-2e3f4a5b6c7d', 'Pittsburgh', 'Philadelphia', '2025-10-26', '09:45:00', '12:30:00', 450),
+('b4c5d6e7-8f9a-4b0c-1d2e-3f4a5b6c7d8e', 'Charlotte', 'New York', '2025-10-26', '07:15:00', '13:30:00', 400);
 
 INSERT INTO Truck (truck_id, license_plate, capacity, status, store_id) VALUES
 ('f550ff2e-1080-4b29-af61-f46b009bf1ac', 'ABC-123', 1000.50, 'Available', 'e28cf701-474a-440f-bca9-2f90605aa65b'),  -- New York
@@ -319,9 +327,9 @@ INSERT INTO `Order` (order_id, customer_id, order_date, required_date, status, t
 ('8e9f0a1b-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 'b0c1d2e3-4f5a-4b0c-7d1e-2f3a4b5c6d7e', '2025-10-31', '2025-11-07', 'Pending', 121.40); -- Chathura Senanayake
 
 INSERT INTO Delivery_Schedule (delivery_id, route_id, truck_id, driver_id, assistant_id, delivery_date, status) VALUES
-('e7f72fc9-ce18-44b4-97f2-50781eb754a7', '98b43b99-6e29-4f1f-8eac-d0384350db96', 'f550ff2e-1080-4b29-af61-f46b009bf1ac', '1d672079-260a-48e6-9e5c-2fef6092bdf0', 'fd160307-a56a-4f04-b88d-6422d29496a3', '2025-09-12', 'Scheduled'),
-('a9288a54-4e4a-4a49-806e-b7170502539a', '90e7ff56-407a-4ba3-a6ed-277953862c73', '0e0862ca-9a7f-4850-bed3-040eba35b0f8', 'e7f72fc9-ce18-44b4-97f2-50781eb754a7', '98b43b99-6e29-4f1f-8eac-d0384350db96', '2025-09-15', 'In Progress'),
-('7f159ff9-2998-4b89-a994-1fb732683475', '3f0459e3-df95-4ad4-b94c-6b0c67290027', 'fd160307-a56a-4f04-b88d-6422d29496a3', 'a9288a54-4e4a-4a49-806e-b7170502539a', '90e7ff56-407a-4ba3-a6ed-277953862c73', '2025-09-18', 'Completed'),
+('e7f72fc9-ce18-44b4-97f2-50781eb754a7', '98b43b99-6e29-4f1f-8eac-d0384350db96', 'f550ff2e-1080-4b29-af61-f46b009bf1ac', '1d672079-260a-48e6-9e5c-2fef6092bdf0', 'fd160307-a56a-4f04-b88d-6422d29496a3', '2025-11-12', 'Scheduled'),
+('a9288a54-4e4a-4a49-806e-b7170502539a', '90e7ff56-407a-4ba3-a6ed-277953862c73', '0e0862ca-9a7f-4850-bed3-040eba35b0f8', 'e7f72fc9-ce18-44b4-97f2-50781eb754a7', '98b43b99-6e29-4f1f-8eac-d0384350db96', '2025-11-15', 'In Progress'),
+('7f159ff9-2998-4b89-a994-1fb732683475', '3f0459e3-df95-4ad4-b94c-6b0c67290027', 'fd160307-a56a-4f04-b88d-6422d29496a3', 'a9288a54-4e4a-4a49-806e-b7170502539a', '90e7ff56-407a-4ba3-a6ed-277953862c73', '2025-12-18', 'Completed'),
 ('f5a6b7c8-9d0e-4f1a-2b3c-4d5e6f7a8b9c', 'e8f9a0b1-2c3d-4e4f-5a6b-7c8d9e0f1a2b', 'f550ff2e-1080-4b29-af61-f46b009bf1ac', '1d672079-260a-48e6-9e5c-2fef6092bdf0', 'fd160307-a56a-4f04-b88d-6422d29496a3', '2025-10-15', 'Scheduled'),
 ('a6b7c8d9-0e1f-4a2b-3c4d-5e6f7a8b9c0d', 'f9a0b1c2-3d4e-4f5a-6b7c-8d9e0f1a2b3c', '0e0862ca-9a7f-4850-bed3-040eba35b0f8', 'e7f72fc9-ce18-44b4-97f2-50781eb754a7', '98b43b99-6e29-4f1f-8eac-d0384350db96', '2025-10-16', 'In Progress'),
 ('b7c8d9e0-1f2a-4b3c-4d5e-6f7a8b9c0d1e', 'a0b1c2d3-4e5f-4a6b-7c8d-9e0f1a2b3c4d', 'fd160307-a56a-4f04-b88d-6422d29496a3', 'a9288a54-4e4a-4a49-806e-b7170502539a', '90e7ff56-407a-4ba3-a6ed-277953862c73', '2025-10-17', 'Scheduled'),
@@ -331,9 +339,9 @@ INSERT INTO Delivery_Schedule (delivery_id, route_id, truck_id, driver_id, assis
 ('f1a2b3c4-5d6e-4f7a-8b9c-0d1e2f3a4b5c', 'e4f5a6b7-8c9d-4e0f-1a2b-3c4d5e6f7a8b', 'f550ff2e-1080-4b29-af61-f46b009bf1ac', '1d672079-260a-48e6-9e5c-2fef6092bdf0', 'fd160307-a56a-4f04-b88d-6422d29496a3', '2025-10-21', 'Scheduled');
 
 INSERT INTO Allocation (allocation_id, train_schedule_id, order_id, space_consumed, store_id) VALUES
-('4a3b6d7c-e0da-4004-90b5-baabe2fec960', '3730fc56-cd09-4bc1-8dc2-26f8eb549f5f', '29fc8097-6caf-4918-adec-0e700393ea6d', 5, 'e28cf701-474a-440f-bca9-2f90605aa65b'),
-('1cb2763a-51d3-4c2c-9452-533505bf3ef5', '141fb849-05cd-4581-bf0e-2969ec839a6f', 'c7538e0f-7ad2-4f9b-85aa-31a7b0487d42', 10, '8683216c-ce35-4024-83fa-bfa73005d431'),
-('e28cf701-474a-440f-bca9-2f90605aa65b', '7e23eb1c-aa68-4297-a8ec-02f5681f2e5c', '1d672079-260a-48e6-9e5c-2fef6092bdf0', 8, 'a44f797f-45ff-40a7-99c0-d946e8c4ad42');
+('4a3b6d7c-e0da-4004-90b5-baabe2fec960', 'a7b8c9d0-1e2f-4a3b-4c5d-6e7f8a9b0c1d', '29fc8097-6caf-4918-adec-0e700393ea6d', 5, 'e28cf701-474a-440f-bca9-2f90605aa65b'),
+('1cb2763a-51d3-4c2c-9452-533505bf3ef5', 'e1f2a3b4-5c6d-4e7f-8a9b-0c1d2e3f4a5b', 'c7538e0f-7ad2-4f9b-85aa-31a7b0487d42', 10, '8683216c-ce35-4024-83fa-bfa73005d431'),
+('e28cf701-474a-440f-bca9-2f90605aa65b', 'f2a3b4c5-6d7e-4f8a-9b0c-1d2e3f4a5b6c', '1d672079-260a-48e6-9e5c-2fef6092bdf0', 8, 'a44f797f-45ff-40a7-99c0-d946e8c4ad42');
 
 INSERT INTO Order_Item (product_id, order_id, quantity, sub_total) VALUES
 ('7f159ff9-2998-4b89-a994-1fb732683475', '29fc8097-6caf-4918-adec-0e700393ea6d', 10, 29.90),
@@ -445,15 +453,27 @@ INNER JOIN `Order` o ON o.customer_id = c.customer_id
 INNER JOIN Order_Item oi ON oi.order_id = o.order_id;
 
 
+-- FUNCTION FOR SETTING UUID
+
+DELIMITER $$
+
+CREATE FUNCTION generate_uuid(val CHAR(36))
+RETURNS CHAR(36)
+DETERMINISTIC
+BEGIN
+  RETURN IF(val IS NULL, UUID(), val);
+END $$
+
+DELIMITER ;
+
+
 DELIMITER $$
 
 CREATE TRIGGER before_insert_driver
 BEFORE INSERT ON Driver
 FOR EACH ROW
 BEGIN
-IF NEW.driver_id IS NULL THEN
-SET NEW.driver_id = UUID();
-END IF;
+    SET NEW.driver_id = generate_uuid(NEW.driver_id);
 END $$
 
 DELIMITER ;
@@ -464,9 +484,7 @@ CREATE TRIGGER before_insert_assistant
 BEFORE INSERT ON Assistant
 FOR EACH ROW
 BEGIN
-IF NEW.assistant_id IS NULL THEN
-SET NEW.assistant_id = UUID();
-END IF;
+    SET NEW.assistant_id = generate_uuid(NEW.assistant_id);
 END $$
 
 DELIMITER ;
@@ -477,9 +495,7 @@ CREATE TRIGGER before_insert_product
 BEFORE INSERT ON Product
 FOR EACH ROW
 BEGIN
-IF NEW.product_id IS NULL THEN
-SET NEW.product_id  = UUID();
-END IF;
+    SET NEW.product_id = generate_uuid(NEW.product_id);
 END $$
 
 DELIMITER ;
@@ -490,9 +506,7 @@ CREATE TRIGGER before_insert_store
 BEFORE INSERT ON Store
 FOR EACH ROW
 BEGIN
-IF NEW.store_id IS NULL THEN
-SET NEW.store_id  = UUID();
-END IF;
+    SET NEW.store_id = generate_uuid(NEW.store_id);
 END $$
 
 DELIMITER ;
@@ -503,9 +517,7 @@ CREATE TRIGGER before_insert_route
 BEFORE INSERT ON Route
 FOR EACH ROW
 BEGIN
-IF NEW.route_id IS NULL THEN
-SET NEW.route_id  = UUID();
-END IF;
+    SET NEW.route_id = generate_uuid(NEW.route_id);
 END $$
 
 DELIMITER ;
@@ -516,9 +528,7 @@ CREATE TRIGGER before_insert_truck
 BEFORE INSERT ON Truck
 FOR EACH ROW
 BEGIN
-IF NEW.truck_id IS NULL THEN
-SET NEW.truck_id  = UUID();
-END IF;
+    SET NEW.truck_id = generate_uuid(NEW.truck_id);
 END $$
 
 DELIMITER ;
@@ -529,9 +539,92 @@ CREATE TRIGGER before_insert_admin
 BEFORE INSERT ON Admin
 FOR EACH ROW
 BEGIN
-IF NEW.admin_id IS NULL THEN
-SET NEW.admin_id  = UUID();
+    SET NEW.admin_id = generate_uuid(NEW.admin_id);
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_allocation
+BEFORE INSERT ON Allocation
+FOR EACH ROW
+BEGIN
+IF NEW.allocation_id IS NULL THEN
+SET NEW.allocation_id  = UUID();
 END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS GetOrdersByRouteStore $$
+
+CREATE PROCEDURE GetOrdersByRouteStore(IN routeId CHAR(36))
+BEGIN
+    SELECT 
+        co.order_id,
+        co.name,
+        co.city,
+        co.order_date,
+        co.required_date,
+        COUNT(co.product_id) as product_count,
+        SUM(co.total_value) as total_value,
+        co.status
+    FROM Customer_Order co
+    JOIN Allocation a ON co.order_id = a.order_id
+    JOIN Route r ON r.route_id = routeId
+    WHERE a.store_id = r.store_id
+    GROUP BY co.order_id, co.name, co.city, co.order_date, co.required_date, co.status;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE GetOrdersByRouteStore(IN route_id_param VARCHAR(36))
+BEGIN
+    -- Get the store_id for the route
+    DECLARE store_id_var VARCHAR(36);
+    
+    SELECT store_id INTO store_id_var 
+    FROM Route 
+    WHERE route_id = route_id_param;
+    
+    -- Get orders allocated to this store that haven't been assigned to a delivery yet
+    SELECT 
+        o.order_id,
+        o.order_date,
+        o.required_date,
+        o.status,
+        o.total_value,
+        c.name,
+        c.city,
+        a.allocation_id,
+        a.store_id,
+        ts.departure_city,
+        ts.arrival_city,
+        ts.schedule_date,
+        COUNT(oi.product_id) as product_count
+    FROM 
+        `Order` o
+        JOIN Customer c ON o.customer_id = c.customer_id
+        JOIN Order_Item oi ON o.order_id = oi.order_id
+        JOIN Allocation a ON o.order_id = a.order_id
+        JOIN Train_Schedule ts ON a.train_schedule_id = ts.train_schedule_id
+    WHERE 
+        a.store_id = store_id_var
+        AND o.status = 'Processing'
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM Delivers d 
+            WHERE d.order_id = o.order_id
+        )
+    GROUP BY 
+        o.order_id, o.order_date, o.required_date, o.status, o.total_value,
+        c.name, c.city, a.allocation_id, a.store_id, 
+        ts.departure_city, ts.arrival_city, ts.schedule_date;
 END $$
 
 DELIMITER ;
