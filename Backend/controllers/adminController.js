@@ -62,7 +62,7 @@ export async function patchAdminDetails(req, res) {
       data: adminData,
     });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });

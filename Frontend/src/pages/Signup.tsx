@@ -16,6 +16,18 @@ import { API_URL } from '@/lib/config';
 import loginBackground from '@/assets/login-background.jpg';
 
 const customerTypes = ['Retail', 'Wholesale', 'Distributor', 'Individual'];
+//
+interface RegisterResponse {
+  success: boolean;
+  message?: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    // add more fields based on API response
+  };
+}
+//
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -124,7 +136,7 @@ const Signup = () => {
         body: JSON.stringify(payload),
       });
 
-      let data: any = {};
+      let data: RegisterResponse = { success: false };
       try {
         data = await response.json();
       } catch (readError) {
@@ -151,6 +163,7 @@ const Signup = () => {
   };
 
   return (
+
     <div
       className="min-h-screen flex flex-col lg:flex-row relative"
       style={{
