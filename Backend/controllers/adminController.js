@@ -19,7 +19,7 @@ export async function addNewAdmin(req, res) {
       .status(201)
       .json({ message: "New admin successfully added!", data: result });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });
