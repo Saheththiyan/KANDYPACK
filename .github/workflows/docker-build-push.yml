@@ -136,7 +136,7 @@ jobs:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
     needs: [lint, test] # Only run if both lint and test pass
-    # if: github.ref == 'refs/heads/main' # Only push images on main branch
+    if: github.ref == 'refs/heads/main' # Only push images on main branch
 
     strategy:
       matrix:
