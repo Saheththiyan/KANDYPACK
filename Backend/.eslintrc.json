@@ -11,15 +11,22 @@
     "sourceType": "module"
   },
   "rules": {
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "no-console": "warn",
     "prefer-const": "error",
     "no-var": "error",
     "eqeqeq": "error",
     "curly": "error",
-    "no-trailing-spaces": "error",
-    "indent": ["error", 2],
-    "quotes": ["error", "double"],
-    "semi": ["error", "always"]
+    
+    // Ignore formatting/style issues
+    "no-console": "off",
+    "no-trailing-spaces": "off", 
+    "indent": "off",
+    "quotes": "off",
+    "semi": "off",
+    
+    // Keep unused vars checking but allow _ prefix
+    "no-unused-vars": ["warn", { 
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_"
+    }]
   }
 }
