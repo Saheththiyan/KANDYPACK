@@ -52,7 +52,6 @@ export async function telegramWebhook(req, res) {
 
     const chatId = message.chat.id;
     const text = message.text.trim();
-    const username = message.from.username || message.from.first_name || 'User';
 
     // Check if message starts with /register
     if (text.startsWith('/register ')) {

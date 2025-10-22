@@ -81,27 +81,3 @@ export async function getAssistantById(assistantId) {
     return null;
   }
 }
-
-export async function getRegisteredDrivers() {
-  try {
-    const [rows] = await db.query(
-      'SELECT driver_id, name, chat_id FROM Driver WHERE chat_id IS NOT NULL'
-    );
-    return rows;
-  } catch (error) {
-    console.error('Get registered drivers error:', error);
-    return [];
-  }
-}
-
-export async function getRegisteredAssistants() {
-  try {
-    const [rows] = await db.query(
-      'SELECT assistant_id, name, chat_id FROM Assistant WHERE chat_id IS NOT NULL'
-    );
-    return rows;
-  } catch (error) {
-    console.error('Get registered assistants error:', error);
-    return [];
-  }
-}
