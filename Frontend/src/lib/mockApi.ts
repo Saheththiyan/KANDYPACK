@@ -299,7 +299,7 @@ export const cities = [
 ];
 
 // Mock orders storage
-let mockOrders: Order[] = [];
+const mockOrders: Order[] = [];
 
 // API simulation helpers
 const simulateDelay = () => {

@@ -23,6 +23,13 @@ interface Product {
   image: string;
 }
 
+interface ProductResponse {
+  products: Product[];
+  total: number;
+  totalPages: number;
+}
+
+
 const PAGE_SIZE = 16;
 
 const SignInPrompt = ({
@@ -189,7 +196,7 @@ const CustomerProducts = () => {
         const res = await fetchProducts(debouncedQuery, currentPage, PAGE_SIZE, sortBy);
         if (!cancelled) {
           // map to the Product UI shape (already normalized in api.ts)
-          setProducts(res.products as any);
+          setProducts(res.products);
           setServerTotal(res.total);
           setServerTotalPages(res.totalPages);
         }

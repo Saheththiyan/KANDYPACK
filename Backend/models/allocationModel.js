@@ -20,7 +20,7 @@ export async function getUnprocessedOrders() {
     WHERE status = 'Pending' or status = 'Processing'
     GROUP BY order_id, name, city, order_date, required_date, status
   `;
-  
+
   const [orders] = await db.query(query);
   return orders;
 }

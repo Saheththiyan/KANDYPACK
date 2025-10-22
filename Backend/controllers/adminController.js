@@ -19,7 +19,7 @@ export async function addNewAdmin(req, res) {
       .status(201)
       .json({ message: "New admin successfully added!", data: result });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });
@@ -37,7 +37,7 @@ export async function deleteAdmin(req, res) {
 
     res.status(200).json({ message: "Admin deleted successfully!" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });
@@ -62,7 +62,7 @@ export async function patchAdminDetails(req, res) {
       data: adminData,
     });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });

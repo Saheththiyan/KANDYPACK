@@ -16,7 +16,7 @@ export async function getDriversByID(id) {
 
 export async function sortDriversByHour() {
   const [drivers] = await db.query(
-    `SELECT * FROM Driver`
+    "SELECT * FROM Driver"
   );
   return drivers;
 }
@@ -67,7 +67,7 @@ export async function patchDriver(driver_id, driverData) {
     }
   }
 
-  if (columns.length === 0) return null;
+  if (columns.length === 0) {return null;}
 
   const query = `
     UPDATE Driver

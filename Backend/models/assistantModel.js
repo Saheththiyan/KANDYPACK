@@ -6,7 +6,7 @@ export async function getAssistants() {
 }
 
 export async function sortAssistantsByHour() {
-  const [assistants] = await db.query(`SELECT * FROM Assistant`);
+  const [assistants] = await db.query("SELECT * FROM Assistant");
   return assistants;
 }
 
@@ -55,7 +55,7 @@ export async function patchAssistant(assitant_id, assistantData) {
     }
   }
 
-  if (columns.length === 0) return null;
+  if (columns.length === 0) {return null;}
 
   const query = `
     UPDATE Assistant

@@ -136,7 +136,7 @@ const CustomerProducts = () => {
         }).then(res => res.json());
 
         // Sort products
-        let sortedProducts = [...res.products];
+        const sortedProducts = [...res.products];
         switch (sortBy) {
           case 'price-low':
             sortedProducts.sort((a, b) => a.price - b.price);
@@ -153,7 +153,7 @@ const CustomerProducts = () => {
         if (cancelled) return;
 
         // api.ts already normalizes; this is a safety mapping if needed:
-        const mapped: Product[] = res.products.map((p: any) => ({
+        const mapped: Product[] = res.products.map((p: Product) => ({
           id: p.product_id ?? p.id,
           name: p.name,
           description: p.description,
