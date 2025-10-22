@@ -15,7 +15,7 @@ import { calculatePasswordStrength, validateEmail } from '@/lib/mockAuth';
 import { API_URL } from '@/lib/config';
 import loginBackground from '@/assets/login-background.jpg';
 
-const customerTypes = ['Retail', 'Wholesale', 'Distributor', 'Individual'];
+const customerTypes = ['Retail', 'Wholesale', 'Distributor'];
 
 const Signup = () => {
   const navigate = useNavigate();

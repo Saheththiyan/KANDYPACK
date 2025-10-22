@@ -322,6 +322,70 @@ export async function createOrder(
   try {
     await connection.beginTransaction();
 
+    const productQuantities = new Map();
+    for (const item of items) {
+      const productId = item.productId;
+      const quantity = Number(item.quantity ?? 0);
+      if (!productId || Number.isNaN(quantity) || quantity <= 0) {
+        const error = new Error("Invalid order item payload detected");
+        error.code = "INVALID_ORDER_ITEM";
+        throw error;
+      }
+      productQuantities.set(
+        productId,
+        (productQuantities.get(productId) || 0) + quantity
+      );
+    }
+
+    const productIds = [...productQuantities.keys()];
+    if (!productIds.length) {
+      const error = new Error("Order must include at least one product");
+      error.code = "INVALID_ORDER_ITEM";
+      throw error;
+    }
+    const placeholders = productIds.map(() => "?").join(", ");
+    const [productRows] = await connection.query(
+      `
+        SELECT product_id, name, stock
+        FROM Product
+        WHERE product_id IN (${placeholders})
+        FOR UPDATE
+      `,
+      productIds
+    );
+
+    const stockMap = new Map(
+      productRows.map((row) => [
+        row.product_id,
+        {
+          name: row.name,
+          stock: Number(row.stock ?? 0),
+        },
+      ])
+    );
+
+    for (const [productId, requestedQty] of productQuantities.entries()) {
+      const productInfo = stockMap.get(productId);
+      if (!productInfo) {
+        const error = new Error(`Product ${productId} not found`);
+        error.code = "PRODUCT_NOT_FOUND";
+        throw error;
+      }
+
+      if (requestedQty > productInfo.stock) {
+        const error = new Error(
+          `Requested quantity (${requestedQty}) for ${productInfo.name} exceeds available stock (${productInfo.stock}).`
+        );
+        error.code = "INSUFFICIENT_STOCK";
+        error.meta = {
+          productId,
+          requested: requestedQty,
+          available: productInfo.stock,
+        };
+        throw error;
+      }
+    }
+
     const orderId = crypto.randomUUID();
     const normalizedTotal = Number(totalAmount ?? 0);
     const methodCode = paymentMethod || "cod";
@@ -357,6 +421,17 @@ export async function createOrder(
         quantity,
         subTotal,
       ]);
+    }
+
+    for (const [productId, orderedQty] of productQuantities.entries()) {
+      await connection.query(
+        `
+          UPDATE Product
+          SET stock = stock - ?
+          WHERE product_id = ?
+        `,
+        [orderedQty, productId]
+      );
     }
 
     const { name, phone, address, city } = contactInfo;
@@ -435,4 +510,28 @@ export async function getCustomerOrderHistory(customerId) {
     [customerId]
   );
   return history;
+}
+
+export async function getCustomerOrderSummary(customerId) {
+  const [rows] = await db.query(
+    `
+      SELECT
+        COUNT(*) AS totalOrders,
+        COALESCE(SUM(CASE WHEN LOWER(status) = 'in transit' THEN 1 ELSE 0 END), 0) AS ordersInTransit,
+        COALESCE(SUM(CASE WHEN LOWER(status) = 'delivered' THEN 1 ELSE 0 END), 0) AS ordersDelivered,
+        COALESCE(SUM(total_value), 0) AS totalSpent
+      FROM \`Order\`
+      WHERE customer_id = ?
+    `,
+    [customerId]
+  );
+
+  const [summary = {}] = rows;
+
+  return {
+    totalOrders: Number(summary.totalOrders ?? 0),
+    ordersInTransit: Number(summary.ordersInTransit ?? 0),
+    ordersDelivered: Number(summary.ordersDelivered ?? 0),
+    totalSpent: Number(summary.totalSpent ?? 0),
+  };
 }

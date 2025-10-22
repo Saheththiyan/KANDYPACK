@@ -61,7 +61,7 @@ const ProductCard = ({ product }: { product: Product }) => {
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="h-8 w-8 p-0">
-              <Plus className="w-3 h-3 rotate-180" />
+              <Minus className="w-3 h-3 rotate-180" />
             </Button>
             <span className="w-8 text-center font-medium">{quantity}</span>
             <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)} className="h-8 w-8 p-0">
