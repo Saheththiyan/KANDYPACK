@@ -1,4 +1,5 @@
 import * as deliver from "../models/deliversModel.js";
+import { sendTelegramMessage } from "../utils/sendTelegram.js";
 
 export async function getAllDeliverires(req, res) {
   try {
@@ -20,6 +21,8 @@ export async function assignOrdersToDelivery(req, res) {
     }
     
     await deliver.assignOrdersToDelivery(deliveryId, orderIds);
+
+    sendTelegramMessage(`Orders ${orderIds.join(', ')} have been assigned to delivery ID ${deliveryId}.`);
     
     res.json({ 
       success: true, 
