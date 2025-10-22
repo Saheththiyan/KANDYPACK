@@ -90,14 +90,14 @@ jobs:
 
       # Upload build artifacts
       - name: Upload frontend build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: Frontend/dist/
           retention-days: 7
 
       - name: Upload backend artifacts (if exists)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-build
           path: Backend/dist/
@@ -187,7 +187,7 @@ jobs:
 
       # Upload test results
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
