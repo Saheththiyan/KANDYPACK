@@ -33,7 +33,7 @@ export async function addNewProduct(req, res) {
       data: result,
     });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });
@@ -51,7 +51,7 @@ export async function deleteProduct(req, res) {
 
     res.status(200).json({ message: "Product successfully removed!" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     res
       .status(500)
       .json({ message: "This product has some existing orders, Therefore it cannot be deleted", error: error.message });
@@ -71,7 +71,7 @@ export async function updateProduct(req, res) {
 
     res.status(200).json({ message: "Product successfully updated!" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });

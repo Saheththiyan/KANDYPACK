@@ -55,7 +55,7 @@ export async function patchAssistant(assitant_id, assistantData) {
     }
   }
 
-  if (columns.length === 0) return null;
+  if (columns.length === 0) {return null;}
 
   const query = `
     UPDATE Assistant

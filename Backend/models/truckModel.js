@@ -56,7 +56,7 @@ export async function patchTruck(truck_id, truckData) {
     }
   }
 
-  if (columns.length === 0) return null;
+  if (columns.length === 0) {return null;}
 
   const query = `
     UPDATE Truck

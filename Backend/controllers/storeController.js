@@ -19,7 +19,7 @@ export async function addNewStore(req, res) {
       .status(201)
       .json({ message: "New store successfully added!", data: result });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });
@@ -37,7 +37,7 @@ export async function deleteStore(req, res) {
 
     return res.status(200).json({ message: "Product successfully removed" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });
@@ -62,7 +62,7 @@ export async function patchStoreDetails(req, res) {
       data: storeData,
     });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });

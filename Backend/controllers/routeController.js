@@ -20,7 +20,7 @@ export async function addNewRoute(req, res) {
       data: result,
     });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Somthing went wrong", error: error.message });
@@ -38,7 +38,7 @@ export async function deleteRoute(req, res) {
 
     return res.status(200).json({ message: "Route successfully removed" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });

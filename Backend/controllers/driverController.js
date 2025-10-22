@@ -48,7 +48,7 @@ export async function addNewDriver(req, res) {
       data: result,
     });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res.status(500).json({
       message: "Something went wrong",
       error: error.message,
@@ -67,7 +67,7 @@ export async function deleteDriver(req, res) {
 
     res.status(200).json({ message: "Driver deleted successfully!" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
 
     // Handle foreign key violation
     if (error.code === "ER_ROW_IS_REFERENCED_2") {
@@ -101,7 +101,7 @@ export async function patchDriverDetails(req, res) {
       .status(200)
       .json({ message: "Driver updated successfully!", data: driverData });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });

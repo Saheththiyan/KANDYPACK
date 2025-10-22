@@ -37,7 +37,7 @@ export async function deleteAdmin(req, res) {
 
     res.status(200).json({ message: "Admin deleted successfully!" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });

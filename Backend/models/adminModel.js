@@ -93,7 +93,7 @@ export async function patchAdmin(admin_id, adminData) {
     }
   }
 
-  if (columns.length === 0) return null;
+  if (columns.length === 0) {return null;}
 
   const query = `
     UPDATE Admin

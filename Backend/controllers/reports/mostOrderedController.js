@@ -13,7 +13,7 @@ export async function getMostOrdered(req, res) {
     const topProducts = await getMostOrderedProducts(year, quarter, limit);
     return res.json({ year, quarter, top: topProducts });
   } catch (err) {
-    console.error(err);
+    //console.error(err);
     return res.status(500).json({ error:"Failed to fetch most ordered products" });
   }
 }

@@ -67,7 +67,7 @@ export async function patchDriver(driver_id, driverData) {
     }
   }
 
-  if (columns.length === 0) return null;
+  if (columns.length === 0) {return null;}
 
   const query = `
     UPDATE Driver

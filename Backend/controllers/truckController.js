@@ -19,7 +19,7 @@ export async function addNewTruck(req, res) {
       .status(201)
       .json({ message: "New truck successfully added!", data: result });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Somthing went wrong", error: error.message });
@@ -37,7 +37,7 @@ export async function deleteTruck(req, res) {
 
     return res.status(200).json({ message: "Truck successfully removed" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });
@@ -61,7 +61,7 @@ export async function patchTruckDetails(req, res) {
       .status(200)
       .json({ message: "Truck updated successfully!", data: truckData });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });

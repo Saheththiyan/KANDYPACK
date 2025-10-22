@@ -46,7 +46,7 @@ export function requireAdmin(req, res, next) {
 // Combined middleware: authenticate + require admin
 export function authenticateAdmin(req, res, next) {
   authenticateToken(req, res, (err) => {
-    if (err) return;
+    if (err) {return;}
     requireAdmin(req, res, next);
   });
 }
