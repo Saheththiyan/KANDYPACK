@@ -45,7 +45,7 @@ export async function deleteProduct(req, res) {
     const { product_id } = req.params;
     const result = await product.removeProduct(product_id);
 
-    if (result.affectedRows == 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Product not Found" });
     }
 
@@ -65,7 +65,7 @@ export async function updateProduct(req, res) {
 
     const result = await product.updateProduct(product_id, productData);
 
-    if (result.affectedRows == 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Product not Found" });
     }
 

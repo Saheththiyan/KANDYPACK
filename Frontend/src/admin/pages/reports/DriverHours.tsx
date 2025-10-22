@@ -108,7 +108,7 @@ const DriverHours = () => {
       });
     }
     return acc;
-  }, [] as any[]);
+  }, []);
 
   const chartData2 = assistantHoursData.reduce((acc, curr) => {
     const existing = acc.find(item => item.name === curr.name);

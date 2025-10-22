@@ -6,7 +6,7 @@ export async function getAssistants() {
 }
 
 export async function sortAssistantsByHour() {
-  const [assistants] = await db.query(`SELECT * FROM Assistant`);
+  const [assistants] = await db.query("SELECT * FROM Assistant");
   return assistants;
 }
 

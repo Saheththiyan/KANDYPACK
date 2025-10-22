@@ -50,7 +50,7 @@ export const fetchProducts = async (
 
   const server = await res.json(); // { products, total, page, pageSize, totalPages }
 
-  const normalized = (server.products || []).map((p: any): Product => ({
+  const normalized = (server.products || []).map((p:Product) => ({
     product_id: p.product_id,
     name: p.name,
     description: p.description,
@@ -194,7 +194,7 @@ export interface Order {
 }
 
 // Mock orders storage
-let mockOrders: Order[] = [];
+const mockOrders: Order[] = [];
 
 // Order management
 export const createOrder = async (orderData: {

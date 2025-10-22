@@ -31,7 +31,7 @@ export async function deleteAssistant(req, res) {
     const { assistant_id } = req.params;
     const result = await assistant.removeAssistant(assistant_id);
 
-    if (result.affectedRows == 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Assistant not Found" });
     }
 

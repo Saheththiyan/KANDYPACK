@@ -245,7 +245,7 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const data = await fetchProducts();
-      const normalized = (data || []).map((p: any) => ({
+      const normalized = (data || []).map((p: Product) => ({
         ...p,
         unit_price: Number(p.unit_price),
         stock: Number(p.stock),

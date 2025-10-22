@@ -31,7 +31,7 @@ export async function deleteTruck(req, res) {
     const { truck_id } = req.params;
     const result = await truck.removeTruck(truck_id);
 
-    if (result.affectedRows == 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Truck not Found" });
     }
 
@@ -72,13 +72,13 @@ export async function getTrucksByStore(req, res) {
   try {
     const { store_id } = req.query;
     let trucks;
-    
+
     if (store_id) {
       trucks = await truck.getTrucksByStore(store_id);
     } else {
       trucks = await truck.getTrucks();
     }
-    
+
     res.json(trucks);
   } catch (err) {
     res.status(500).json({ error: err.message });

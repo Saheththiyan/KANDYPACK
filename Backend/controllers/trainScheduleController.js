@@ -18,7 +18,7 @@ export async function getSchedulesByCity(req, res) {
     } else {
       schedules = await schedule.getSchedules();
     }
-    
+
     res.json(schedules);
   } catch (err) {
     res.status(500).json({ error: err.message });

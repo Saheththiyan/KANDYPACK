@@ -31,7 +31,7 @@ export async function deleteStore(req, res) {
     const { store_id } = req.params;
     const result = await store.removeStore(store_id);
 
-    if (result.affectedRows == 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Product not Found" });
     }
 
@@ -73,13 +73,13 @@ export async function getStoresByCity(req, res) {
   try {
     const { city } = req.query;
     let stores;
-    
+
     if (city) {
       stores = await store.getStoresByCity(city);
     } else {
       stores = await store.getStores();
     }
-    
+
     res.json(stores);
   } catch (err) {
     res.status(500).json({ error: err.message });
