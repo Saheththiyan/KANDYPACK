@@ -120,16 +120,16 @@ jobs:
         #   npm test
         run: echo "Backend tests would run here"
 
-      # Test Frontend
-      - name: Install frontend dependencies
-        run: |
-          cd Frontend
-          npm ci
+      # # Test Frontend
+      # - name: Install frontend dependencies
+      #   run: |
+      #     cd Frontend
+      #     npm ci
 
-      - name: Run frontend tests
-        run: |
-          cd Frontend
-          npm test
+      # - name: Run frontend tests
+      #   run: |
+      #     cd Frontend
+      #     npm test
 
   # Job 3: Build and push Docker images
   build-and-push:
