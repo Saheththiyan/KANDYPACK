@@ -2,9 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, Dev ]
-  pull_request:
-    branches: [ main, Dev ]
+    branches: [ main ]
 
 jobs:
   # Job 1: Lint all code
