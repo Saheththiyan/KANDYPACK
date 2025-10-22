@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Apply authentication to all delivery schedule routes
 router.use(authenticateToken);
-
-router.get("/", schedule.getAllschedules);
+router.get("/", schedule.getSchedulesWithDetails);
+router.get("/route-orders/:routeId", schedule.getOrdersByRouteStore);
 
 export default router;
