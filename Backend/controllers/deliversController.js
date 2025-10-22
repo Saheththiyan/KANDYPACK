@@ -8,3 +8,25 @@ export async function getAllDeliverires(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function assignOrdersToDelivery(req, res) {
+  try {
+    const { deliveryId, orderIds } = req.body;
+    
+    if (!deliveryId || !orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({ 
+        error: 'Valid deliveryId and orderIds array are required'
+      });
+    }
+    
+    await deliver.assignOrdersToDelivery(deliveryId, orderIds);
+    
+    res.json({ 
+      success: true, 
+      message: 'Orders assigned to delivery successfully'
+    });
+  } catch (err) {
+    console.error('Error assigning orders to delivery:', err);
+    res.status(500).json({ error: err.message });
+  }
+}
