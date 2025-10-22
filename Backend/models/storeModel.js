@@ -49,3 +49,11 @@ export async function patchStore(store_id, storeData) {
   const [result] = await db.query(query, values);
   return result;
 }
+
+export async function getStoresByCity(city) {
+  const [stores] = await db.query(
+    "SELECT * FROM Store WHERE city = ?",
+    [city]
+  );
+  return stores;
+}

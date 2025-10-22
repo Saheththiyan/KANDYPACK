@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, Package, ShoppingCart, ClipboardList, LogOut } from 'lucide-react';
+import { Home, Package, ShoppingCart, ClipboardList, LogOut, User } from 'lucide-react';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { getAuthToken } from '@/lib/mockAuth';
 
@@ -10,7 +10,7 @@ export const CustomerLayout = () => {
   const auth = getAuthToken();
 
   const handleLogout = () => {
-    localStorage.removeItem('kandypack_user');
+    localStorage.removeItem('auth');
     navigate('/login');
   };
 
@@ -19,6 +19,7 @@ export const CustomerLayout = () => {
     { path: '/customer/products', label: 'Products', icon: Package },
     { path: '/customer/cart', label: 'Cart', icon: ShoppingCart },
     { path: '/customer/orders', label: 'Orders', icon: ClipboardList },
+    { path: '/customer/profile', label: 'Profile', icon: User },
   ];
 
   return (
@@ -56,7 +57,9 @@ export const CustomerLayout = () => {
           <div className="flex space-x-1 overflow-x-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+              const isActive =
+                location.pathname === item.path ||
+                location.pathname.startsWith(`${item.path}/`);
               return (
                 <Link
                   key={item.path}

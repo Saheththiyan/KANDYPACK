@@ -6,10 +6,7 @@ export async function getAssistants() {
 }
 
 export async function sortAssistantsByHour() {
-  const [assistants] = await db.query(
-    `SELECT * FROM Assistant
-     ORDER BY weekly_hours DESC`
-  );
+  const [assistants] = await db.query(`SELECT * FROM Assistant`);
   return assistants;
 }
 
@@ -26,14 +23,14 @@ export async function getAssistantHour(from, to) {
 }
 
 export async function addAssistant(assistantData) {
-  const { name } = assistantData;
+  const { name, weekly_hours, status } = assistantData;
 
   const query = `
-    INSERT INTO Assistant(name)
-    VALUES (?)
+    INSERT INTO Assistant(name, weekly_hours, status)
+    VALUES (?,?,?)
   `;
 
-  const [result] = await db.query(query, [name]);
+  const [result] = await db.query(query, [name, weekly_hours, status]);
   return result;
 }
 
@@ -69,4 +66,12 @@ export async function patchAssistant(assitant_id, assistantData) {
 
   const [result] = await db.query(query, values);
   return result;
+}
+
+export async function getAssistantsByStore(store_id) {
+  const [assistants] = await db.query(
+    "SELECT * FROM Assistant WHERE store_id = ?",
+    [store_id]
+  );
+  return assistants;
 }

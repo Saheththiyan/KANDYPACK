@@ -65,8 +65,19 @@ export const AuthCard = () => {
       }).then(res => res.json());
 
       if (response.success && response.user && response.token) {
-        // Store auth token and user data
-        setAuthToken(response.token, response.user.role, response.user.email, response.user.name, response.user.id);
+        const session = {
+          token: response.token as string,
+          id: response.user.id,
+          role: response.user.role,
+          email: response.user.email,
+          name: response.user.name,
+          phone: response.user.phone ?? null,
+          address: response.user.address ?? null,
+          city: response.user.city ?? null,
+          type: response.user.type ?? null,
+        } as const;
+
+        setAuthToken(session);
 
         // Route based on role
         if (response.user.role === 'Customer') {
@@ -79,7 +90,7 @@ export const AuthCard = () => {
 
         toast({
           title: "Sign in successful",
-          description: `Welcome back, ${response.user.name}!`,
+          description: `Welcome back, ${response.user.name || response.user.email}!`,
         });
       } else {
         setErrorMessage(response.message);
@@ -134,7 +145,6 @@ export const AuthCard = () => {
               id="email"
               type="email"
               data-testid="email-input"
-              placeholder="admin@kandypack.lk"
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               aria-describedby={errors.email ? "email-error" : undefined}
@@ -155,7 +165,6 @@ export const AuthCard = () => {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 data-testid="password-input"
-                placeholder="Enter your password"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 aria-describedby={errors.password ? "password-error" : undefined}
@@ -178,7 +187,7 @@ export const AuthCard = () => {
             </div>
 
             {/* Password Strength Indicator */}
-            {formData.password && (
+            {/* {formData.password && (
               <div className="space-y-1">
                 <div className="flex space-x-1">
                   <div className={`h-1 flex-1 rounded ${getPasswordStrengthColor()}`} />
@@ -195,11 +204,11 @@ export const AuthCard = () => {
 
             {errors.password && (
               <p id="password-error" className="text-sm text-danger">{errors.password}</p>
-            )}
+            )} */}
           </div>
 
           {/* Role Selection */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label className="text-sm font-medium text-foreground">
               Role <span className="text-muted-foreground">(optional)</span>
             </Label>
@@ -217,10 +226,10 @@ export const AuthCard = () => {
                 <SelectItem value="Customer">Customer</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           {/* Remember Me */}
-          <div className="flex items-center space-x-2">
+          {/* <div className="flex items-center space-x-2">
             <Checkbox
               id="remember"
               data-testid="remember-checkbox"
@@ -232,7 +241,7 @@ export const AuthCard = () => {
             <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
               Remember me for 30 days
             </Label>
-          </div>
+          </div> */}
 
           {/* Submit Button */}
           <Button
@@ -252,8 +261,8 @@ export const AuthCard = () => {
           </Button>
 
           {/* Secondary Links */}
-          <div className="flex flex-col sm:flex-row sm:justify-between gap-3 text-sm">
-            <button
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-sm">
+            {/* <button
               type="button"
               className="text-primary hover:text-primary-hover underline underline-offset-4"
             >
@@ -264,6 +273,13 @@ export const AuthCard = () => {
               className="text-primary hover:text-primary-hover underline underline-offset-4"
             >
               Request access
+            </button> */}
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className="text-primary hover:text-primary-hover underline underline-offset-4"
+            >
+              New customer? Sign up
             </button>
           </div>
         </form>
@@ -275,7 +291,8 @@ export const AuthCard = () => {
             <p><span className="font-medium">Admin 1:</span> admin1@kandypack.com / hashedpass1</p>
             <p><span className="font-medium">Admin 2:</span> admin2@kandypack.com / hashedpass2</p>
             <p><span className="font-medium">Admin 3:</span> admin3@kandypack.com / hashedpass3</p>
-            <p><span className="font-medium">Customer:</span> customer@kandypack.lk / Password1!</p>
+            <p><span className="font-medium">Customer 1:</span> anura.j@example.com / password14</p>
+            <p><span className="font-medium">Customer 2:</span> priya.g@example.com / password12</p>
           </div>
         </div>
       </div>

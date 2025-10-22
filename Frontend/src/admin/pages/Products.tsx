@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Eye, Pencil, Trash2, Package, CheckCircle, XCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '../../lib/config';
 import { getAuthToken } from '@/lib/mockAuth';
 
@@ -42,14 +43,16 @@ interface Product {
   description: string;
 }
 
-const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
-  <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
-    }`}>
-    {type === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-    <span className="font-medium">{message}</span>
-    <button onClick={onClose} className="ml-2 text-gray-500 hover:text-gray-700">×</button>
-  </div>
-);
+// const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
+//   <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+//     }`}>
+//     {type === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+//     <span className="font-medium">{message}</span>
+//     <button onClick={onClose} className="ml-2 text-gray-500 hover:text-gray-700">×</button>
+//   </div>
+// );
+
+
 
 const ProductCard = ({ product, onView, onEdit, onDelete }: {
   product: Product;
@@ -155,7 +158,7 @@ const AdminProducts = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  // const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [formData, setFormData] = useState<Product>({
     name: '',
     unit_price: 0,
@@ -166,13 +169,15 @@ const AdminProducts = () => {
   });
 
   const auth = getAuthToken();
-
+  const { toast } = useToast();
   const ITEMS_PER_PAGE = 12;
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  // const showToast = (message: string, type: 'success' | 'error') => {
+  //   toast({
+  //     message,
+  //     type,
+  //   });
+  // };
 
   async function fetchProducts(): Promise<Product[]> {
     const response = await fetch(`${API_URL}/products`, {
@@ -190,7 +195,8 @@ const AdminProducts = () => {
   }
 
   const searchAndSortProducts = (term: string, products: Product[], sort: string): Product[] => {
-    let results = products;
+    // copy array so we don't mutate the original state
+    let results = products.slice();
 
     // Search
     const lowerTerm = term.toLowerCase().trim();
@@ -205,16 +211,16 @@ const AdminProducts = () => {
     // Sort
     switch (sort) {
       case 'price-low':
-        results.sort((a, b) => a.unit_price - b.unit_price);
+        results.sort((a, b) => Number(a.unit_price) - Number(b.unit_price));
         break;
       case 'price-high':
-        results.sort((a, b) => b.unit_price - a.unit_price);
+        results.sort((a, b) => Number(b.unit_price) - Number(a.unit_price));
         break;
       case 'stock-low':
-        results.sort((a, b) => a.stock - b.stock);
+        results.sort((a, b) => Number(a.stock) - Number(b.stock));
         break;
       case 'stock-high':
-        results.sort((a, b) => b.stock - a.stock);
+        results.sort((a, b) => Number(b.stock) - Number(a.stock));
         break;
       case 'name':
       default:
@@ -239,11 +245,20 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const data = await fetchProducts();
-      setProducts(data || []);
-      setFilteredProducts(data || []);
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to load products', 'error');
+      const normalized = (data || []).map((p: any) => ({
+        ...p,
+        unit_price: Number(p.unit_price),
+        stock: Number(p.stock),
+        space_unit: Number(p.space_unit),
+      }));
+      setProducts(normalized);
+      setFilteredProducts(normalized);
+    } catch (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
     } finally {
       setLoading(false);
     }
@@ -289,17 +304,27 @@ const AdminProducts = () => {
   const confirmDelete = async () => {
     if (selectedProduct) {
       try {
-        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
+        const response = await fetch(`${API_URL}/products/${selectedProduct.product_id}`, {
           method: "DELETE",
+          headers: {
+            'Authorization': `Bearer ${auth.token}`
+          }
         });
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.message || "Failed to delete product");
         }
-        showToast('Product deleted successfully', 'success');
+        toast({
+          title: "Success",
+          description: "Product deleted successfully",
+        });
         await loadProducts();
       } catch (error) {
-        showToast(error.message || 'Failed to delete product', 'error');
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
       } finally {
         setIsDeleteDialogOpen(false);
         setSelectedProduct(null);
@@ -313,32 +338,48 @@ const AdminProducts = () => {
         name: formData.name,
         unit_price: formData.unit_price,
         stock: formData.stock,
-        spaceConsumption: formData.space_unit,
+        space_unit: formData.space_unit,
         description: formData.description,
       };
 
       if (isEditing && selectedProduct) {
-        const response = await fetch(`${API_URL}/admin/products/${selectedProduct.product_id}`, {
+        const response = await fetch(`${API_URL}/products/${selectedProduct.product_id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(productData),
         });
         if (!response.ok) throw new Error('Failed to update product');
-        showToast('Product updated successfully', 'success');
+        toast({
+          title: "Success",
+          description: "Product updated successfully",
+        });
       } else {
-        const response = await fetch(`${API_URL}/admin/products`, {
+        const response = await fetch(`${API_URL}/products`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
           body: JSON.stringify(productData),
         });
         if (!response.ok) throw new Error('Failed to add product');
-        showToast('Product added successfully', 'success');
+        toast({
+          title: "Success",
+          description: "Product added successfully",
+        });
       }
       await loadProducts();
       setIsFormModalOpen(false);
       setSelectedProduct(null);
     } catch (error) {
-      showToast(`Failed to ${isEditing ? 'update' : 'add'} product`, 'error');
+      toast({
+        title: "Error",
+        description: `Failed to ${isEditing ? 'update' : 'add'} product`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -369,8 +410,8 @@ const AdminProducts = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    <div className="space-y-6">
+      {/* {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />} */}
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -614,9 +655,9 @@ const AdminProducts = () => {
               />
             </div>
             <div>
-              <Label htmlFor="spaceConsumption">Space Consumption (units per box)</Label>
+              <Label htmlFor="space_unit">Space Consumption (units per box)</Label>
               <Input
-                id="spaceConsumption"
+                id="space_unit"
                 type="number"
                 value={formData.space_unit}
                 onChange={(e) => setFormData({ ...formData, space_unit: parseFloat(e.target.value) })}

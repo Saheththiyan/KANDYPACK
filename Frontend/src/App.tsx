@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useEffect } from "react";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { CustomerLayout } from "./customer/components/CustomerLayout";
@@ -14,6 +15,8 @@ import CustomerProducts from "./customer/pages/Products";
 import CustomerCart from "./customer/pages/Cart";
 import CustomerOrders from "./customer/pages/Orders";
 import CustomerOrderDetails from "./customer/pages/OrderDetails";
+import CustomerCardPayment from "./customer/pages/CardPayment";
+import CustomerProfile from "./customer/pages/Profile";
 import AdminDashboard from "./admin/pages/Dashboard";
 import QuarterlySales from "./admin/pages/reports/QuarterlySales";
 import MostOrdered from "./admin/pages/reports/MostOrdered";
@@ -25,6 +28,7 @@ import Customers from "./admin/pages/Customers";
 import Product from "./admin/pages/Products";
 import PublicLandingDashboard from "./pages/PublicLandingDashboard";
 import PublicProducts from "./pages/PublicProducts";
+import Allocations from "./admin/pages/Allocations";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +51,7 @@ const App = () => {
             <Route path="/" element={<PublicLandingDashboard />} />
             <Route path="/products" element={<PublicProducts />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={
@@ -57,6 +62,7 @@ const App = () => {
               <Route index element={<AdminDashboard />} />
               <Route path="customers" element={<Customers />} />
               <Route path="products" element={<Product />} />
+              <Route path="allocations" element={<Allocations />} />
               <Route path="reports/quarterly-sales" element={<QuarterlySales />} />
               <Route path="reports/most-ordered" element={<MostOrdered />} />
               <Route path="reports/city-route-breakdown" element={<CityRoute />} />
@@ -67,15 +73,17 @@ const App = () => {
             
             {/* Customer Routes */}
             <Route path="/customer" element={
-              //<ProtectedRoute requiredRole="Customer">
+              <ProtectedRoute requiredRole={["Customer", "Admin"]}>
                 <CustomerLayout />
-              //</ProtectedRoute>
+              </ProtectedRoute>
             }>
               <Route index element={<CustomerHome />} />
               <Route path="products" element={<CustomerProducts />} />
               <Route path="cart" element={<CustomerCart />} />
+              <Route path="payment" element={<CustomerCardPayment />} />
               <Route path="orders" element={<CustomerOrders />} />
               <Route path="orders/:id" element={<CustomerOrderDetails />} />
+              <Route path="profile" element={<CustomerProfile />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

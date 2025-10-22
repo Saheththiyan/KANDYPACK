@@ -18,9 +18,9 @@ export interface CartItem {
 }
 
 export interface Order {
-  id: string;
+  order_id: string;
   date: string;
-  total: number;
+  total_value: number;
   status: 'Processing' | 'Scheduled' | 'In Transit' | 'Delivered' | 'Cancelled';
   customer: {
     name: string;

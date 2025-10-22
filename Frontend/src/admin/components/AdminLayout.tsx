@@ -11,7 +11,9 @@ import {
   Users,
   LogOut,
   Menu,
-  X
+  X,
+  ShoppingBag,
+  Calendar
 } from 'lucide-react';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { getAuthToken } from '@/lib/mockAuth';
@@ -32,7 +34,8 @@ export const AdminLayout = () => {
   const navItems = [
     { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/admin/customers', label: 'Customers', icon: Users },
-    { path: '/admin/products', label: 'Products', icon: Package },
+    { path: '/admin/products', label: 'Products', icon: ShoppingBag },
+    { path: '/admin/allocations', label: 'Allocations', icon: Calendar },
     { 
       label: 'Reports', 
       icon: FileText, 

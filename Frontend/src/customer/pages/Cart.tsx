@@ -10,11 +10,12 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getCart, updateCartItem, removeFromCart, createOrder, cities, CartItem } from '@/lib/api';
-import { getAuthToken } from '@/lib/mockAuth';
+import { getCart, updateCartItem, removeFromCart, clearCart, cities, CartItem } from '@/lib/api';
+import { getAuthToken, mergeAuthToken } from '@/lib/mockAuth';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
+import { API_URL } from '@/lib/config';
 
 // NEW: robust number coercion for prices
 const toNumber = (val: unknown): number => {
@@ -32,7 +33,7 @@ const CartItemRow = ({ item, onUpdate, onRemove }: {
 
   return (
     <div className="flex items-center space-x-4 py-4 border-b last:border-b-0">
-      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+      {/* <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
         <img
           src={item.product.image}
           alt={item.product.name}
@@ -41,7 +42,7 @@ const CartItemRow = ({ item, onUpdate, onRemove }: {
             e.currentTarget.src = '/placeholder.svg';
           }}
         />
-      </div>
+      </div> */}
 
       <div className="flex-1 min-w-0">
         <h3 className="font-medium truncate">{item.product.name}</h3>
@@ -93,9 +94,9 @@ const CustomerCart = () => {
   const [formData, setFormData] = useState({
     name: auth?.name || '',
     email: auth?.email || '',
-    phone: '',
-    address: '',
-    city: '',
+    phone: auth?.phone || '',
+    address: auth?.address || '',
+    city: auth?.city || '',
     paymentMethod: 'cod'
   });
 
@@ -113,6 +114,50 @@ const CustomerCart = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!auth?.token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to load profile');
+        }
+
+        const data = await response.json();
+        if (data.success && data.user) {
+          mergeAuthToken({
+            name: data.user.name,
+            email: data.user.email,
+            phone: data.user.phone ?? null,
+            address: data.user.address ?? null,
+            city: data.user.city ?? null,
+          });
+
+          setFormData(prev => ({
+            ...prev,
+            name: data.user.name ?? '',
+            email: data.user.email ?? '',
+            phone: data.user.phone ?? '',
+            address: data.user.address ?? '',
+            city: data.user.city ?? '',
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load customer profile', error);
+      }
+    };
+
+    fetchProfile();
+  }, [auth?.token]);
+
   const handleUpdateQuantity = (productId: string, quantity: number) => {
     updateCartItem(productId, quantity);
     setCart(getCart());
@@ -129,8 +174,7 @@ const CustomerCart = () => {
 
   // UPDATED: use toNumber for robust subtotal calc
   const subtotal = cart.reduce((sum, item) => sum + (toNumber(item.product.price) * item.quantity), 0);
-  const deliveryFee = 200;
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
 
   const validateDeliveryDate = (date: Date) => {
     const minDate = addDays(new Date(), 7);
@@ -139,6 +183,15 @@ const CustomerCart = () => {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!auth?.token) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to place an order.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     if (cart.length === 0) {
       toast({
@@ -167,28 +220,82 @@ const CustomerCart = () => {
       return;
     }
 
+    const orderRequest = {
+      customer_id: auth.id,
+      required_date: format(deliveryDate, 'yyyy-MM-dd'),
+      paymentMethod: formData.paymentMethod,
+      items: cart.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        price: toNumber(item.product.price)
+      })),
+      totalAmount: total,
+      contact: {
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+      },
+    };
+
+    if (formData.paymentMethod === 'card') {
+      navigate('/customer/payment', {
+        state: {
+          order: orderRequest,
+          customer: {
+            name: formData.name,
+            email: formData.email,
+          },
+          cart,
+          summary: {
+            subtotal,
+            total,
+            deliveryDate: deliveryDate ? deliveryDate.toISOString() : null,
+          },
+        },
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const order = await createOrder({
-        customer: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          address: {
-            street: formData.address,
-            city: formData.city
-          }
+      const response = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth.token}`
         },
-        deliveryDate: format(deliveryDate, 'yyyy-MM-dd'),
-        paymentMethod: formData.paymentMethod
+        body: JSON.stringify(orderRequest)
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.message || 'Failed to place order');
+      }
+
+      const createdOrder = payload.order;
+      const orderId = createdOrder?.order_id || createdOrder?.id;
+
+      clearCart();
+      setCart([]);
+      mergeAuthToken({
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
       });
 
       toast({
         title: 'Order placed successfully!',
-        description: `Your order ${order.id} has been placed.`,
+        description: orderId ? `Your order #${orderId} has been placed.` : 'Your order has been placed.',
       });
 
-      navigate(`/customer/orders/${order.id}`);
+      if (orderId) {
+        navigate(`/customer/orders/${orderId}`);
+      } else {
+        navigate('/customer/orders');
+      }
     } catch (error) {
       toast({
         title: 'Order failed',
@@ -261,10 +368,6 @@ const CustomerCart = () => {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>Rs. {subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>Rs. {deliveryFee.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
@@ -384,7 +487,7 @@ const CustomerCart = () => {
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   <CreditCard className="w-4 h-4 mr-2" />
-                  {isLoading ? 'Placing Order...' : `Place Order - Rs. ${total.toFixed(2)}`}
+                  {isLoading ? 'Placing Order...' : `Place Order - Rs.${total.toFixed(2)}`}
                 </Button>
               </form>
             </CardContent>

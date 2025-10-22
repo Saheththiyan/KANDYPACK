@@ -43,7 +43,7 @@ const PublicLandingDashboard = () => {
               Welcome to Kandypack Logistics
             </h2>
             <p className="text-xl text-muted-foreground">
-              Your trusted partner for household and cleaning products
+              Your trusted partner for fast and reliable deliveries
             </p>
           </div>
 

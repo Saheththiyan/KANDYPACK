@@ -7,7 +7,7 @@ const router = express.Router();
 // Apply authentication to all assistant routes
 router.use(authenticateToken);
 
-router.get("/", assistant.getAllAssistants);
+router.get("/", assistant.getAssistantsByStore); // Now handles both all assistants and filtered by store
 
 router.post("/", assistant.addNewAssistant);
 

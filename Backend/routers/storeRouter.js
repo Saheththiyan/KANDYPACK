@@ -7,7 +7,7 @@ const router = express.Router();
 // Apply authentication to all store routes
 router.use(authenticateToken);
 
-router.get("/", store.getAllStores);
+router.get("/", store.getStoresByCity); // Now handles both all stores and filtered by city
 
 router.post("/", store.addNewStore);
 

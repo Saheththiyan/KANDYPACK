@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Download, Calendar, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,45 +6,79 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchOrders, type Order } from '@/lib/mockApi';
 import { getAuthToken } from '@/lib/mockAuth';
 import { API_URL } from '@/lib/config';
+import type { CustomerOrder } from '@/types/order';
+import { generateInvoicePdf } from '@/customer/utils/invoice';
+import { toast } from '@/hooks/use-toast';
 
-const StatusBadge = ({ status }: { status: Order['status'] }) => {
-  const variants = {
-    'Processing': 'secondary',
-    'Scheduled': 'outline',
-    'In Transit': 'default',
-    'Delivered': 'default',
-    'Cancelled': 'destructive'
-  } as const;
+const statusVariants: Record<string, 'secondary' | 'outline' | 'default' | 'destructive'> = {
+  Pending: 'secondary',
+  Processing: 'secondary',
+  Scheduled: 'outline',
+  'In Transit': 'default',
+  Delivered: 'default',
+  Cancelled: 'destructive',
+};
 
+const StatusBadge = ({ status }: { status: string }) => {
+  const normalized = status || 'Processing';
   return (
-    <Badge variant={variants[status] || 'secondary'} className="whitespace-nowrap">
-      {status}
+    <Badge variant={statusVariants[normalized] ?? 'secondary'} className="whitespace-nowrap">
+      {normalized}
     </Badge>
   );
 };
 
-const OrderCard = ({ order }: { order: Order }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+const parseOrderDate = (order: CustomerOrder): number => {
+  const iso =
+    order.orderDate ||
+    order.date ||
+    order.required_date ||
+    order.deliveryDate ||
+    null;
+  if (!iso) return 0;
+  const timestamp = new Date(iso).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
 
-  const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+type OrderCardProps = {
+  order: CustomerOrder;
+  onDownloadInvoice: (orderId: string) => void;
+  isDownloading: boolean;
+};
+
+const OrderCard = ({ order, onDownloadInvoice, isDownloading }: OrderCardProps) => {
+  const itemCount =
+    order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+
+  const iso =
+    order.orderDate || order.date || order.required_date || order.deliveryDate;
+  const orderDate = iso ? new Date(iso) : null;
+  const dateLabel =
+    orderDate && !Number.isNaN(orderDate.getTime())
+      ? orderDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+      : 'Unknown date';
+
+  const total =
+    typeof order.total === 'number'
+      ? order.total
+      : Number(order.total_value ?? 0);
+  const orderId = order.order_id || order.id || 'Order';
+  const downloadLabel = isDownloading ? 'Preparing...' : 'Invoice';
 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold">{order.id}</CardTitle>
+            <CardTitle className="text-lg font-semibold">{orderId}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              {formatDate(order.date)} • {itemCount} item{itemCount !== 1 ? 's' : ''}
+              {dateLabel} - {itemCount} item{itemCount !== 1 ? 's' : ''}
             </p>
           </div>
           <StatusBadge status={order.status} />
@@ -52,25 +86,39 @@ const OrderCard = ({ order }: { order: Order }) => {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-2xl font-bold">Rs {order.total.toLocaleString()}</p>
-            <p className="text-sm text-muted-foreground">
-              Deliver to: {order.customer.address.city}
+        <div>
+          <p className="text-2xl font-bold">
+            Rs{' '}
+            {total.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            })}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Deliver to: {order.customer?.address?.city || '-'}
+          </p>
+          {order.paymentMethod && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Payment: {order.paymentMethod}
             </p>
-          </div>
+          )}
         </div>
 
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm" className="flex-1">
-            <Link to={`/customer/orders/${order.id}`}>
+            <Link to={`/customer/orders/${orderId}`}>
               <Package className="w-4 h-4 mr-2" />
               View Details
             </Link>
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onDownloadInvoice(orderId)}
+            disabled={isDownloading}
+          >
             <Download className="w-4 h-4 mr-2" />
-            Invoice
+            {downloadLabel}
           </Button>
         </div>
       </CardContent>
@@ -79,64 +127,131 @@ const OrderCard = ({ order }: { order: Order }) => {
 };
 
 const CustomerOrders = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<CustomerOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('date-desc');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const auth = getAuthToken();
 
   useEffect(() => {
     const loadOrders = async () => {
+      if (!auth?.token) return;
+
       try {
         setIsLoading(true);
-        const data = await fetch(`${API_URL}/orders`, {
+        const response = await fetch(`${API_URL}/orders`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
+            Authorization: `Bearer ${auth.token}`,
           },
-        }).then(res => res.json()).then(res => res.orders);
-        
-        setOrders(data);
-        setFilteredOrders(data);
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.message || 'Failed to load orders');
+        }
+
+        const history: CustomerOrder[] = payload.orders ?? [];
+        setOrders(history);
+        setFilteredOrders(history);
       } catch (error) {
         console.error('Failed to load orders:', error);
+        toast({
+          title: 'Error loading orders',
+          description: error instanceof Error ? error.message : 'Please try again later.',
+          variant: 'destructive',
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadOrders();
-  }, []);
+  }, [auth?.token]);
 
   useEffect(() => {
-    let filtered = [...orders];
+    let next = [...orders];
 
-    // Apply status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => order.status === statusFilter);
+      next = next.filter((order) => order.status === statusFilter);
     }
 
-    // Apply sorting
-    filtered.sort((a, b) => {
+    next.sort((a, b) => {
       switch (sortBy) {
         case 'date-desc':
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return parseOrderDate(b) - parseOrderDate(a);
         case 'date-asc':
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
-        case 'amount-desc':
-          return b.total - a.total;
-        case 'amount-asc':
-          return a.total - b.total;
+          return parseOrderDate(a) - parseOrderDate(b);
+        case 'amount-desc': {
+          const aTotal =
+            typeof a.total === 'number'
+              ? a.total
+              : Number(a.total_value ?? 0);
+          const bTotal =
+            typeof b.total === 'number'
+              ? b.total
+              : Number(b.total_value ?? 0);
+          return bTotal - aTotal;
+        }
+        case 'amount-asc': {
+          const aTotal =
+            typeof a.total === 'number'
+              ? a.total
+              : Number(a.total_value ?? 0);
+          const bTotal =
+            typeof b.total === 'number'
+              ? b.total
+              : Number(b.total_value ?? 0);
+          return aTotal - bTotal;
+        }
         default:
           return 0;
       }
     });
 
-    setFilteredOrders(filtered);
+    setFilteredOrders(next);
   }, [orders, statusFilter, sortBy]);
+
+  const handleDownloadInvoice = async (orderId: string) => {
+    if (!auth?.token || !orderId) return;
+
+    try {
+      setDownloadingId(orderId);
+      const response = await fetch(`${API_URL}/orders/${orderId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.message || 'Failed to load invoice');
+      }
+
+      generateInvoicePdf(payload.order);
+      toast({
+        title: 'Invoice ready',
+        description: 'The invoice has been downloaded as a PDF.',
+      });
+    } catch (error) {
+      console.error('Invoice download failed:', error);
+      toast({
+        title: 'Download failed',
+        description: error instanceof Error ? error.message : 'Unable to download invoice.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -146,8 +261,8 @@ const CustomerOrders = () => {
         </div>
 
         <div className="grid gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i}>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Card key={index}>
               <CardHeader>
                 <Skeleton className="h-6 w-32" />
                 <Skeleton className="h-4 w-48" />
@@ -194,7 +309,6 @@ const CustomerOrders = () => {
         </Card>
       ) : (
         <>
-          {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
@@ -225,10 +339,14 @@ const CustomerOrders = () => {
             </Select>
           </div>
 
-          {/* Orders Grid */}
           <div className="grid gap-4">
             {filteredOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
+              <OrderCard
+                key={order.order_id || order.id}
+                order={order}
+                onDownloadInvoice={handleDownloadInvoice}
+                isDownloading={downloadingId === (order.order_id || order.id)}
+              />
             ))}
           </div>
 

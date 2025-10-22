@@ -8,3 +8,12 @@ export async function getAllAllocations(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function getUnprocessedOrders(req, res) {
+  try {
+    const orders = await allocation.getUnprocessedOrders();
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

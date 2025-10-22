@@ -40,7 +40,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Eye, Pencil, Trash2, Users } from 'lucide-react';
 import { API_URL } from "../../lib/config";
-import { initDatabase } from '@/lib/db';
+// import { initDatabase } from '@/lib/db';
 import {
   getAllCustomers,
   addCustomer,
