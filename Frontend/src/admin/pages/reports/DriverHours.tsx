@@ -222,7 +222,7 @@ const DriverHours = () => {
       if (!res.ok) throw new Error(data.message || 'Failed to delete driver');
       toast({ title: 'Success', description: 'Driver deleted' });
       await loadDrivers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({ title: 'Error', description: error.message || 'Delete failed', variant: 'destructive' });
     } finally {
       setIsDeleteDriverOpen(false);
@@ -259,7 +259,7 @@ const DriverHours = () => {
       setIsDriverFormOpen(false);
       setSelectedDriver(null);
       await loadDrivers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({ title: 'Error', description: error.message || 'Save failed', variant: 'destructive' });
     }
   };
@@ -301,7 +301,7 @@ const DriverHours = () => {
       if (!res.ok) throw new Error(data.message || 'Failed to delete assistant');
       toast({ title: 'Success', description: 'Assistant deleted' });
       await loadAssistants();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({ title: 'Error', description: error.message || 'Delete failed', variant: 'destructive' });
     } finally {
       setIsDeleteAssistantOpen(false);
@@ -339,7 +339,7 @@ const DriverHours = () => {
       setIsAssistantFormOpen(false);
       setSelectedAssistant(null);
       await loadAssistants();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({ title: 'Error', description: error.message || 'Save failed', variant: 'destructive' });
     }
   };
