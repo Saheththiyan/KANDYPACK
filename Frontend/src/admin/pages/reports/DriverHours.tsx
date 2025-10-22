@@ -110,21 +110,6 @@ const DriverHours = () => {
     return acc;
   }, []);
 
-  const chartData2 = assistantHoursData.reduce((acc, curr) => {
-    const existing = acc.find(item => item.name === curr.name);
-    if (existing) {
-      existing[curr.role.toLowerCase()] = curr.weekly_hours;
-    } else {
-      acc.push({
-        name: curr.name,
-        [curr.role]: curr.weekly_hours,
-        role: curr.role
-      });
-    }
-    return acc;
-  }, [] as any[]);
-
-
 
   // --- Driver modal & form state ---
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);

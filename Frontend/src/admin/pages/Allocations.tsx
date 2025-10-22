@@ -252,7 +252,7 @@ const OrderAllocations = () => {
     return response.json();
   }
 
-  async function fetchDeliverySchedules(): Promise<any[]> {
+  async function fetchDeliverySchedules(): Promise<ProcessedOrder[]> {
     const response = await fetch(`${API_URL}/deliverySchedule`, {
       method: 'GET',
       headers: {
