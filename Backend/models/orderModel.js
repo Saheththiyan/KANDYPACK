@@ -206,92 +206,45 @@ function formatOrder(orderRow, customer, items) {
   };
 }
 
+// Simplified fetchOrders using stored procedure
 async function fetchOrders(whereClause = "", params = []) {
   await ensureOrderSchema();
 
-  const [orders] = await db.query(
-    `
-      SELECT 
-        o.order_id,
-        o.customer_id,
-        o.order_date,
-        o.required_date,
-        o.status,
-        o.total_value,
-        o.payment_method
-      FROM \`Order\` o
-      ${whereClause}
-      ORDER BY o.order_date DESC, o.order_id DESC
-    `,
-    params
+  const [rows] = await db.query(
+    'CALL GetOrdersWithDetails(?, ?)',
+    [whereClause || null, params[0] || null]
   );
 
-  if (!orders.length) {
-    return [];
-  }
+  return rows.map(row => {
+    const customer = {
+      id: row.customer_id,
+      name: row.customer_name,
+      email: row.customer_email,
+      phone: row.customer_phone,
+      address: {
+        street: row.customer_address,
+        city: row.customer_city,
+      },
+    };
 
-  const orderIds = orders.map((order) => order.order_id);
+    // Parse items data
+    const items = row.items_data ? 
+      row.items_data.split('||').map(itemStr => {
+        const [productId, quantity, subTotal, name, description, unitPrice, spaceUnit, stock] = 
+          itemStr.split(':|:');
+        return normalizeItemRow({
+          product_id: productId,
+          quantity: parseInt(quantity),
+          sub_total: parseFloat(subTotal),
+          product_name: name,
+          product_description: description,
+          unit_price: parseFloat(unitPrice),
+          space_unit: parseInt(spaceUnit),
+          stock: parseInt(stock)
+        });
+      }) : [];
 
-  let itemRows = [];
-  if (orderIds.length) {
-    const placeholders = orderIds.map(() => "?").join(", ");
-    [itemRows] = await db.query(
-      `
-        SELECT 
-          oi.order_id,
-          oi.product_id,
-          oi.quantity,
-          oi.sub_total,
-          p.name AS product_name,
-          p.description AS product_description,
-          p.unit_price,
-          p.space_unit,
-          p.stock
-        FROM Order_Item oi
-        JOIN Product p ON oi.product_id = p.product_id
-        WHERE oi.order_id IN (${placeholders})
-        ORDER BY oi.order_id
-      `,
-      orderIds
-    );
-  }
-
-  const itemsByOrder = new Map();
-  for (const row of itemRows) {
-    const normalized = normalizeItemRow(row);
-    if (!itemsByOrder.has(row.order_id)) {
-      itemsByOrder.set(row.order_id, []);
-    }
-    itemsByOrder.get(row.order_id).push(normalized);
-  }
-
-  const customerIds = [
-    ...new Set(orders.map((order) => order.customer_id).filter(Boolean)),
-  ];
-
-  let customerMap = new Map();
-  if (customerIds.length) {
-    const placeholders = customerIds.map(() => "?").join(", ");
-    const [customers] = await db.query(
-      `
-        SELECT customer_id, name, email, phone, address, city
-        FROM Customer
-        WHERE customer_id IN (${placeholders})
-      `,
-      customerIds
-    );
-    customerMap = new Map(
-      customers.map((customer) => [
-        customer.customer_id,
-        normalizeCustomerRow(customer),
-      ])
-    );
-  }
-
-  return orders.map((order) => {
-    const customer = customerMap.get(order.customer_id) || null;
-    const items = itemsByOrder.get(order.order_id) || [];
-    return formatOrder(order, customer, items);
+    return formatOrder(row, customer, items);
   });
 }
 
@@ -308,110 +261,48 @@ export async function getOrderById(orderId) {
   return order || null;
 }
 
-export async function createOrder(
-  customerId,
-  items,
-  totalAmount,
-  requiredDate,
-  paymentMethod,
-  contactInfo = {}
-) {
+// Simplified createOrder using stored procedures
+export async function createOrder(customerId, items, totalAmount, requiredDate, paymentMethod, contactInfo = {}) {
   await ensureOrderSchema();
   const connection = await db.getConnection();
-
+  
   try {
-    await connection.beginTransaction();
+    // Call stored procedure for order creation
+    const [result] = await connection.query(
+      'CALL CreateOrderWithItems(?, ?, ?, ?, ?, ?, ?, ?, @order_id)',
+      [
+        customerId,
+        requiredDate,
+        totalAmount,
+        paymentMethod || 'cod',
+        contactInfo.name || null,
+        contactInfo.phone || null,
+        contactInfo.address || null,
+        contactInfo.city || null
+      ]
+    );
 
-    const orderId = crypto.randomUUID();
-    const normalizedTotal = Number(totalAmount ?? 0);
-    const methodCode = paymentMethod || "cod";
+    // Get the generated order ID
+    const [orderIdResult] = await connection.query('SELECT @order_id as order_id');
+    const orderId = orderIdResult[0].order_id;
 
-    const orderQuery = `
-      INSERT INTO \`Order\` (
-        order_id, customer_id, order_date, required_date, status, total_value, payment_method
-      )
-      VALUES (?, ?, NOW(), ?, 'Processing', ?, ?)
-    `;
-
-    await connection.query(orderQuery, [
-      orderId,
-      customerId,
-      requiredDate,
-      normalizedTotal,
-      methodCode,
-    ]);
-
-    const orderItemQuery = `
-      INSERT INTO Order_Item (product_id, order_id, quantity, sub_total)
-      VALUES (?, ?, ?, ?)
-    `;
-
-    for (const item of items) {
-      const quantity = Number(item.quantity ?? 0);
-      const price = Number(item.price ?? 0);
-      const subTotal = price * quantity;
-
-      await connection.query(orderItemQuery, [
-        item.productId,
-        orderId,
-        quantity,
-        subTotal,
-      ]);
-    }
-
-    const { name, phone, address, city } = contactInfo;
-    if (name || phone || address || city) {
-      await connection.query(
-        `
-          UPDATE Customer
-          SET 
-            name = COALESCE(?, name),
-            phone = COALESCE(?, phone),
-            address = COALESCE(?, address),
-            city = COALESCE(?, city)
-          WHERE customer_id = ?
-        `,
-        [name ?? null, phone ?? null, address ?? null, city ?? null, customerId]
-      );
-    }
-
-    await connection.commit();
+    // Add order items using stored procedure
+    await connection.query(
+      'CALL AddOrderItems(?, ?)',
+      [orderId, JSON.stringify(items)]
+    );
 
     return await getOrderById(orderId);
   } catch (error) {
-    await connection.rollback();
     throw error;
   } finally {
     connection.release();
   }
 }
 
+// Simplified quarterly orders
 export async function getQuarterlyOrders(year) {
-  const [orders] = await db.query(
-    `
-    SELECT 
-      q.q AS quarter,
-      IFNULL(t.totalOrders, 0) AS totalOrders,
-      IFNULL(t.totalRevenue, 0) AS totalRevenue
-    FROM 
-      (SELECT 1 AS q UNION SELECT 2 UNION SELECT 3 UNION SELECT 4) q
-    LEFT JOIN (
-      SELECT 
-        QUARTER(order_date) AS quarter,
-        COUNT(*) AS totalOrders,
-        SUM(total_value) AS totalRevenue
-      FROM 
-        \`Order\`
-      WHERE 
-        YEAR(order_date) = ?
-      GROUP BY 
-        QUARTER(order_date)
-    ) t ON t.quarter = q.q
-    ORDER BY 
-      q.q;
-    `,
-    [year]
-  );
+  const [orders] = await db.query('CALL GetQuarterlySalesAnalytics(?)', [year]);
   return orders;
 }
 

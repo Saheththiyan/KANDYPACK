@@ -628,3 +628,174 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE CreateOrderWithItems(
+    IN p_customer_id CHAR(36),
+    IN p_required_date DATE,
+    IN p_total_amount DECIMAL(10,2),
+    IN p_payment_method VARCHAR(50),
+    IN p_contact_name VARCHAR(100),
+    IN p_contact_phone VARCHAR(20),
+    IN p_contact_address VARCHAR(255),
+    IN p_contact_city VARCHAR(50),
+    OUT p_order_id CHAR(36)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+    
+    -- Generate order ID
+    SET p_order_id = UUID();
+    
+    -- Insert order
+    INSERT INTO `Order` (
+        order_id, customer_id, order_date, required_date, 
+        status, total_value, payment_method
+    ) VALUES (
+        p_order_id, p_customer_id, NOW(), p_required_date,
+        'Processing', p_total_amount, COALESCE(p_payment_method, 'cod')
+    );
+    
+    -- Update customer contact info if provided
+    IF p_contact_name IS NOT NULL OR p_contact_phone IS NOT NULL 
+       OR p_contact_address IS NOT NULL OR p_contact_city IS NOT NULL THEN
+        UPDATE Customer 
+        SET 
+            name = COALESCE(p_contact_name, name),
+            phone = COALESCE(p_contact_phone, phone),
+            address = COALESCE(p_contact_address, address),
+            city = COALESCE(p_contact_city, city)
+        WHERE customer_id = p_customer_id;
+    END IF;
+    
+    COMMIT;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE AddOrderItems(
+    IN p_order_id CHAR(36),
+    IN p_items JSON
+)
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE item_count INT;
+    DECLARE product_id CHAR(36);
+    DECLARE quantity INT;
+    DECLARE price DECIMAL(10,2);
+    DECLARE sub_total DECIMAL(10,2);
+    
+    SET item_count = JSON_LENGTH(p_items);
+    
+    WHILE i < item_count DO
+        SET product_id = JSON_UNQUOTE(JSON_EXTRACT(p_items, CONCAT('$[', i, '].productId')));
+        SET quantity = JSON_EXTRACT(p_items, CONCAT('$[', i, '].quantity'));
+        SET price = JSON_EXTRACT(p_items, CONCAT('$[', i, '].price'));
+        SET sub_total = price * quantity;
+        
+        INSERT INTO Order_Item (product_id, order_id, quantity, sub_total)
+        VALUES (product_id, p_order_id, quantity, sub_total);
+        
+        SET i = i + 1;
+    END WHILE;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE GetOrdersWithDetails(
+    IN p_where_clause VARCHAR(500),
+    IN p_customer_id CHAR(36)
+)
+BEGIN
+    SET @sql = CONCAT('
+        SELECT 
+            o.order_id,
+            o.customer_id,
+            o.order_date,
+            o.required_date,
+            o.status,
+            o.total_value,
+            o.payment_method,
+            c.name as customer_name,
+            c.email as customer_email,
+            c.phone as customer_phone,
+            c.address as customer_address,
+            c.city as customer_city,
+            GROUP_CONCAT(
+                CONCAT(
+                    oi.product_id, ":|:", 
+                    oi.quantity, ":|:", 
+                    oi.sub_total, ":|:",
+                    p.name, ":|:",
+                    p.description, ":|:",
+                    p.unit_price, ":|:",
+                    p.space_unit, ":|:",
+                    p.stock
+                ) SEPARATOR "||"
+            ) as items_data
+        FROM `Order` o
+        LEFT JOIN Customer c ON o.customer_id = c.customer_id
+        LEFT JOIN Order_Item oi ON o.order_id = oi.order_id
+        LEFT JOIN Product p ON oi.product_id = p.product_id ',
+        CASE 
+            WHEN p_customer_id IS NOT NULL THEN 
+                CONCAT('WHERE o.customer_id = "', p_customer_id, '"')
+            WHEN p_where_clause IS NOT NULL THEN 
+                p_where_clause
+            ELSE ''
+        END,
+        ' GROUP BY o.order_id
+          ORDER BY o.order_date DESC, o.order_id DESC'
+    );
+    
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END $$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE PROCEDURE GetQuarterlySalesAnalytics(IN p_year INT)
+BEGIN
+    SELECT 
+        q.q AS quarter,
+        CONCAT(p_year, ' Q', q.q) AS quarter_label,
+        IFNULL(t.totalOrders, 0) AS totalOrders,
+        IFNULL(t.totalRevenue, 0) AS totalRevenue,
+        IFNULL(t.avgOrderValue, 0) AS avgOrderValue,
+        IFNULL(t.totalCustomers, 0) AS uniqueCustomers,
+        IFNULL(t.totalProducts, 0) AS totalProductsSold
+    FROM 
+        (SELECT 1 AS q UNION SELECT 2 UNION SELECT 3 UNION SELECT 4) q
+    LEFT JOIN (
+        SELECT 
+            QUARTER(order_date) AS quarter,
+            COUNT(*) AS totalOrders,
+            SUM(total_value) AS totalRevenue,
+            AVG(total_value) AS avgOrderValue,
+            COUNT(DISTINCT customer_id) AS totalCustomers,
+            SUM(oi.quantity) AS totalProducts
+        FROM `Order` o
+        JOIN Order_Item oi ON o.order_id = oi.order_id
+        WHERE YEAR(order_date) = p_year
+        GROUP BY QUARTER(order_date)
+    ) t ON t.quarter = q.q
+    ORDER BY q.q;
+END $$
+
+DELIMITER ;
+
