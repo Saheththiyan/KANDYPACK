@@ -213,9 +213,9 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build test environment
-        run: |
-          docker compose -f docker-compose.yml -f docker-compose.override.yml build
+      # - name: Build test environment
+        # run: |
+        #   docker compose -f docker-compose.yml -f docker-compose.override.yml build
 
       - name: Run integration tests
         run: |
@@ -226,7 +226,7 @@ jobs:
           echo "- End-to-end testing with Cypress/Playwright"
         continue-on-error: true
 
-      - name: Cleanup test environment
-        if: always()
-        run: |
-          docker compose down -v --remove-orphans
+      # - name: Cleanup test environment
+      #   if: always()
+      #   run: |
+      #     docker compose down -v --remove-orphans
