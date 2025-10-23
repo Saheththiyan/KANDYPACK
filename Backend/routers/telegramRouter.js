@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Admin routes (require admin authentication)
 router.post('/generate-link', authenticateAdmin, telegramController.generateRegistrationLink);
-router.post('/send-notification', authenticateAdmin, telegramController.sendNotification);
+// router.post('/send-notification', authenticateAdmin, telegramController.sendNotification);
 
 // Webhook route (public - called by Telegram)
 router.post('/webhook', telegramController.telegramWebhook);
