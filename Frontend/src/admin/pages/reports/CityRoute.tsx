@@ -1,35 +1,34 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
+import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { MapPin, Package, DollarSign } from 'lucide-react';
-// import { fetchCityRouteData, CityRouteData } from '@/lib/mockAdminApi';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from "../../../lib/config";
 import { getAuthToken } from '@/lib/mockAuth';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d', '#ffc658'];
 
-interface CityRouteData { 
-  city: string; 
-  stops: string; 
-  orders: number; 
-  sales_value: number; 
+interface CityRouteData {
+  city: string;
+  stops: string;
+  orders: number;
+  sales_value: number;
 }
 
 const CityRoute = () => {
   const [routeData, setRouteData] = useState<CityRouteData[]>([]);
   const [selectedQuarter, setSelectedQuarter] = useState('2025 Q4');
   const [selectedCity, setSelectedCity] = useState('All Cities');
+  const [cityData, setCityData] = useState<CityRouteData[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const auth = getAuthToken();
 
   // const quarters = ['2024 Q4', '2024 Q3', '2024 Q2', '2024 Q1'];
 
-  async function fetchCityRouteData(): Promise<CityRouteData[]> { 
+  async function fetchCityRouteData(): Promise<CityRouteData[]> {
     const response = await fetch(`${API_URL}/admin/cityRouteSales`, {
       method: 'GET',
       headers: {
@@ -37,7 +36,7 @@ const CityRoute = () => {
         'Authorization': `Bearer ${auth.token}`
       },
     });
-    
+
     if (!response.ok) {
       throw new Error("Failed to fetch Sales");
     }
@@ -64,27 +63,36 @@ const CityRoute = () => {
     loadRouteData();
   }, [selectedQuarter, toast]);
 
-  // Process data for city pie chart
-  const cityData = routeData.reduce((acc, curr) => {
-    const existing = acc.find(item => item.city === curr.city);
-    if (existing) {
-      existing.value += curr.sales_value;
-      existing.orders += curr.orders;
-      // existing.volume += curr.volume;
-    } else {
-      acc.push({
-        city: curr.city,
-        value: curr.sales_value,
-        orders: curr.orders
-        // volume: curr.volume
-      });
-    }
-    return acc;
-  }, [] as { city: string; value: number; orders: number; }[]);
+  useEffect(() => {
+    console.log('Raw routeData:', routeData);
+
+    // Process data for city pie chart
+    const cityDataTemp = routeData.reduce((acc, curr) => {
+      console.log('Processing item:', curr); // Debug each item
+
+      const existing = acc.find(item => item.city === curr.city);
+      if (existing) {
+        existing.sales_value += Number(curr.sales_value);
+        existing.orders += Number(curr.orders);
+        existing.stops = Number(existing.stops) + 1;
+      } else {
+        acc.push({
+          city: curr.city,
+          sales_value: Number(curr.sales_value),
+          orders: Number(curr.orders),
+          stops: 1,
+        });
+      }
+      return acc;
+    }, [] as CityRouteData[]);
+
+    console.log('Processed cityData:', cityDataTemp); // Debug final result
+    setCityData(cityDataTemp);
+  }, [routeData]);
 
   // Filter route data based on selected city
-  const filteredRouteData = selectedCity === 'All Cities' 
-    ? routeData 
+  const filteredRouteData = selectedCity === 'All Cities'
+    ? routeData
     : routeData.filter(item => item.city === selectedCity);
 
   const cities = ['All Cities', ...Array.from(new Set(routeData.map(item => item.city)))];
@@ -196,20 +204,36 @@ const CityRoute = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie
-                  data={cityData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ city, percent }) => `${city} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {cityData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
+                {
+                  (() => {
+                    const pieData = cityData.map(item => ({ city: item.city, value: Number(item.sales_value) }));
+                    const maxValue = pieData.length ? Math.max(...pieData.map(d => d.value)) : 0;
+                    const totalValue = pieData.reduce((s, d) => s + d.value, 0);
+
+                    // Dynamically scale outerRadius based on the largest slice relative to total.
+                    // Keeps radius within a reasonable range.
+                    const ratio = totalValue > 0 ? maxValue / totalValue : 0;
+                    const outerRadius = Math.round(Math.min(110, Math.max(60, 80 + ratio * 50)));
+
+                    return (
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        nameKey="city"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={outerRadius}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {pieData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    );
+                  })()
+                }
                 <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Sales Value']} />
               </PieChart>
             </ResponsiveContainer>
@@ -224,21 +248,33 @@ const CityRoute = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={filteredRouteData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="stops" />
-                <YAxis
-                  tickFormatter={(value) => `Rs ${(value).toFixed(0)}`} />
-                <Tooltip 
-                  formatter={(value, name) => [
-                    name === 'Sales Value' ? formatCurrency(Number(value)) : formatNumber(Number(value)), name
-                  ]}
-                />
-                <Legend />
-                <Bar dataKey="sales_value" fill="hsl(var(--primary))" name="Sales Value" />
-              </BarChart>
-            </ResponsiveContainer>
+            {
+              (() => {
+                const maxSales = filteredRouteData.length ? Math.max(...filteredRouteData.map(d => Number(d.sales_value))) : 0;
+                const step = maxSales > 0 ? Math.pow(10, Math.floor(Math.log10(maxSales))) : 1000;
+                const upper = Math.ceil(maxSales / step) * step;
+                const ticks = [0, Math.round(upper / 2), upper];
+
+                return (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={filteredRouteData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="stops" />
+                      <YAxis
+                        type="number"
+                        domain={[0, upper]}     // set Y axis range
+                        ticks={ticks}          // explicit tick marks
+                        tickFormatter={(value) => `Rs ${value.toLocaleString()}`}
+                        scale="linear"         // use "log" for logarithmic scale if desired
+                      />
+                      <Tooltip formatter={(value, name) => [formatCurrency(Number(value)), name]} />
+                      <Legend />
+                      <Bar dataKey="sales_value" fill="hsl(var(--primary))" name="Sales Value" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                );
+              })()
+            }
           </CardContent>
         </Card>
       </div>
