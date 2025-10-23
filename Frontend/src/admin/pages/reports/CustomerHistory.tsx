@@ -79,7 +79,7 @@ const CustomerHistory = () => {
     if (searchTerm.trim() === '') {
       setFilteredOrders(orderHistory || []);
     } else {
-      const filtered = orderHistory.filter(order => 
+      const filtered = orderHistory.filter(order =>
         order.customer_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.order_id.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -211,8 +211,8 @@ const CustomerHistory = () => {
             </div>
             <Button onClick={handleSearch}>Search</Button>
             {searchTerm && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setSearchTerm('');
                   setFilteredOrders(orderHistory);
@@ -272,60 +272,6 @@ const CustomerHistory = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Expanded Details for Selected Orders */}
-      {filteredOrders.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Logistics Details</CardTitle>
-            <CardDescription>Complete delivery chain information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {filteredOrders.map((order) => (
-                <div key={order.order_id} className="border rounded-lg p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold">{order.order_id}</h4>
-                    {getStatusBadge(order.status)}
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                    {order.railTrip && (
-                      <div>
-                        <span className="text-muted-foreground">Rail Trip:</span>
-                        <p className="font-medium">{order.railTrip}</p>
-                      </div>
-                    )}
-                    {order.store && (
-                      <div>
-                        <span className="text-muted-foreground">Store:</span>
-                        <p className="font-medium">{order.store}</p>
-                      </div>
-                    )}
-                    {order.truck && (
-                      <div>
-                        <span className="text-muted-foreground">Truck:</span>
-                        <p className="font-medium">{order.truck}</p>
-                      </div>
-                    )}
-                    {order.driver && (
-                      <div>
-                        <span className="text-muted-foreground">Driver:</span>
-                        <p className="font-medium">{order.driver}</p>
-                      </div>
-                    )}
-                    {order.assistant && (
-                      <div>
-                        <span className="text-muted-foreground">Assistant:</span>
-                        <p className="font-medium">{order.assistant}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
