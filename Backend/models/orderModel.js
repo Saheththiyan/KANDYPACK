@@ -49,11 +49,12 @@ function normalizeItemRow(row) {
       ? Number(row.sub_total)
       : unitPrice * quantity;
 
+  // Stock Keeping Unit
   return {
     product: {
       id: row.product_id,
       product_id: row.product_id,
-      sku: `SKU-${String(row.product_id).slice(0, 8)}`,
+      sku: `SKU-${String(row.product_id).slice(0, 8)}`, // Take the first 8 characters of the product ID and the prefix 'SKU-'
       name: row.product_name,
       description: row.product_description,
       price: unitPrice,

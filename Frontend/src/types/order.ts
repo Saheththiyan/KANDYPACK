@@ -36,30 +36,30 @@ export interface OrderTimelineEntry {
   completed: boolean;
 }
 
-export interface OrderLogistics {
-  rail: {
-    trainId: string;
-    departure: string;
-    arrival: string;
-    allocatedCapacity: number;
-    remainingCapacity: number;
-    wagonCode: string;
-    spaceUsed: number;
-  };
-  store: {
-    name: string;
-    address: string;
-    handoverTime?: string;
-  };
-  truck: {
-    routeName: string;
-    areasCovered: string[];
-    etaWindow: string;
-    truckPlate: string;
-    driver: string;
-    assistant: string;
-  };
-}
+// export interface OrderLogistics {
+//   rail: {
+//     trainId: string;
+//     departure: string;
+//     arrival: string;
+//     allocatedCapacity: number;
+//     remainingCapacity: number;
+//     wagonCode: string;
+//     spaceUsed: number;
+//   };
+//   store: {
+//     name: string;
+//     address: string;
+//     handoverTime?: string;
+//   };
+  // truck: {
+  //   routeName: string;
+  //   areasCovered: string[];
+  //   etaWindow: string;
+  //   truckPlate: string;
+  //   driver: string;
+  //   assistant: string;
+  // };
+// }
 
 export interface CustomerOrder {
   id?: string;
@@ -76,6 +76,6 @@ export interface CustomerOrder {
   paymentMethodCode?: string;
   customer?: OrderCustomer;
   items: OrderItem[];
-  logistics?: OrderLogistics;
+  // logistics?: OrderLogistics;
   timeline?: OrderTimelineEntry[];
 }

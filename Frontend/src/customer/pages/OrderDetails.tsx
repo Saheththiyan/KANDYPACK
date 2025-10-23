@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Package, RefreshCw, ArrowLeft, CheckCircle, Clock, Truck, Train, Download } from 'lucide-react';
+import { Package, RefreshCw, ArrowLeft, CheckCircle, Clock, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { getAuthToken } from '@/lib/mockAuth';
@@ -46,6 +45,17 @@ const TimelineItem = ({
     </div>
   </div>
 );
+
+const simplifyTimelineStatus = (status?: string) => {
+  if (!status) return '';
+  let result = status;
+
+  result = result.replace(/Scheduled on Train[^\n\r]*/i, 'Scheduled');
+  result = result.replace(/Out for delivery\s*\([^)]*\)/i, 'Out for delivery');
+  result = result.replace(/\s+/g, ' ');
+
+  return result.trim();
+};
 
 const CustomerOrderDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -203,7 +213,6 @@ const CustomerOrderDetails = () => {
       : 'Unknown date';
 
   const timeline: OrderTimelineEntry[] = order.timeline ?? [];
-  const logistics = order.logistics;
   const customer = order.customer;
 
   return (
@@ -286,85 +295,6 @@ const CustomerOrderDetails = () => {
               </div>
             </CardContent>
           </Card>
-
-          {logistics && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Train className="w-5 h-5" />
-                  <span>Logistics Details</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Train className="w-4 h-4 text-primary" />
-                    <h4 className="font-semibold">
-                      Train Journey: Kandy → {customer?.address?.city || 'Destination'}
-                    </h4>
-                  </div>
-                  <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-                    <p><strong>Trip ID:</strong> {logistics.rail.trainId}</p>
-                    <p><strong>Departure:</strong> {logistics.rail.departure}</p>
-                    <p><strong>Arrival:</strong> {logistics.rail.arrival}</p>
-                    <p><strong>Wagon:</strong> {logistics.rail.wagonCode}</p>
-                    <p><strong>Space Used:</strong> {logistics.rail.spaceUsed} units</p>
-                    <p><strong>Remaining Capacity:</strong> {logistics.rail.remainingCapacity} units</p>
-                    <div className="mt-2">
-                      <Progress
-                        value={
-                          logistics.rail.allocatedCapacity > 0
-                            ? (logistics.rail.allocatedCapacity /
-                                (logistics.rail.allocatedCapacity + logistics.rail.remainingCapacity)) *
-                              100
-                            : 0
-                        }
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Package className="w-4 h-4 text-primary" />
-                    <h4 className="font-semibold">Distribution Center</h4>
-                  </div>
-                  <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-                    <p><strong>Location:</strong> {logistics.store.name}</p>
-                    <p><strong>Address:</strong> {logistics.store.address}</p>
-                    {logistics.store.handoverTime && (
-                      <p><strong>Handover Time:</strong> {logistics.store.handoverTime}</p>
-                    )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Truck className="w-4 h-4 text-primary" />
-                    <h4 className="font-semibold">Last-Mile Delivery</h4>
-                  </div>
-                  <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-                    <p><strong>Route:</strong> {logistics.truck.routeName}</p>
-                    <p>
-                      <strong>Areas Covered:</strong>{' '}
-                      {logistics.truck.areasCovered.join(', ')}
-                    </p>
-                    <p><strong>ETA Window:</strong> {logistics.truck.etaWindow}</p>
-                    <p><strong>Truck:</strong> {logistics.truck.truckPlate}</p>
-                    <p>
-                      <strong>Driver & Assistant:</strong> {logistics.truck.driver},{' '}
-                      {logistics.truck.assistant}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         <div className="space-y-6">
@@ -416,7 +346,7 @@ const CustomerOrderDetails = () => {
                   timeline.map((item, index) => (
                     <TimelineItem
                       key={index}
-                      status={item.status}
+                      status={simplifyTimelineStatus(item.status)}
                       timestamp={item.timestamp}
                       completed={item.completed}
                     />
