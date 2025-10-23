@@ -165,10 +165,9 @@ const TruckUsage = () => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={usageData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="truckId" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="trips" fill="hsl(var(--primary))" />
+                <Bar dataKey="totalDeliveries" fill="hsl(var(--primary))" label={{ position: 'top' }} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
