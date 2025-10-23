@@ -28,6 +28,23 @@ type MonthlyBreakdown = {
   totalUnits: number;
 };
 
+interface QuarterItem {
+  quarter: number | string;
+  label: string;
+  totalRevenue?: number;
+  totalOrders?: number;
+  totalUnits?: number;
+  growth?: number;
+}
+
+interface MonthlyBreakdownItem {
+  month: number | string;
+  label: string;
+  totalRevenue?: number;
+  totalOrders?: number;
+  totalUnits?: number;
+}
+
 const formatCurrency = (value: number) =>
   `Rs ${value.toLocaleString('en-LK', { maximumFractionDigits: 0 })}`;
 
@@ -100,7 +117,7 @@ const QuarterlySales = () => {
 
         if (Array.isArray(quarters)) {
           setSummary(
-            quarters.map((item: any) => ({
+            quarters.map((item: QuarterItem) => ({
               quarter: Number(item.quarter),
               label: item.label as string,
               totalRevenue: Number(item.totalRevenue ?? 0),
@@ -115,7 +132,7 @@ const QuarterlySales = () => {
 
         if (Array.isArray(breakdown)) {
           setMonthlyBreakdown(
-            breakdown.map((item: any) => ({
+            breakdown.map((item: MonthlyBreakdownItem) => ({
               month: Number(item.month),
               label: item.label as string,
               totalRevenue: Number(item.totalRevenue ?? 0),
