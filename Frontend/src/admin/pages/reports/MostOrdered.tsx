@@ -60,7 +60,7 @@ const MostOrdered = () => {
     };
 
     loadItemsData();
-  }, [selectedQuarter, toast,fetchMostOrdered]);
+  }, [selectedQuarter, toast]);
 
   const totalUnits = itemsData.reduce((sum, item) => sum + Number(item.unitsSold), 0);
   const totalRevenue = itemsData.reduce((sum, item) => sum + Number(item.revenue), 0);
@@ -140,7 +140,7 @@ const MostOrdered = () => {
           <ResponsiveContainer width="100%" height={400}>
             <BarChart 
               data={itemsData} 
-              layout="horizontal"
+              layout="vertical"
               margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />

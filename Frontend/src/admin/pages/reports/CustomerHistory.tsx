@@ -9,6 +9,7 @@ import { API_URL } from '@/lib/config';
 import { getAuthToken } from '@/lib/mockAuth';
 
 interface orderHistoryItem {
+  id: string;
   order_id: string;
   date?: string;
   customer_id?: string;
@@ -22,6 +23,14 @@ interface orderHistoryItem {
   truck?: string;
   driver?: string;
   assistant?: string;
+  logistics?: {
+    store?: {
+      name?: string;
+    };
+    truck?: {
+      routeName?: string;
+    };
+  };
 }
 
 const CustomerHistory = () => {
@@ -48,9 +57,10 @@ const CustomerHistory = () => {
           throw new Error('Network response was not ok');
         }
 
-        const data: orderHistoryItem[] = await response.json();
-        setOrderHistory(data || []);
-        setFilteredOrders(data || []);
+        const data: { orders: orderHistoryItem[] } = await response.json();
+        console.log('Fetched order history:', data);
+        setOrderHistory(data.orders || []);
+        setFilteredOrders(data.orders || []);
       } catch (error) {
         toast({
           title: 'Error loading order history',
@@ -229,10 +239,10 @@ const CustomerHistory = () => {
                   <th className="px-4 py-3">Order ID</th>
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Customer</th>
-                  <th className="px-4 py-3 text-right">Items</th>
+                  {/* <th className="px-4 py-3 text-right">Items</th> */}
                   <th className="px-4 py-3 text-right">Total</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">City</th>
+                  <th className="px-4 py-3">store</th>
                   <th className="px-4 py-3">Route</th>
                 </tr>
               </thead>
@@ -249,11 +259,11 @@ const CustomerHistory = () => {
                       <td className="px-4 py-3 font-medium">{order.order_id}</td>
                       <td className="px-4 py-3">{order.date}</td>
                       <td className="px-4 py-3">{order.customer_id}</td>
-                      <td className="px-4 py-3 text-right">{order.items}</td>
+                      {/* <td className="px-4 py-3 text-right">{order.items}</td> */}
                       <td className="px-4 py-3 text-right">{formatCurrency(order.total_value)}</td>
                       <td className="px-4 py-3">{getStatusBadge(order.status)}</td>
-                      <td className="px-4 py-3">{order.deliveryCity}</td>
-                      <td className="px-4 py-3">{order.route}</td>
+                      <td className="px-4 py-3">{order.logistics.store.name}</td>
+                      <td className="px-4 py-3">{order.logistics.truck.routeName}</td>
                     </tr>
                   ))
                 )}
