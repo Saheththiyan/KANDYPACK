@@ -1,3 +1,4 @@
+// Frontend/src/admin/pages/reports/TruckUsage.tsx
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,16 +15,77 @@ import { getAuthToken } from '@/lib/mockAuth';
 
 const TruckUsage = () => {
   const [usageData, setUsageData] = useState<TruckUsageData[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState('2024-03');
+  const [selectedMonth, setSelectedMonth] = useState('2025-01'); // Default to current month
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const auth = getAuthToken();
 
-  const months = [
+  // Generate month options dynamically for better coverage
+  const generateMonthOptions = () => {
+    const options = [];
+    const currentDate = new Date();
+    
+    // Go back 24 months from current date
+    for (let i = 0; i < 24; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      
+      options.push({
+        value: `${year}-${month}`,
+        label: monthName
+      });
+    }
+    
+    return options;
+  };
+
+  const months = generateMonthOptions();
+
+  // Alternative: If you prefer a fixed list with more options
+  const staticMonths = [
+    // 2025
+    { value: '2025-12', label: 'December 2025' },
+    { value: '2025-11', label: 'November 2025' },
+    { value: '2025-10', label: 'October 2025' },
+    { value: '2025-09', label: 'September 2025' },
+    { value: '2025-08', label: 'August 2025' },
+    { value: '2025-07', label: 'July 2025' },
+    { value: '2025-06', label: 'June 2025' },
+    { value: '2025-05', label: 'May 2025' },
+    { value: '2025-04', label: 'April 2025' },
+    { value: '2025-03', label: 'March 2025' },
+    { value: '2025-02', label: 'February 2025' },
+    { value: '2025-01', label: 'January 2025' },
+    
+    // 2024
+    { value: '2024-12', label: 'December 2024' },
+    { value: '2024-11', label: 'November 2024' },
+    { value: '2024-10', label: 'October 2024' },
+    { value: '2024-09', label: 'September 2024' },
+    { value: '2024-08', label: 'August 2024' },
+    { value: '2024-07', label: 'July 2024' },
+    { value: '2024-06', label: 'June 2024' },
+    { value: '2024-05', label: 'May 2024' },
+    { value: '2024-04', label: 'April 2024' },
     { value: '2024-03', label: 'March 2024' },
     { value: '2024-02', label: 'February 2024' },
     { value: '2024-01', label: 'January 2024' },
+    
+    // 2023
     { value: '2023-12', label: 'December 2023' },
+    { value: '2023-11', label: 'November 2023' },
+    { value: '2023-10', label: 'October 2023' },
+    { value: '2023-09', label: 'September 2023' },
+    { value: '2023-08', label: 'August 2023' },
+    { value: '2023-07', label: 'July 2023' },
+    { value: '2023-06', label: 'June 2023' },
+    { value: '2023-05', label: 'May 2023' },
+    { value: '2023-04', label: 'April 2023' },
+    { value: '2023-03', label: 'March 2023' },
+    { value: '2023-02', label: 'February 2023' },
+    { value: '2023-01', label: 'January 2023' },
   ];
 
   const fetchTruckUsage = async (month: string) => {
@@ -37,9 +99,7 @@ const TruckUsage = () => {
     });
     const data = await response.json();
     return data.trucks;
-  }
-
-
+  };
 
   useEffect(() => {
     const loadUsageData = async () => {
@@ -60,7 +120,6 @@ const TruckUsage = () => {
 
     loadUsageData();
   }, [selectedMonth, toast]);
-
 
   const formatNumber = (value: number) => value ? value.toLocaleString() : '0';
 
@@ -168,35 +227,8 @@ const TruckUsage = () => {
                 <XAxis dataKey="truckId" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="trips" fill="hsl(var(--primary))" />
+                <Bar dataKey="totalDeliveries" fill="hsl(var(--primary))" />
               </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Utilization Distribution</CardTitle>
-            <CardDescription>Fleet utilization breakdown</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={usageData}
-                  dataKey="utilization"
-                  nameKey="truckId"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label={(entry) => `${entry.truckId}: ${entry.utilization.toFixed(1)}%`}
-                >
-                  {(usageData ?? []).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -224,11 +256,11 @@ const TruckUsage = () => {
                 {(usageData ?? []).map((item, index) => (
                   <tr key={index} className="border-b">
                     <td className="px-4 py-3 font-medium">{item.truckId}</td>
-                    <td className="px-4 py-3 text-right">{formatNumber(item.trips)}</td>
-                    <td className="px-4 py-3 text-right">{formatNumber(item.hours)}</td>
+                    <td className="px-4 py-3 text-right">{formatNumber(item.totalDeliveries)}</td>
+                    <td className="px-4 py-3 text-right">{formatNumber(item.inProgressDeliveries)}</td>
                     <td className="px-4 py-3 text-right">
-                      <Badge variant={item.totalDeliveries > 75 ? "default" : "secondary"}>
-                        {item.totalDeliveries.toFixed(1)}%
+                      <Badge variant={item.capacity > 75 ? "default" : "secondary"}>
+                        {item.capacity}%
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">

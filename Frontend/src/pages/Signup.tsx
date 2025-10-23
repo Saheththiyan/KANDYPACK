@@ -15,19 +15,7 @@ import { calculatePasswordStrength, validateEmail } from '@/lib/mockAuth';
 import { API_URL } from '@/lib/config';
 import loginBackground from '@/assets/login-background.jpg';
 
-const customerTypes = ['Retail', 'Wholesale', 'Distributor', 'Individual'];
-//
-interface RegisterResponse {
-  success: boolean;
-  message?: string;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-    // add more fields based on API response
-  };
-}
-//
+const customerTypes = ['Retail', 'Wholesale', 'Distributor'];
 
 const Signup = () => {
   const navigate = useNavigate();

@@ -25,7 +25,8 @@ CREATE TABLE Assistant (
     status VARCHAR(20),
     store_id CHAR(36),
     PRIMARY KEY (assistant_id),
-    FOREIGN KEY (store_id) REFERENCES Store(store_id)
+    FOREIGN KEY (store_id) REFERENCES Store(store_id),
+    chat_id VARCHAR(255) NULL
 );
 -- Create the Customer table
 CREATE TABLE Customer (
@@ -49,7 +50,8 @@ CREATE TABLE Driver (
     status VARCHAR(20),
     store_id CHAR(36),
     PRIMARY KEY (driver_id),
-    FOREIGN KEY (store_id) REFERENCES Store(store_id)
+    FOREIGN KEY (store_id) REFERENCES Store(store_id),
+    chat_id VARCHAR(255) NULL
 );
 
 -- Create the Product table
@@ -250,7 +252,27 @@ INSERT INTO Product (product_id, name, description, unit_price, space_unit, stoc
 ('0d1e2f3a-4b5c-4c5d-7e8a-9b0c1d2e3f4a', 'Sour Worms', 'Tangy sour gummy worms', 3.49, 2, 55),
 ('1e2f3a4b-5c6d-4d6e-8f9b-0c1d2e3f4a5b', 'Candy Canes', 'Traditional peppermint candy canes', 1.49, 1, 56),
 ('7b8c9d0e-1f2a-4b3c-4d5e-6f7a8b9c0d1e', 'Milk Chocolate Almonds', 'Whole almonds coated in smooth milk chocolate', 6.99, 2, 0),
-('8c9d0e1f-2a3b-4c4d-5e6f-7a8b9c0d1e2f', 'Sour Patch Kids', 'Sweet and sour chewy candies in assorted flavors', 3.79, 2, 0);
+('8c9d0e1f-2a3b-4c4d-5e6f-7a8b9c0d1e2f', 'Sour Patch Kids', 'Sweet and sour chewy candies in assorted flavors', 3.79, 2, 0),
+('e5f6a7b8-6c7d-4e8f-9a0b-1c2d3e4f5a6b','Biscuits - Munchee','Classic tea biscuits (200g).',150.00,1,1500),
+('f6a7b8c9-7d8e-4f9a-0b1c-2d3e4f5a6b7c','Noodles - Maggi','Instant noodles (5-pack).',100.00,1,2000),
+('a7b8c9d0-8e9f-4a0b-1c2d-3e4f5a6b7c8d','Coconut Milk - Packet','UHT coconut milk (200ml).',120.00,1,1200),
+('b8c9d0e1-9f0a-4b1c-2d3e-4f5a6b7c8d9e','Detergent - Sunlight','Laundry detergent powder (1kg).',220.00,1,900),
+('c9d0e1f2-0a1b-4c2d-3e4f-5a6b7c8d9e0f','Toothpaste - Signal','Fluoride toothpaste (120g).',160.00,1,1100),
+('d0e1f2a3-1b2c-4d3e-4f5a-6b7c8d9e0f1a','Shampoo - Sunsilk','Shampoo for daily use (200ml).',300.00,1,800),
+('e1f2a3b4-2c3d-4e4f-5a6b-7c8d9e0f1a2b','Toilet Paper - 4 Pack','Soft 2-ply tissue rolls.',400.00,2,600),
+('f2a3b4c5-3d4e-4f5a-6b7c-8d9e0f1a2b3c','Pasta - Penne','Durum wheat pasta (500g).',120.00,1,1000),
+('a3b4c5d6-4e5f-4a6b-7c8d-9e0f1a2b3c4d','Sauce - Soy','Dark soy sauce (300ml).',150.00,1,900),
+('b4c5d6e7-5f6a-4b7c-8d9e-0f1a2b3c4d5e','Batteries - AA','Alkaline AA batteries (4-pack).',100.00,1,1500),
+('c5d6e7f8-6a7b-4c8d-9e0f-1a2b3c4d5e6f','Cereal - Corn Flakes','Breakfast cereal (300g).',350.00,1,700),
+('d6e7f8a9-7b8c-4d9e-0f1a-2b3c4d5e6f7a','Instant Soup - Knorr','Instant soup sachets (5-pack).',80.00,1,1200),
+('e7f8a9b0-8c9d-4e0f-1a2b-3c4d5e6f7a8b','Dishwash Liquid - Vim','Lemon dishwash liquid (500ml).',200.00,1,800),
+('f8a9b0c1-9d0e-4f1a-2b3c-4d5e6f7a8b9c','Mineral Water - 1L','Bottled drinking water (1L).',90.00,1,2000),
+('a9b0c1d2-0e1f-4a2b-3c4d-5e6f7a8b9c0d','Chocolates - Kandos','Milk chocolate bar (90g).',180.00,1,1000),
+('b0c1d2e3-1f2a-4b3c-4d5e-6f7a8b9c0d1e','Coffee - Instant','Instant coffee (100g).',450.00,1,500),
+('c1d2e3f4-2a3b-4c4d-5e6f-7a8b9c0d1e2f','Fruit Juice - Mango','Mango nectar (1L).',200.00,1,700),
+('d2e3f4a5-3b4c-4d5e-6f7a-8b9c0d1e2f3a','Jam - Kist','Mixed fruit jam (450g).',250.00,1,600),
+('e3f4a5b6-4c5d-4e6f-7a8b-9c0d1e2f3a4b','Salt - Iodized','Iodized table salt (1kg).',50.00,1,2000),
+('f4a5b6c7-5d6e-4f7a-8b9c-0d1e2f3a4b5c','Tissue - Facial','Soft facial tissues (100 pulls).',160.00,1,900);
 
 INSERT INTO Train_Schedule (train_schedule_id, departure_city, arrival_city, schedule_date, departure_time, arrival_time, capacity) VALUES
 ('e5f6a7b8-9c0d-4e1f-2a3b-4c5d6e7f8a9b', 'New York', 'Philadelphia', '2025-10-22', '08:00:00', '11:30:00', 600),

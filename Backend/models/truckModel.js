@@ -5,7 +5,7 @@ export async function getTrucks() {
   return trucks;
 }
 
-export async function getTruckUsage(month) {
+export async function getTruckUsage(year, month) {
   const [usage] = await db.query(
     `SELECT t.truck_id AS truckId, 
             t.license_plate AS licensePlate,
@@ -19,7 +19,7 @@ export async function getTruckUsage(month) {
        AND DATE_FORMAT(ds.delivery_date, '%Y-%m') = ?
      GROUP BY t.truck_id, t.license_plate, t.capacity, t.status
      ORDER BY totalDeliveries DESC`,
-    [month]
+    [`${year}-${month}`]
   );
   return usage;
 }

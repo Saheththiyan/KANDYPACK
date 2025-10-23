@@ -57,9 +57,10 @@ export const CustomerLayout = () => {
           <div className="flex space-x-1 overflow-x-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                location.pathname === item.path ||
-                location.pathname.startsWith(`${item.path}/`);
+              const isHome = item.path === '/customer';
+              const isActive = isHome
+                ? location.pathname === item.path
+                : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
               return (
                 <Link
                   key={item.path}

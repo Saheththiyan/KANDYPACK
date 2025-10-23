@@ -49,11 +49,12 @@ function normalizeItemRow(row) {
       ? Number(row.sub_total)
       : unitPrice * quantity;
 
+  // Stock Keeping Unit
   return {
     product: {
       id: row.product_id,
       product_id: row.product_id,
-      sku: `SKU-${String(row.product_id).slice(0, 8)}`,
+      sku: `SKU-${String(row.product_id).slice(0, 8)}`, // Take the first 8 characters of the product ID and the prefix 'SKU-'
       name: row.product_name,
       description: row.product_description,
       price: unitPrice,
@@ -322,6 +323,70 @@ export async function createOrder(
   try {
     await connection.beginTransaction();
 
+    const productQuantities = new Map();
+    for (const item of items) {
+      const productId = item.productId;
+      const quantity = Number(item.quantity ?? 0);
+      if (!productId || Number.isNaN(quantity) || quantity <= 0) {
+        const error = new Error("Invalid order item payload detected");
+        error.code = "INVALID_ORDER_ITEM";
+        throw error;
+      }
+      productQuantities.set(
+        productId,
+        (productQuantities.get(productId) || 0) + quantity
+      );
+    }
+
+    const productIds = [...productQuantities.keys()];
+    if (!productIds.length) {
+      const error = new Error("Order must include at least one product");
+      error.code = "INVALID_ORDER_ITEM";
+      throw error;
+    }
+    const placeholders = productIds.map(() => "?").join(", ");
+    const [productRows] = await connection.query(
+      `
+        SELECT product_id, name, stock
+        FROM Product
+        WHERE product_id IN (${placeholders})
+        FOR UPDATE
+      `,
+      productIds
+    );
+
+    const stockMap = new Map(
+      productRows.map((row) => [
+        row.product_id,
+        {
+          name: row.name,
+          stock: Number(row.stock ?? 0),
+        },
+      ])
+    );
+
+    for (const [productId, requestedQty] of productQuantities.entries()) {
+      const productInfo = stockMap.get(productId);
+      if (!productInfo) {
+        const error = new Error(`Product ${productId} not found`);
+        error.code = "PRODUCT_NOT_FOUND";
+        throw error;
+      }
+
+      if (requestedQty > productInfo.stock) {
+        const error = new Error(
+          `Requested quantity (${requestedQty}) for ${productInfo.name} exceeds available stock (${productInfo.stock}).`
+        );
+        error.code = "INSUFFICIENT_STOCK";
+        error.meta = {
+          productId,
+          requested: requestedQty,
+          available: productInfo.stock,
+        };
+        throw error;
+      }
+    }
+
     const orderId = crypto.randomUUID();
     const normalizedTotal = Number(totalAmount ?? 0);
     const methodCode = paymentMethod || "cod";
@@ -359,6 +424,17 @@ export async function createOrder(
       ]);
     }
 
+    for (const [productId, orderedQty] of productQuantities.entries()) {
+      await connection.query(
+        `
+          UPDATE Product
+          SET stock = stock - ?
+          WHERE product_id = ?
+        `,
+        [orderedQty, productId]
+      );
+    }
+
     const { name, phone, address, city } = contactInfo;
     if (name || phone || address || city) {
       await connection.query(
@@ -384,6 +460,201 @@ export async function createOrder(
   } finally {
     connection.release();
   }
+}
+
+export async function getCustomerOrderHistory(customerId) {
+  const [history] = await db.query(
+    `
+    SELECT 
+      YEAR(order_date) AS year,
+      MONTH(order_date) AS month,
+      COUNT(*) AS totalOrders,
+      SUM(total_value) AS totalSpent
+    FROM 
+      \`Order\`
+    WHERE 
+      customer_id = ?
+    GROUP BY 
+      YEAR(order_date), MONTH(order_date)
+    ORDER BY 
+      YEAR(order_date), MONTH(order_date);
+    `,
+    [customerId]
+  );
+  return history;
+}
+
+export async function getCustomerOrderSummary(customerId) {
+  const [rows] = await db.query(
+    `
+      SELECT
+        COUNT(*) AS totalOrders,
+        COALESCE(SUM(CASE WHEN LOWER(status) = 'in transit' THEN 1 ELSE 0 END), 0) AS ordersInTransit,
+        COALESCE(SUM(CASE WHEN LOWER(status) = 'delivered' THEN 1 ELSE 0 END), 0) AS ordersDelivered,
+        COALESCE(SUM(total_value), 0) AS totalSpent
+      FROM \`Order\`
+      WHERE customer_id = ?
+    `,
+    [customerId]
+  );
+
+  const [summary = {}] = rows;
+
+  return {
+    totalOrders: Number(summary.totalOrders ?? 0),
+    ordersInTransit: Number(summary.ordersInTransit ?? 0),
+    ordersDelivered: Number(summary.ordersDelivered ?? 0),
+    totalSpent: Number(summary.totalSpent ?? 0),
+  };
+}
+
+export async function getAvailableOrderYears() {
+  const [rows] = await db.query(
+    `
+      SELECT DISTINCT YEAR(order_date) AS year
+      FROM \`Order\`
+      ORDER BY year DESC
+    `
+  );
+
+  const years = rows
+    .map((row) => Number(row.year))
+    .filter((value) => Number.isFinite(value));
+
+  if (!years.length) {
+    return [new Date().getFullYear()];
+  }
+
+  return years;
+}
+
+export async function getQuarterlySalesSummary(year) {
+  const [rows] = await db.query(
+    `
+      WITH quarter_nums AS (
+        SELECT 1 AS quarter
+        UNION ALL SELECT 2
+        UNION ALL SELECT 3
+        UNION ALL SELECT 4
+      ),
+      order_summary AS (
+        SELECT 
+          QUARTER(order_date) AS quarter,
+          COUNT(*) AS totalOrders,
+          SUM(total_value) AS totalRevenue
+        FROM \`Order\`
+        WHERE YEAR(order_date) = ?
+        GROUP BY QUARTER(order_date)
+      ),
+      unit_summary AS (
+        SELECT 
+          QUARTER(o.order_date) AS quarter,
+          SUM(oi.quantity) AS totalUnits
+        FROM Order_Item oi
+        JOIN \`Order\` o ON oi.order_id = o.order_id
+        WHERE YEAR(o.order_date) = ?
+        GROUP BY QUARTER(o.order_date)
+      )
+      SELECT 
+        q.quarter,
+        COALESCE(o.totalOrders, 0) AS totalOrders,
+        COALESCE(o.totalRevenue, 0) AS totalRevenue,
+        COALESCE(u.totalUnits, 0) AS totalUnits
+      FROM quarter_nums q
+      LEFT JOIN order_summary o ON o.quarter = q.quarter
+      LEFT JOIN unit_summary u ON u.quarter = q.quarter
+      ORDER BY q.quarter
+    `,
+    [year, year]
+  );
+
+  return rows.map((row) => ({
+    quarter: Number(row.quarter),
+    totalOrders: Number(row.totalOrders ?? 0),
+    totalRevenue: Number(row.totalRevenue ?? 0),
+    totalUnits: Number(row.totalUnits ?? 0),
+  }));
+}
+
+export async function getQuarterMonthlyBreakdown(year, quarter) {
+  const safeQuarter = [1, 2, 3, 4].includes(Number(quarter))
+    ? Number(quarter)
+    : 1;
+
+  const startMonth = (safeQuarter - 1) * 3 + 1;
+  const months = [startMonth, startMonth + 1, startMonth + 2];
+
+  const [orderRows] = await db.query(
+    `
+      SELECT 
+        MONTH(order_date) AS month,
+        SUM(total_value) AS totalRevenue,
+        COUNT(*) AS totalOrders
+      FROM \`Order\`
+      WHERE YEAR(order_date) = ? AND QUARTER(order_date) = ?
+      GROUP BY MONTH(order_date)
+    `,
+    [year, safeQuarter]
+  );
+
+  const [unitRows] = await db.query(
+    `
+      SELECT 
+        MONTH(o.order_date) AS month,
+        SUM(oi.quantity) AS totalUnits
+      FROM Order_Item oi
+      JOIN \`Order\` o ON oi.order_id = o.order_id
+      WHERE YEAR(o.order_date) = ? AND QUARTER(o.order_date) = ?
+      GROUP BY MONTH(o.order_date)
+    `,
+    [year, safeQuarter]
+  );
+
+  const orderMap = new Map();
+  for (const row of orderRows) {
+    const month = Number(row.month);
+    orderMap.set(month, {
+      totalRevenue: Number(row.totalRevenue ?? 0),
+      totalOrders: Number(row.totalOrders ?? 0),
+    });
+  }
+
+  const unitMap = new Map();
+  for (const row of unitRows) {
+    const month = Number(row.month);
+    unitMap.set(month, Number(row.totalUnits ?? 0));
+  }
+
+  const monthLabels = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  return months.map((month) => {
+    const orderInfo = orderMap.get(month) || {
+      totalRevenue: 0,
+      totalOrders: 0,
+    };
+    const totalUnits = unitMap.get(month) ?? 0;
+
+    return {
+      month,
+      label: monthLabels[month - 1],
+      totalRevenue: orderInfo.totalRevenue,
+      totalOrders: orderInfo.totalOrders,
+      totalUnits,
+    };
+  });
 }
 
 export async function getQuarterlyOrders(year) {
@@ -413,26 +684,4 @@ export async function getQuarterlyOrders(year) {
     [year]
   );
   return orders;
-}
-
-export async function getCustomerOrderHistory(customerId) {
-  const [history] = await db.query(
-    `
-    SELECT 
-      YEAR(order_date) AS year,
-      MONTH(order_date) AS month,
-      COUNT(*) AS totalOrders,
-      SUM(total_value) AS totalSpent
-    FROM 
-      \`Order\`
-    WHERE 
-      customer_id = ?
-    GROUP BY 
-      YEAR(order_date), MONTH(order_date)
-    ORDER BY 
-      YEAR(order_date), MONTH(order_date);
-    `,
-    [customerId]
-  );
-  return history;
 }

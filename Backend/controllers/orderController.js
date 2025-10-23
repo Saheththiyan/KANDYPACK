@@ -3,6 +3,7 @@ import {
   getOrderById as getOrderByIdModel,
   getOrders,
   getOrdersByCustomer,
+  getCustomerOrderSummary as getCustomerOrderSummaryModel,
 } from "../models/orderModel.js";
 
 const normalizePaymentMethod = (method) =>
@@ -134,11 +135,49 @@ export async function createOrder(req, res) {
       order: newOrder,
     });
   } catch (err) {
+    if (
+      err.code === "INSUFFICIENT_STOCK" ||
+      err.code === "PRODUCT_NOT_FOUND" ||
+      err.code === "INVALID_ORDER_ITEM"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: err.message,
+        details: err.meta ?? null,
+      });
+    }
+
     console.error("Order creation error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to create order",
       details: err.message,
     });
+  }
+}
+
+export async function getCustomerSummary(req, res) {
+  const { role, id } = req.user || {};
+  let customerId = null;
+
+  if (role === "Customer") {
+    customerId = id;
+  } else if (role === "Admin" && req.query.customerId) {
+    customerId = req.query.customerId;
+  }
+
+  if (!customerId) {
+    return res.status(403).json({
+      success: false,
+      message: "Customer context is required to view order summary",
+    });
+  }
+
+  try {
+    const summary = await getCustomerOrderSummaryModel(customerId);
+    res.json({ success: true, summary });
+  } catch (err) {
+    console.error("Fetch customer summary error:", err);
+    res.status(500).json({ success: false, message: "Failed to load summary" });
   }
 }

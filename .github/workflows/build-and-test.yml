@@ -215,7 +215,7 @@ jobs:
 
       - name: Build test environment
         run: |
-          docker-compose -f docker-compose.yml -f docker-compose.override.yml build
+          docker compose -f docker-compose.yml -f docker-compose.override.yml build
 
       - name: Run integration tests
         run: |
@@ -229,4 +229,4 @@ jobs:
       - name: Cleanup test environment
         if: always()
         run: |
-          docker-compose down -v --remove-orphans
+          docker compose down -v --remove-orphans
