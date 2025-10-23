@@ -461,35 +461,6 @@ export async function createOrder(
   }
 }
 
-export async function getQuarterlyOrders(year) {
-  const [orders] = await db.query(
-    `
-    SELECT 
-      q.q AS quarter,
-      IFNULL(t.totalOrders, 0) AS totalOrders,
-      IFNULL(t.totalRevenue, 0) AS totalRevenue
-    FROM 
-      (SELECT 1 AS q UNION SELECT 2 UNION SELECT 3 UNION SELECT 4) q
-    LEFT JOIN (
-      SELECT 
-        QUARTER(order_date) AS quarter,
-        COUNT(*) AS totalOrders,
-        SUM(total_value) AS totalRevenue
-      FROM 
-        \`Order\`
-      WHERE 
-        YEAR(order_date) = ?
-      GROUP BY 
-        QUARTER(order_date)
-    ) t ON t.quarter = q.q
-    ORDER BY 
-      q.q;
-    `,
-    [year]
-  );
-  return orders;
-}
-
 export async function getCustomerOrderHistory(customerId) {
   const [history] = await db.query(
     `
@@ -534,4 +505,182 @@ export async function getCustomerOrderSummary(customerId) {
     ordersDelivered: Number(summary.ordersDelivered ?? 0),
     totalSpent: Number(summary.totalSpent ?? 0),
   };
+}
+
+export async function getAvailableOrderYears() {
+  const [rows] = await db.query(
+    `
+      SELECT DISTINCT YEAR(order_date) AS year
+      FROM \`Order\`
+      ORDER BY year DESC
+    `
+  );
+
+  const years = rows
+    .map((row) => Number(row.year))
+    .filter((value) => Number.isFinite(value));
+
+  if (!years.length) {
+    return [new Date().getFullYear()];
+  }
+
+  return years;
+}
+
+export async function getQuarterlySalesSummary(year) {
+  const [rows] = await db.query(
+    `
+      WITH quarter_nums AS (
+        SELECT 1 AS quarter
+        UNION ALL SELECT 2
+        UNION ALL SELECT 3
+        UNION ALL SELECT 4
+      ),
+      order_summary AS (
+        SELECT 
+          QUARTER(order_date) AS quarter,
+          COUNT(*) AS totalOrders,
+          SUM(total_value) AS totalRevenue
+        FROM \`Order\`
+        WHERE YEAR(order_date) = ?
+        GROUP BY QUARTER(order_date)
+      ),
+      unit_summary AS (
+        SELECT 
+          QUARTER(o.order_date) AS quarter,
+          SUM(oi.quantity) AS totalUnits
+        FROM Order_Item oi
+        JOIN \`Order\` o ON oi.order_id = o.order_id
+        WHERE YEAR(o.order_date) = ?
+        GROUP BY QUARTER(o.order_date)
+      )
+      SELECT 
+        q.quarter,
+        COALESCE(o.totalOrders, 0) AS totalOrders,
+        COALESCE(o.totalRevenue, 0) AS totalRevenue,
+        COALESCE(u.totalUnits, 0) AS totalUnits
+      FROM quarter_nums q
+      LEFT JOIN order_summary o ON o.quarter = q.quarter
+      LEFT JOIN unit_summary u ON u.quarter = q.quarter
+      ORDER BY q.quarter
+    `,
+    [year, year]
+  );
+
+  return rows.map((row) => ({
+    quarter: Number(row.quarter),
+    totalOrders: Number(row.totalOrders ?? 0),
+    totalRevenue: Number(row.totalRevenue ?? 0),
+    totalUnits: Number(row.totalUnits ?? 0),
+  }));
+}
+
+export async function getQuarterMonthlyBreakdown(year, quarter) {
+  const safeQuarter = [1, 2, 3, 4].includes(Number(quarter))
+    ? Number(quarter)
+    : 1;
+
+  const startMonth = (safeQuarter - 1) * 3 + 1;
+  const months = [startMonth, startMonth + 1, startMonth + 2];
+
+  const [orderRows] = await db.query(
+    `
+      SELECT 
+        MONTH(order_date) AS month,
+        SUM(total_value) AS totalRevenue,
+        COUNT(*) AS totalOrders
+      FROM \`Order\`
+      WHERE YEAR(order_date) = ? AND QUARTER(order_date) = ?
+      GROUP BY MONTH(order_date)
+    `,
+    [year, safeQuarter]
+  );
+
+  const [unitRows] = await db.query(
+    `
+      SELECT 
+        MONTH(o.order_date) AS month,
+        SUM(oi.quantity) AS totalUnits
+      FROM Order_Item oi
+      JOIN \`Order\` o ON oi.order_id = o.order_id
+      WHERE YEAR(o.order_date) = ? AND QUARTER(o.order_date) = ?
+      GROUP BY MONTH(o.order_date)
+    `,
+    [year, safeQuarter]
+  );
+
+  const orderMap = new Map();
+  for (const row of orderRows) {
+    const month = Number(row.month);
+    orderMap.set(month, {
+      totalRevenue: Number(row.totalRevenue ?? 0),
+      totalOrders: Number(row.totalOrders ?? 0),
+    });
+  }
+
+  const unitMap = new Map();
+  for (const row of unitRows) {
+    const month = Number(row.month);
+    unitMap.set(month, Number(row.totalUnits ?? 0));
+  }
+
+  const monthLabels = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  return months.map((month) => {
+    const orderInfo = orderMap.get(month) || {
+      totalRevenue: 0,
+      totalOrders: 0,
+    };
+    const totalUnits = unitMap.get(month) ?? 0;
+
+    return {
+      month,
+      label: monthLabels[month - 1],
+      totalRevenue: orderInfo.totalRevenue,
+      totalOrders: orderInfo.totalOrders,
+      totalUnits,
+    };
+  });
+}
+
+export async function getQuarterlyOrders(year) {
+  const [orders] = await db.query(
+    `
+    SELECT 
+      q.q AS quarter,
+      IFNULL(t.totalOrders, 0) AS totalOrders,
+      IFNULL(t.totalRevenue, 0) AS totalRevenue
+    FROM 
+      (SELECT 1 AS q UNION SELECT 2 UNION SELECT 3 UNION SELECT 4) q
+    LEFT JOIN (
+      SELECT 
+        QUARTER(order_date) AS quarter,
+        COUNT(*) AS totalOrders,
+        SUM(total_value) AS totalRevenue
+      FROM 
+        \`Order\`
+      WHERE 
+        YEAR(order_date) = ?
+      GROUP BY 
+        QUARTER(order_date)
+    ) t ON t.quarter = q.q
+    ORDER BY 
+      q.q;
+    `,
+    [year]
+  );
+  return orders;
 }
