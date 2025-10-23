@@ -2,9 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, Dev ]
-  pull_request:
-    branches: [ main, Dev ]
+    branches: [ main ]
 
 jobs:
   # Job 1: Lint all code
@@ -23,32 +21,31 @@ jobs:
           cache: 'npm'
 
       # Lint Backend
-      # - name: Install backend dependencies
-      #   run: |
-      #     cd Backend
-      #     npm ci
+      - name: Install backend dependencies
+        run: |
+          cd Backend
+          npm ci
 
-      # - name: Lint backend code
-      #   run: |
-      #     cd Backend
-      #     npm run lint
+      - name: Lint backend code
+        run: |
+          cd Backend
+          npm run lint
 
       # Lint Frontend
-      # - name: Install frontend dependencies
-      #   run: |
-      #     cd Frontend
-      #     npm ci
+      - name: Install frontend dependencies
+        run: |
+          cd Frontend
+          npm ci
 
-      # - name: Lint frontend code
-      #   run: |
-      #     cd Frontend
-      #     npm run lint
+      - name: Lint frontend code
+        run: |
+          cd Frontend
+          npm run lint
 
       - name: TypeScript check
-        # run: |
-        #   cd Frontend
-        #   npm run type-check
-        run: echo "TypeScript check would run here"
+        run: |
+          cd Frontend
+          npm run type-check
 
       # Lint Docker and YAML files
       - name: Run Hadolint (Dockerfile linter)
@@ -115,21 +112,20 @@ jobs:
           DB_NAME: kandypack_test
           JWT_SECRET: test_secret_key_for_testing
           NODE_ENV: test
-        # run: |
-        #   cd Backend
-        #   npm test
-        run: echo "Backend tests would run here"
+        run: |
+          cd Backend
+          npm test
 
-      # # Test Frontend
-      # - name: Install frontend dependencies
-      #   run: |
-      #     cd Frontend
-      #     npm ci
+      # Test Frontend
+      - name: Install frontend dependencies
+        run: |
+          cd Frontend
+          npm ci
 
-      # - name: Run frontend tests
-      #   run: |
-      #     cd Frontend
-      #     npm test
+      - name: Run frontend tests
+        run: |
+          cd Frontend
+          npm test
 
   # Job 3: Build and push Docker images
   build-and-push:

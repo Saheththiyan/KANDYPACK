@@ -50,7 +50,7 @@ export const fetchProducts = async (
 
   const server = await res.json(); // { products, total, page, pageSize, totalPages }
 
-  const normalized = (server.products || []).map((p: any): Product => ({
+  const normalized = (server.products || []).map((p:Product) => ({
     product_id: p.product_id,
     name: p.name,
     description: p.description,
@@ -82,7 +82,7 @@ export const getCart = (): CartItem[] => {
   return cart ? JSON.parse(cart) : [];
 };
 
-export const addToCart = (product: any, quantity: number = 1) => {
+export const addToCart = (product: Product, quantity: number = 1) => {
   // Ensure product has all required properties for consistency
   const productWithAllProps = {
     ...product,
@@ -95,7 +95,7 @@ export const addToCart = (product: any, quantity: number = 1) => {
   };
 
   const cart = getCart();
-  const existingItem = cart.find((item: any) => item.product.id === productWithAllProps.id);
+  const existingItem = cart.find((item: CartItem) => item.product.id === productWithAllProps.id);
 
   if (existingItem) {
     existingItem.quantity += quantity;
@@ -111,7 +111,7 @@ export const addToCart = (product: any, quantity: number = 1) => {
 
 export const updateCartItem = (productId: string, quantity: number) => {
   const cart = getCart();
-  const itemIndex = cart.findIndex((item: any) => item.product.id === productId);
+  const itemIndex = cart.findIndex((item: CartItem) => item.product.id === productId);
 
   if (itemIndex > -1) {
     if (quantity <= 0) {
@@ -126,7 +126,7 @@ export const updateCartItem = (productId: string, quantity: number) => {
 
 export const removeFromCart = (productId: string) => {
   const cart = getCart();
-  const updatedCart = cart.filter((item: any) => item.product.id !== productId);
+  const updatedCart = cart.filter((item: CartItem) => item.product.id !== productId);
   localStorage.setItem('cart', JSON.stringify(updatedCart));
   window.dispatchEvent(new CustomEvent('cartUpdated'));
 };
@@ -194,7 +194,7 @@ export interface Order {
 }
 
 // Mock orders storage
-let mockOrders: Order[] = [];
+const mockOrders: Order[] = [];
 
 // Order management
 export const createOrder = async (orderData: {

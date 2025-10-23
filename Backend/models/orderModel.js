@@ -9,7 +9,7 @@ const PAYMENT_METHOD_LABELS = {
 let schemaEnsured = false;
 
 async function ensureOrderSchema() {
-  if (schemaEnsured) return;
+  if (schemaEnsured) {return;}
 
   try {
     await db.query("SELECT payment_method FROM `Order` LIMIT 1");

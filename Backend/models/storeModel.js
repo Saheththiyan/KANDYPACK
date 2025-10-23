@@ -37,7 +37,7 @@ export async function patchStore(store_id, storeData) {
     }
   }
 
-  if (columns.length === 0) return null;
+  if (columns.length === 0) {return null;}
 
   const query = `
     UPDATE Store
