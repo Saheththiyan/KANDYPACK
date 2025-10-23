@@ -22,10 +22,17 @@ export async function assignOrdersToDelivery(req, res) {
     
     await deliver.assignOrdersToDelivery(deliveryId, orderIds);
 
-    sendTelegramMessage(`Orders ${orderIds.join(', ')} have been assigned to delivery ID ${deliveryId}.`);
-    
-    res.json({ 
-      success: true, 
+    sendTelegramMessage(`
+      Delivery Update: 🚚
+
+      Delivery ID: ${deliveryId}
+      Assigned Orders: ${orderIds.join(', ')}
+      
+      The above orders have been successfully assigned to your delivery.
+    `);
+
+    res.json({
+      success: true,
       message: 'Orders assigned to delivery successfully'
     });
   } catch (err) {
