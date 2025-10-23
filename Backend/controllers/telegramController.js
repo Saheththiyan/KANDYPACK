@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { updateDriverChatId, updateAssistantChatId } from '../models/telegramModel.js';
 import { sendTelegramMessage } from '../utils/sendTelegram.js';
+// import { getDriversByID } from '../models/driverModel.js';
+// import { getAssistantById } from '../models/assistantModel.js';
 
 // Generate registration link for driver/assistant
 export async function generateRegistrationLink(req, res) {
@@ -118,46 +120,46 @@ export async function telegramWebhook(req, res) {
   }
 }
 
-// Send notification to driver or assistant
-export async function sendNotification(req, res) {
-  try {
-    const { type, id, message } = req.body;
+// // Send notification to driver or assistant
+// export async function sendNotification(req, res) {
+//   try {
+//     const { type, id, message } = req.body;
     
-    if (!type || !id || !message || !['driver', 'assistant'].includes(type)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid parameters. Requires type (driver/assistant), id, and message'
-      });
-    }
+//     if (!type || !id || !message || !['driver', 'assistant'].includes(type)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Invalid parameters. Requires type (driver/assistant), id, and message'
+//       });
+//     }
 
-    // Get chat_id from database
-    let chatId;
-    if (type === 'driver') {
-      const driver = await getDriverById(id);
-      chatId = driver?.chat_id;
-    } else {
-      const assistant = await getAssistantById(id);
-      chatId = assistant?.chat_id;
-    }
+//     // Get chat_id from database
+//     let chatId;
+//     if (type === 'driver') {
+//       const driver = await getDriversByID(id);
+//       chatId = driver?.chat_id;
+//     } else {
+//       const assistant = await getAssistantById(id);
+//       chatId = assistant?.chat_id;
+//     }
 
-    if (!chatId) {
-      return res.status(404).json({
-        success: false,
-        message: `${type} not found or not registered with Telegram`
-      });
-    }
+//     if (!chatId) {
+//       return res.status(404).json({
+//         success: false,
+//         message: `${type} not found or not registered with Telegram`
+//       });
+//     }
 
-    await sendTelegramMessage(message, chatId);
+//     await sendTelegramMessage(message, chatId);
 
-    res.json({
-      success: true,
-      message: 'Notification sent successfully'
-    });
-  } catch (error) {
-    console.error('Send notification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send notification'
-    });
-  }
-}
+//     res.json({
+//       success: true,
+//       message: 'Notification sent successfully'
+//     });
+//   } catch (error) {
+//     console.error('Send notification error:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to send notification'
+//     });
+//   }
+// }
