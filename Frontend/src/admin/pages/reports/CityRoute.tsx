@@ -224,21 +224,33 @@ const CityRoute = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={filteredRouteData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="stops" />
-                <YAxis
-                  tickFormatter={(value) => `Rs ${(value).toFixed(0)}`} />
-                <Tooltip 
-                  formatter={(value, name) => [
-                    name === 'Sales Value' ? formatCurrency(Number(value)) : formatNumber(Number(value)), name
-                  ]}
-                />
-                <Legend />
-                <Bar dataKey="sales_value" fill="hsl(var(--primary))" name="Sales Value" />
-              </BarChart>
-            </ResponsiveContainer>
+            {
+              (() => {
+                const maxSales = filteredRouteData.length ? Math.max(...filteredRouteData.map(d => Number(d.sales_value))) : 0;
+                const step = maxSales > 0 ? Math.pow(10, Math.floor(Math.log10(maxSales))) : 1000;
+                const upper = Math.ceil(maxSales / step) * step;
+                const ticks = [0, Math.round(upper / 2), upper];
+
+                return (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={filteredRouteData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="stops" />
+                      <YAxis
+                        type="number"
+                        domain={[0, upper]}     // set Y axis range
+                        ticks={ticks}          // explicit tick marks
+                        tickFormatter={(value) => `Rs ${value.toLocaleString()}`}
+                        scale="linear"         // use "log" for logarithmic scale if desired
+                      />
+                      <Tooltip formatter={(value, name) => [formatCurrency(Number(value)), name]} />
+                      <Legend />
+                      <Bar dataKey="sales_value" fill="hsl(var(--primary))" name="Sales Value" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                );
+              })()
+            }
           </CardContent>
         </Card>
       </div>
