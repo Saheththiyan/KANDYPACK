@@ -7,7 +7,7 @@ export async function getAdmins() {
 }
 
 export async function getAdminByEmail(email) {
-  const [admins] = await db.query(`SELECT * FROM Admin WHERE email = ?`, [
+  const [admins] = await db.query("SELECT * FROM Admin WHERE email = ?", [
     email,
   ]);
 
@@ -16,7 +16,7 @@ export async function getAdminByEmail(email) {
 
 export async function getAdminById(id) {
   const [admins] = await db.query(
-    `SELECT admin_id, username, email FROM Admin WHERE admin_id = ?`,
+    "SELECT admin_id, username, email FROM Admin WHERE admin_id = ?",
     [id]
   );
   return admins[0] || null;
@@ -93,7 +93,7 @@ export async function patchAdmin(admin_id, adminData) {
     }
   }
 
-  if (columns.length === 0) return null;
+  if (columns.length === 0) {return null;}
 
   const query = `
     UPDATE Admin

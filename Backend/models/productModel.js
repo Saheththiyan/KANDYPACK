@@ -15,8 +15,8 @@ export async function getProducts({
   const whereParams = hasSearch ? [`%${search.trim().toLowerCase()}%`] : [];
 
   let orderBy = "ORDER BY name ASC";
-  if (sortBy === "price-low") orderBy = "ORDER BY unit_price ASC, name ASC";
-  if (sortBy === "price-high") orderBy = "ORDER BY unit_price DESC, name ASC";
+  if (sortBy === "price-low") {orderBy = "ORDER BY unit_price ASC, name ASC";}
+  if (sortBy === "price-high") {orderBy = "ORDER BY unit_price DESC, name ASC";}
 
   const dataSql = `
     SELECT product_id, name, description, unit_price, space_unit, stock

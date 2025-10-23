@@ -9,5 +9,8 @@ router.use(authenticateToken);
 
 router.get("/", allocation.getAllAllocations);
 router.get("/unprocessed", allocation.getUnprocessedOrders);
+router.get("/by-city", allocation.getOrdersByCity);
+router.get("/route-store/:routeId", allocation.getOrdersByRouteStore);
+router.post("/", allocation.postAllocation);
 
 export default router;

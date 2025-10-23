@@ -21,7 +21,7 @@ export const getAllCustomers = (): Customer[] => {
   const values = result[0].values;
   
   return values.map(row => {
-    const customer: any = {};
+    const customer : Partial<Customer> = {};
     columns.forEach((col, idx) => {
       customer[col] = row[idx];
     });
@@ -42,7 +42,7 @@ export const getCustomerById = (customerId: string): Customer | null => {
   const columns = result[0].columns;
   const row = result[0].values[0];
   
-  const customer: any = {};
+  const customer: Partial<Customer> = {};
   columns.forEach((col, idx) => {
     customer[col] = row[idx];
   });
@@ -100,7 +100,7 @@ export const searchCustomers = (searchTerm: string): Customer[] => {
   const values = result[0].values;
   
   return values.map(row => {
-    const customer: any = {};
+    const customer: Partial<Customer> = {};
     columns.forEach((col, idx) => {
       customer[col] = row[idx];
     });
@@ -132,7 +132,7 @@ export const getAllProducts = (sortBy: 'name' | 'price' = 'name'): Product[] => 
   const values = result[0].values;
   
   return values.map(row => {
-    const product: any = {};
+    const product: Partial<Product> = {};
     columns.forEach((col, idx) => {
       product[col] = row[idx];
     });
@@ -153,7 +153,7 @@ export const getProductById = (productId: string): Product | null => {
   const columns = result[0].columns;
   const row = result[0].values[0];
   
-  const product: any = {};
+  const product: Partial<Product> = {};
   columns.forEach((col, idx) => {
     product[col] = row[idx];
   });
@@ -212,7 +212,7 @@ export const searchProducts = (searchTerm: string, sortBy: 'name' | 'price' = 'n
   const values = result[0].values;
   
   return values.map(row => {
-    const product: any = {};
+    const product: Partial<Product> = {};
     columns.forEach((col, idx) => {
       product[col] = row[idx];
     });

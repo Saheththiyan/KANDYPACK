@@ -124,7 +124,7 @@ const Signup = () => {
         body: JSON.stringify(payload),
       });
 
-      let data: any = {};
+      let data: RegisterResponse = { success: false };
       try {
         data = await response.json();
       } catch (readError) {
@@ -151,6 +151,7 @@ const Signup = () => {
   };
 
   return (
+
     <div
       className="min-h-screen flex flex-col lg:flex-row relative"
       style={{

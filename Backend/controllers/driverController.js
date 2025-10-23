@@ -48,7 +48,7 @@ export async function addNewDriver(req, res) {
       data: result,
     });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res.status(500).json({
       message: "Something went wrong",
       error: error.message,
@@ -61,13 +61,13 @@ export async function deleteDriver(req, res) {
     const { driver_id } = req.params;
     const result = await driver.removeDriver(driver_id);
 
-    if (result.affectedRows == 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
     res.status(200).json({ message: "Driver deleted successfully!" });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
 
     // Handle foreign key violation
     if (error.code === "ER_ROW_IS_REFERENCED_2") {
@@ -101,7 +101,7 @@ export async function patchDriverDetails(req, res) {
       .status(200)
       .json({ message: "Driver updated successfully!", data: driverData });
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res
       .status(500)
       .json({ message: "Something went wrong!", error: error.message });
@@ -112,13 +112,13 @@ export async function getDriversByStore(req, res) {
   try {
     const { store_id } = req.query;
     let drivers;
-    
+
     if (store_id) {
       drivers = await driver.getDriversByStore(store_id);
     } else {
       drivers = await driver.getDrivers();
     }
-    
+
     res.json(drivers);
   } catch (err) {
     res.status(500).json({ error: err.message });

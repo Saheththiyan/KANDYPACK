@@ -14,7 +14,7 @@ import * as cityRouteSalesModel from "../../models/routeModel.js";
 //   return res.json({ quarter, routes: [] });
 // }
 
-export async function getCityRouteSalesBreakdown(req, res) { 
+export async function getCityRouteSalesBreakdown(req, res) {
   try {
     const breakdown = await cityRouteSalesModel.getCityRouteBySales();
     res.json(breakdown);

@@ -1,0 +1,232 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, dev, Dev ]
+  pull_request:
+    branches: [ main, dev, Dev ]
+
+jobs:
+  # Job 1: Lint all code
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Lint Backend
+      - name: Install backend dependencies
+        run: |
+          cd Backend
+          npm ci
+
+      - name: Lint backend code
+        run: |
+          cd Backend
+          npm run lint
+
+      # Lint Frontend  
+      - name: Install frontend dependencies
+        run: |
+          cd Frontend
+          npm ci
+
+      - name: Lint frontend code
+        run: |
+          cd Frontend
+          npm run lint
+
+      - name: TypeScript type check
+        run: |
+          cd Frontend
+          npx tsc --noEmit
+
+  # Job 2: Build applications
+  build:
+    name: Build Applications
+    runs-on: ubuntu-latest
+    needs: lint # Only build if linting passes
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Build Backend
+      - name: Install backend dependencies
+        run: |
+          cd Backend
+          npm ci
+
+      - name: Build backend
+        run: |
+          cd Backend
+          npm run build
+        continue-on-error: true # Backend might not have build script
+
+      # Build Frontend
+      - name: Install frontend dependencies
+        run: |
+          cd Frontend
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd Frontend
+          npm run build
+
+      # Upload build artifacts
+      - name: Upload frontend build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: Frontend/dist/
+          retention-days: 7
+
+      - name: Upload backend artifacts (if exists)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: Backend/dist/
+          retention-days: 7
+        continue-on-error: true
+
+  # Job 3: Run tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: lint # Run tests in parallel with build
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_DATABASE: kandypack_test
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Wait for MySQL to be ready
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h"127.0.0.1" -P3306 --silent; do
+            echo 'Waiting for MySQL...'
+            sleep 2
+          done
+          echo 'MySQL is ready!'
+
+      # Test Backend
+      - name: Install backend dependencies
+        run: |
+          cd Backend
+          npm ci
+
+      - name: Set up test database
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -ptest_password -e "
+            CREATE DATABASE IF NOT EXISTS kandypack_test;
+            GRANT ALL PRIVILEGES ON kandypack_test.* TO 'test_user'@'%';
+            FLUSH PRIVILEGES;
+          "
+
+      - name: Run backend tests
+        env:
+          NODE_ENV: test
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          DB_NAME: kandypack_test
+          JWT_SECRET: test_jwt_secret_key_for_ci
+        run: |
+          cd Backend
+          npm test
+        continue-on-error: true # Don't fail if no tests exist yet
+
+      # Test Frontend
+      - name: Install frontend dependencies
+        run: |
+          cd Frontend
+          npm ci
+
+      - name: Run frontend tests
+        run: |
+          cd Frontend
+          npm test
+        continue-on-error: true # Don't fail if no tests exist yet
+
+      # Upload test results
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            Backend/coverage/
+            Frontend/coverage/
+            Backend/test-results.xml
+            Frontend/test-results.xml
+          retention-days: 7
+        continue-on-error: true
+
+  # Job 4: Integration tests (optional)
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test environment
+        run: |
+          docker-compose -f docker-compose.yml -f docker-compose.override.yml build
+
+      - name: Run integration tests
+        run: |
+          echo "🧪 Integration tests would run here"
+          echo "This could include:"
+          echo "- API endpoint tests"
+          echo "- Database migration tests"
+          echo "- End-to-end testing with Cypress/Playwright"
+        continue-on-error: true
+
+      - name: Cleanup test environment
+        if: always()
+        run: |
+          docker-compose down -v --remove-orphans

@@ -38,7 +38,7 @@ export interface TruckUsageData {
   status: "In Use" | "Idle" | "Maintenance";
   licensePlate: string;
   inProgressDeliveries: number;
-  comletedDeliveries: number;
+  completedDeliveries: number;
   capacity: number;
 }
 
