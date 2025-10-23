@@ -25,7 +25,8 @@ CREATE TABLE Assistant (
     status VARCHAR(20),
     store_id CHAR(36),
     PRIMARY KEY (assistant_id),
-    FOREIGN KEY (store_id) REFERENCES Store(store_id)
+    FOREIGN KEY (store_id) REFERENCES Store(store_id),
+    chat_id VARCHAR(255) NULL
 );
 -- Create the Customer table
 CREATE TABLE Customer (
@@ -49,7 +50,8 @@ CREATE TABLE Driver (
     status VARCHAR(20),
     store_id CHAR(36),
     PRIMARY KEY (driver_id),
-    FOREIGN KEY (store_id) REFERENCES Store(store_id)
+    FOREIGN KEY (store_id) REFERENCES Store(store_id),
+    chat_id VARCHAR(255) NULL
 );
 
 -- Create the Product table
