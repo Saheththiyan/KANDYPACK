@@ -11,12 +11,19 @@ import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/lib/config';
 import { getAuthToken } from '@/lib/mockAuth';
 
+interface OrderItemEntry {
+  product_id: string;
+  order_id: string;
+  quantity: number;
+  sub_total: number;
+}
+
 interface OrderItem {
   id: string;
   order_id: string;
   date?: string;
   customer_id?: string;
-  items?: any;
+  items?: OrderItemEntry[];
   total_value: number;
   status: string;
   deliveryCity?: string;
